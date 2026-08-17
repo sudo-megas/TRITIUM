@@ -16,3 +16,23 @@
 </p>
 
 <p align="center"><strong>Fuel Logging / Maintenance Tracking for any ICE Vehicle</strong></p>
+
+
+
+## 5. LICENCE SUMMARY
+
+RESONANCE is free software under the **GNU General Public License, version 3 or later**
+(`GPL-3.0-or-later`).
+
+In plain terms: you may use it for anything, study how it works, share it with anyone, and
+change it to suit yourself. If you distribute a changed version, it must carry this same
+licence (or a later version of it) so that whoever receives it has the freedoms you had. It
+comes with **no warranty**.
+
+That is a summary and nothing more — the text that actually governs is the full
+[`LICENSE`](LICENSE) file in this repository, and the same full text is readable inside the
+application from the **About** page.
+
+Copyright © sudo-megas · <https://github.com/sudo-megas/TRITIUM>
+
+*Built with Reason and Passion.*
