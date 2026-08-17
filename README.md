@@ -21,7 +21,7 @@
 
 ## 5. LICENCE SUMMARY
 
-RESONANCE is free software under the **GNU General Public License, version 3 or later**
+TRITIUM is free software under the **GNU General Public License, version 3 or later**
 (`GPL-3.0-or-later`).
 
 In plain terms: you may use it for anything, study how it works, share it with anyone, and
