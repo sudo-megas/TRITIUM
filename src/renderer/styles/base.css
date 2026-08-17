@@ -1,0 +1,268 @@
+/*
+ * Structure only. Not one colour literal lives here — every colour is a custom
+ * property from palettes.css (XTRITIUM §8, enforced by audit-colours).
+ * Spacing, density and the visual design of forms, tables and cards are
+ * design-phase work (XTRITIUM §11); this is the frame, not the furniture.
+ */
+
+@font-face {
+  font-family: 'CaskaydiaCove Nerd Font Mono';
+  src: url('../assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'CaskaydiaCove Nerd Font Mono';
+  src: url('../assets/fonts/CaskaydiaCoveNerdFontMono-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'CaskaydiaCove Nerd Font Mono';
+  src: url('../assets/fonts/CaskaydiaCoveNerdFontMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'CaskaydiaCove Nerd Font Mono';
+  src: url('../assets/fonts/CaskaydiaCoveNerdFontMono-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: block;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'CaskaydiaCove Nerd Font Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--fg);
+  /* XTRITIUM §7 — the compositor decorates; the app never drags its own frame. */
+  overflow: hidden;
+}
+
+/* ── shell ───────────────────────────────────────────────────────────── */
+
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+}
+
+.tabbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--line);
+}
+
+.tabbar__mark {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  border-right: 1px solid var(--line);
+}
+
+.tabbar__glyph {
+  /* One Font Awesome glyph from the Nerd Font patch — no icon library. */
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.tab {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg-dim);
+  font: inherit;
+  letter-spacing: 0.1em;
+  padding: 0.7rem 1.15rem;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--fg);
+  background: var(--bg-sunken);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--accent);
+  background: var(--bg);
+  box-shadow: inset 0 -2px 0 0 var(--accent);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* ── the two big panes ───────────────────────────────────────────────── */
+
+.panes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1px;
+  background: var(--line);
+  min-height: 0;
+}
+
+.pane {
+  background: var(--bg);
+  padding: 1rem;
+  overflow: auto;
+  min-height: 0;
+}
+
+.pane--wide {
+  grid-column: 1 / -1;
+}
+
+/*
+ * The empty state is the filled layout with empty cells — no "get started"
+ * screens anywhere in TRITIUM (XTRITIUM §7).
+ */
+.cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.cell {
+  background: var(--bg);
+  min-height: 3.2rem;
+}
+
+/* ── settings ────────────────────────────────────────────────────────── */
+
+.field {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--line);
+  max-width: 42rem;
+}
+
+.field__label {
+  color: var(--fg-dim);
+  letter-spacing: 0.08em;
+}
+
+.control {
+  appearance: none;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.6rem;
+  min-width: 14rem;
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.swatch {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--line);
+  background: var(--accent);
+  cursor: pointer;
+  padding: 0;
+}
+
+.swatch[aria-pressed='true'] {
+  outline: 2px solid var(--fg);
+  outline-offset: 1px;
+}
+
+/* ── about ───────────────────────────────────────────────────────────── */
+
+.about__mark {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  margin: 0 0 0.25rem;
+}
+
+.about__sub {
+  color: var(--fg-dim);
+  margin: 0 0 1.25rem;
+}
+
+.about__rows {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.about__key {
+  color: var(--fg-dim);
+}
+
+/*
+ * XTRITIUM §3.5 — every address is selectable text and never a link.
+ * There is no <a> anywhere in TRITIUM.
+ */
+.about__value {
+  user-select: text;
+  word-break: break-all;
+}
+
+.licence {
+  white-space: pre-wrap;
+  user-select: text;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  padding: 0.75rem;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  max-height: 100%;
+  overflow: auto;
+}
+
+.section__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+}

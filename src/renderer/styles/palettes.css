@@ -1,0 +1,154 @@
+/*
+ * The ONLY file in TRITIUM allowed to contain a colour literal (XTRITIUM §8,
+ * enforced by scripts/audit-colours.mjs).
+ *
+ * Eleven palettes: ten to be ported from JADEITE plus Ubuntu Aubergine.
+ * Their identities and their real values are design-phase work (XTRITIUM §11).
+ * Everything below is a PLACEHOLDER and is deliberately garish so that nobody
+ * mistakes it for the design phase's output (F1 §3).
+ */
+
+:root,
+[data-palette='p01'] {
+  --bg: #101014;
+  --bg-raised: #1b1b22;
+  --bg-sunken: #08080b;
+  --fg: #f2f2f5;
+  --fg-dim: #9a9aa8;
+  --line: #2e2e3a;
+  --accent: #ff00ff;
+  --accent-fg: #000000;
+  --warn: #ffcc00;
+  --good: #00ff88;
+}
+
+[data-palette='p02'] {
+  --bg: #001018;
+  --bg-raised: #04202c;
+  --bg-sunken: #000509;
+  --fg: #e6fbff;
+  --fg-dim: #6fa5b5;
+  --line: #0b3546;
+  --accent: #00ffd5;
+  --accent-fg: #001018;
+  --warn: #ff8a00;
+  --good: #7cff00;
+}
+
+[data-palette='p03'] {
+  --bg: #180010;
+  --bg-raised: #2a0620;
+  --bg-sunken: #0c0008;
+  --fg: #ffe9f7;
+  --fg-dim: #b56f9c;
+  --line: #460b33;
+  --accent: #ff0066;
+  --accent-fg: #ffffff;
+  --warn: #ffdd00;
+  --good: #00ff99;
+}
+
+[data-palette='p04'] {
+  --bg: #0d1400;
+  --bg-raised: #182600;
+  --bg-sunken: #060a00;
+  --fg: #f0ffdd;
+  --fg-dim: #9ab56f;
+  --line: #2c4600;
+  --accent: #aaff00;
+  --accent-fg: #0d1400;
+  --warn: #ff6600;
+  --good: #00ffcc;
+}
+
+[data-palette='p05'] {
+  --bg: #14100a;
+  --bg-raised: #241d12;
+  --bg-sunken: #0a0805;
+  --fg: #fff4e0;
+  --fg-dim: #b59a6f;
+  --line: #463a22;
+  --accent: #ffaa00;
+  --accent-fg: #14100a;
+  --warn: #ff3300;
+  --good: #66ff33;
+}
+
+[data-palette='p06'] {
+  --bg: #0a0a14;
+  --bg-raised: #121226;
+  --bg-sunken: #05050a;
+  --fg: #e6e6ff;
+  --fg-dim: #7a7ab5;
+  --line: #22224a;
+  --accent: #5566ff;
+  --accent-fg: #ffffff;
+  --warn: #ffbb00;
+  --good: #33ffaa;
+}
+
+[data-palette='p07'] {
+  --bg: #ffffff;
+  --bg-raised: #f2f2f5;
+  --bg-sunken: #e4e4ea;
+  --fg: #101014;
+  --fg-dim: #55555f;
+  --line: #ccccd6;
+  --accent: #cc0000;
+  --accent-fg: #ffffff;
+  --warn: #aa6600;
+  --good: #007744;
+}
+
+[data-palette='p08'] {
+  --bg: #f5f0e6;
+  --bg-raised: #ece4d4;
+  --bg-sunken: #ded3bd;
+  --fg: #241d12;
+  --fg-dim: #6b5c42;
+  --line: #c9b894;
+  --accent: #8b4513;
+  --accent-fg: #f5f0e6;
+  --warn: #b35900;
+  --good: #2e6b2e;
+}
+
+[data-palette='p09'] {
+  --bg: #001400;
+  --bg-raised: #002600;
+  --bg-sunken: #000a00;
+  --fg: #ccffcc;
+  --fg-dim: #66aa66;
+  --line: #004400;
+  --accent: #00ff00;
+  --accent-fg: #001400;
+  --warn: #ffff00;
+  --good: #00ffff;
+}
+
+[data-palette='p10'] {
+  --bg: #121212;
+  --bg-raised: #1e1e1e;
+  --bg-sunken: #0a0a0a;
+  --fg: #eeeeee;
+  --fg-dim: #888888;
+  --line: #333333;
+  --accent: #999999;
+  --accent-fg: #121212;
+  --warn: #cccccc;
+  --good: #dddddd;
+}
+
+/* Ubuntu Aubergine (Canonical) — the eleventh, XTRITIUM §8. Also placeholder. */
+[data-palette='aubergine'] {
+  --bg: #2c001e;
+  --bg-raised: #3b0a2a;
+  --bg-sunken: #1a0012;
+  --fg: #f7f2f5;
+  --fg-dim: #b48ca5;
+  --line: #5e2750;
+  --accent: #e95420;
+  --accent-fg: #ffffff;
+  --warn: #efb73e;
+  --good: #38b44a;
+}

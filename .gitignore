@@ -1,1 +1,26 @@
 /draft
+
+# node
+node_modules/
+npm-debug.log*
+.npm/
+
+# build output
+out/
+dist/
+release/
+*.pkg.tar.zst
+
+# test artefacts
+coverage/
+test-results/
+playwright-report/
+.playwright/
+
+# editor droppings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

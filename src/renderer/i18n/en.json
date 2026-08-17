@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "TRITIUM",
+    "subtitle": "Fuel Logging / Maintenance Tracking for any ICE Vehicle"
+  },
+  "tabs": {
+    "summary": "SUMMARY",
+    "fuel": "FUEL",
+    "costs": "COSTS",
+    "service": "SERVICE",
+    "charts": "CHARTS",
+    "statistics": "STATISTICS",
+    "settings": "SETTINGS",
+    "about": "ABOUT"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "palette": "Palette",
+    "paletteHint": "Placeholder colours — the eleven palettes are settled in the design phase."
+  },
+  "palettes": {
+    "p01": "Palette 01",
+    "p02": "Palette 02",
+    "p03": "Palette 03",
+    "p04": "Palette 04",
+    "p05": "Palette 05",
+    "p06": "Palette 06",
+    "p07": "Palette 07",
+    "p08": "Palette 08",
+    "p09": "Palette 09",
+    "p10": "Palette 10",
+    "aubergine": "Ubuntu Aubergine"
+  },
+  "about": {
+    "title": "About",
+    "maker": "Maker",
+    "version": "Version",
+    "released": "Released",
+    "source": "Source",
+    "licence": "Licence",
+    "licenceTitle": "Licence text"
+  }
+}

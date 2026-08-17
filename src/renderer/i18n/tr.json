@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "TRITIUM",
+    "subtitle": "Her İçten Yanmalı Araç için Yakıt Kaydı / Bakım Takibi"
+  },
+  "tabs": {
+    "summary": "ÖZET",
+    "fuel": "YAKIT",
+    "costs": "MASRAFLAR",
+    "service": "BAKIM",
+    "charts": "GRAFİKLER",
+    "statistics": "İSTATİSTİKLER",
+    "settings": "AYARLAR",
+    "about": "HAKKINDA"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "palette": "Palet",
+    "paletteHint": "Geçici renkler — on bir palet tasarım aşamasında kesinleşir."
+  },
+  "palettes": {
+    "p01": "Palet 01",
+    "p02": "Palet 02",
+    "p03": "Palet 03",
+    "p04": "Palet 04",
+    "p05": "Palet 05",
+    "p06": "Palet 06",
+    "p07": "Palet 07",
+    "p08": "Palet 08",
+    "p09": "Palet 09",
+    "p10": "Palet 10",
+    "aubergine": "Ubuntu Aubergine"
+  },
+  "about": {
+    "title": "Hakkında",
+    "maker": "Yapımcı",
+    "version": "Sürüm",
+    "released": "Yayın tarihi",
+    "source": "Kaynak",
+    "licence": "Lisans",
+    "licenceTitle": "Lisans metni"
+  }
+}

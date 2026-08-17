@@ -1,0 +1,5 @@
+/* Fixture: audit-colours must reject this file. Never loaded by the app. */
+.total {
+  color: #4a9d8e;
+  background: rgb(20 20 24);
+}

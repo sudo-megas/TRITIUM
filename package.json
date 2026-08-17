@@ -1,0 +1,52 @@
+{
+  "name": "tritium",
+  "version": "0.1.0",
+  "description": "Fuel Logging / Maintenance Tracking for any ICE Vehicle",
+  "license": "GPL-3.0-or-later",
+  "author": "sudo-megas",
+  "private": true,
+  "type": "module",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "audit": "node scripts/audit-egress.mjs && node scripts/audit-strings.mjs && node scripts/audit-colours.mjs && node scripts/audit-locale.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "build": "npm run audit && npm run typecheck && electron-vite build",
+    "test": "npm run audit && npm run typecheck && npm run test:unit && electron-vite build && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "i18next": "26.3.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-i18next": "17.0.11",
+    "smol-toml": "1.8.0",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.2.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "5.2.0",
+    "electron": "43.4.0",
+    "electron-builder": "26.15.3",
+    "electron-vite": "5.0.0",
+    "eslint": "10.8.1",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.67.0",
+    "vite": "7.3.6",
+    "vitest": "4.1.10"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true
+  }
+}
