@@ -2,8 +2,9 @@
 //
 // F7 replaces this with the dense table and the time-range chips XTRITIUM §7
 // settles; what is here is the least furniture that lets a fill-up be entered
-// and the consumption figure be looked at. It stands in for the design phase
-// exactly as F1's deliberately garish palettes stand in for §11 item 3.
+// and the consumption figure be looked at. Provisional in what it shows, not in
+// how it looks: the row height, the alignment and the single rule under each row
+// are the treatment F7 inherits.
 //
 // Every figure is derived where it is shown and none of them is stored (§4.4):
 // the total is litres × price, and the l/100km comes out of the engine each
@@ -42,7 +43,7 @@ export function FuelPane(): JSX.Element {
         <div className="pane__head">
           <button
             type="button"
-            className="picker__button"
+            className="button"
             data-testid="fuel-quick-add"
             disabled={active === null}
             onClick={() => open('fuel-quick')}
@@ -52,7 +53,7 @@ export function FuelPane(): JSX.Element {
 
           <button
             type="button"
-            className="picker__button"
+            className="button"
             data-testid="fuel-full-add"
             disabled={active === null}
             onClick={() => open('fuel')}
@@ -107,7 +108,7 @@ export function FuelPane(): JSX.Element {
                   <td>
                     <button
                       type="button"
-                      className="picker__button"
+                      className="button"
                       data-testid={`fuel-edit-${entry.id}`}
                       onClick={() => open('fuel', entry.id)}
                     >

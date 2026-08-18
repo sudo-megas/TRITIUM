@@ -407,6 +407,12 @@ select,
   margin-bottom: var(--gap-between);
 }
 
+/* The row exists to key the list, not to draw anything: it hands its two
+ * children straight to the grid so key and value land in the same two columns. */
+.about__row {
+  display: contents;
+}
+
 .about__key {
   color: var(--text-muted);
 }
@@ -453,7 +459,15 @@ select,
   font-size: var(--text-sm);
 }
 
-.picker__button {
+/* ── buttons ─────────────────────────────────────────────────────────────
+ * One button, two weights of intent. The ordinary one is quiet: it borrows the
+ * sunken fill and says what it does in words. The primary one — the single
+ * action that completes a form — is the one place in the interface where accent
+ * becomes a surface rather than a mark, and there is never more than one of them
+ * in view at a time. That is the whole of accent's job here: it is a signal, and
+ * a signal that appears twice has stopped being one.
+ */
+.button {
   appearance: none;
   height: var(--control-height-sm);
   border: var(--border-width) solid var(--border-strong);
@@ -465,19 +479,39 @@ select,
   padding: var(--space-0) var(--space-12);
 }
 
-.picker__button:hover:not(:disabled) {
+.button:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.picker__button:focus-visible {
+.button:focus-visible {
   outline: var(--focus-width) solid var(--focus-ring);
   outline-offset: var(--focus-inset);
 }
 
-.picker__button:disabled {
+.button:disabled {
   color: var(--text-subtle);
   border-color: var(--border);
+}
+
+.button--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--text-on-accent);
+}
+
+/* A disabled primary gives the accent up entirely rather than fading it: a pale
+ * accent still reads as "press me", and this one cannot be pressed. */
+.button--primary:disabled {
+  background: var(--surface-sunken);
+  border-color: var(--border);
+  color: var(--text-subtle);
 }
 
 /* ── form windows ────────────────────────────────────────────────────────

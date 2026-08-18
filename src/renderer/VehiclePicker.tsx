@@ -46,7 +46,7 @@ export function VehiclePicker(): JSX.Element {
 
       <button
         type="button"
-        className="picker__button"
+        className="button"
         data-testid="vehicle-add"
         onClick={() => void window.tritium.openForm('vehicle')}
       >
@@ -55,7 +55,7 @@ export function VehiclePicker(): JSX.Element {
 
       <button
         type="button"
-        className="picker__button"
+        className="button"
         data-testid="vehicle-edit"
         disabled={active === null}
         onClick={() => {

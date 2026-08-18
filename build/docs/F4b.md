@@ -434,9 +434,29 @@ made, rather than discovering the conflict and hard-coding its way out.
 | `src/renderer/panes/*.tsx` | `AboutPane`, `SettingsPane`, `FuelPane`, `EmptyPanes` |
 | `src/renderer/forms/*.tsx` | `VehicleForm`, `FuelForm`, `FuelQuickAdd`, `CurrencyAsk` given a real form layout |
 | `src/renderer/VehiclePicker.tsx` | Restyled |
-| `src/main/index.ts`, `src/preload/index.ts` | Palette and language broadcast to every window (D13) |
+| `src/renderer/state/settings.ts` | Every window follows `settings:changed` |
 | `scripts/audit-overlap.mjs` | **New**, wired into `npm run audit` |
 | `tests/unit/palettes.test.ts` | **New.** Token completeness and computed contrast |
+
+Two corrections to what this milestone expected to write.
+
+**The broadcast needed no main-process or preload change at all.** The plan
+assumed palette and language had to be broadcast to every window and that the
+channel would have to be built. It was already there: the main process has
+broadcast `settings:changed` on every write since F2, and the preload has
+exposed `onSettingsChanged` since then too. Nothing had ever subscribed. The
+whole repair is a listener in the renderer's settings store, which re-applies the
+two visible settings and deliberately does not write back — the window that made
+the change has already written it, and a follower that wrote back would start a
+conversation between windows that nobody ends.
+
+**The palette rename reaches the tests, so acceptance criterion 6 needs
+qualifying.** `p01`…`p10` becoming real names changes six palette-id literals
+across `tests/e2e/harness.ts`, `tests/e2e/shell.spec.ts` and
+`tests/unit/settings-file.test.ts`. No test was added, removed, weakened or
+re-scoped; each one asserts exactly what it asserted before, about a palette
+that now has a name. The criterion should be read as "unchanged in what they
+prove", not "unchanged in their bytes".
 
 Reused unchanged: `src/shared/consumption.ts`, `src/shared/format.ts`,
 `src/main/storage/*`. **F4b changes how the app looks, not what it does.**

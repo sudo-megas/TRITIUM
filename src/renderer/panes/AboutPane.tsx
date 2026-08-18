@@ -35,7 +35,7 @@ export function AboutPane(): JSX.Element {
 
         <div className="about__rows">
           {rows.map(([key, value]) => (
-            <div className="about__row" key={key} style={{ display: 'contents' }}>
+            <div className="about__row" key={key}>
               <span className="about__key">{key}</span>
               <span className="about__value" data-testid={`about-${key}`}>
                 {value}

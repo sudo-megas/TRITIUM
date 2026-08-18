@@ -72,7 +72,7 @@ export function CurrencyAsk(): JSX.Element {
       <div className="form__actions">
         <button
           type="button"
-          className="picker__button"
+          className="button button--primary"
           data-testid="currency-confirm"
           disabled={answer.length === 0}
           onClick={confirm}

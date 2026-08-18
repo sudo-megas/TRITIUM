@@ -250,7 +250,7 @@ export function VehicleForm({ slug }: { slug?: string }): JSX.Element {
       <div className="form__actions">
         <button
           type="button"
-          className="picker__button"
+          className="button"
           data-testid="vehicle-cancel"
           onClick={() => void window.tritium.closeForm()}
         >
@@ -259,7 +259,7 @@ export function VehicleForm({ slug }: { slug?: string }): JSX.Element {
 
         <button
           type="button"
-          className="picker__button"
+          className="button button--primary"
           data-testid="vehicle-save"
           disabled={!nameGiven || saving}
           onClick={() => void save()}

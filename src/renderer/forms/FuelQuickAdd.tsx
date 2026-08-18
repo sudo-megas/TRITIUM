@@ -152,7 +152,7 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
       <div className="form__actions">
         <button
           type="button"
-          className="picker__button"
+          className="button"
           data-testid="fuel-cancel"
           onClick={() => void window.tritium.closeForm()}
         >
@@ -161,7 +161,7 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
 
         <button
           type="button"
-          className="picker__button"
+          className="button button--primary"
           data-testid="fuel-save"
           disabled={!ready || saving}
           onClick={() => void save()}
