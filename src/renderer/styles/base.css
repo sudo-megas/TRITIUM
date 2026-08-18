@@ -98,6 +98,18 @@ textarea,
 }
 
 /*
+ * Selection is a palette decision, not the platform's. Left to Chromium it
+ * arrives in the desktop's own highlight colour, which belongs to none of the
+ * eleven and lands on top of whichever one is in force. It matters more here
+ * than in most applications: with no context menu, selecting text is how
+ * anything gets copied, so this is a colour the maker will actually see.
+ */
+::selection {
+  background: var(--selection);
+  color: var(--text);
+}
+
+/*
  * Nothing in this application is a link — every address is selectable text
  * (XTRITIUM §3.5) — so the hand cursor would be a promise the app never keeps.
  * Controls take the ordinary arrow, and text takes a caret.
@@ -158,8 +170,18 @@ select,
  * The bar is square. It meets three window edges, and a rounded corner there
  * would show the desktop through the gap.
  */
+/*
+ * It wraps. At the minimum window width the mark, eight tabs and the vehicle
+ * picker fit with roughly a hundred pixels to spare, which is not a margin to
+ * rely on: the app's own desktop is a tiling compositor that decides window
+ * widths for itself and is under no obligation to respect a minimum. Wrapping
+ * costs nothing at full width and, when there is not enough room, spends a
+ * second row rather than pushing the picker off the edge or laying one control
+ * over another.
+ */
 .tabbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: var(--space-0);
   min-height: var(--tab-height);
