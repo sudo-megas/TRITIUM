@@ -14,10 +14,19 @@ import { VehiclePicker } from './VehiclePicker.js'
 import { useVehicles } from './state/vehicles.js'
 import { APP_NAME } from '../shared/app-meta.js'
 
-// fa-car-side (U+EEA0), from the Font Awesome 6 range of the Nerd Font patch
-// (U+ED00-U+EFFF). The older U+F000-U+F2E0 range is Font Awesome 4.7 and is not
-// used. This proves the icon path: no icon library is a dependency (XTRITIUM §8).
-const MARK_GLYPH = ''
+// The application's own mark, from the artwork the maker supplied. It replaces
+// the fa-car-side glyph that stood here since F1: a generic car borrowed from a
+// font patch was always a placeholder for the real thing, and the real thing now
+// exists.
+//
+// The 128px file is the one imported. It is four times the box it is drawn in,
+// which is what keeps it sharp on a HiDPI screen; the larger files beside it are
+// for the packaged application's own icon, and putting a seventeen-megabyte
+// bitmap through the renderer bundle to draw twenty-four pixels would be absurd.
+//
+// Bundled, not fetched: the import resolves at build time and the file is
+// emitted beside the bundle, which is what keeps §2's zero-network rule true.
+import markIcon from '../../build/icons/128.png'
 
 const TABS = [
   'summary',
@@ -57,9 +66,9 @@ export function App(): JSX.Element {
     <div className="shell">
       <nav className="tabbar" role="tablist" aria-label={t('app.name')}>
         <div className="tabbar__mark">
-          <span className="tabbar__glyph" data-testid="mark-glyph">
-            {MARK_GLYPH}
-          </span>
+          {/* Decorative: the word beside it already names the application, and
+              a second reading of "TRITIUM" from an alt text would be noise. */}
+          <img className="tabbar__icon" src={markIcon} alt="" data-testid="mark-icon" />
           <span>{APP_NAME}</span>
         </div>
 

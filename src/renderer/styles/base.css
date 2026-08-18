@@ -201,10 +201,18 @@ select,
   border-right: var(--border-width) solid var(--border);
 }
 
-.tabbar__glyph {
-  /* One Font Awesome glyph from the Nerd Font patch — no icon library. */
-  font-size: var(--text-md);
-  line-height: 1;
+.tabbar__icon {
+  /*
+   * Block, not inline: an inline image sits on the text baseline and leaves a
+   * gap of descender space beneath it, which would push the mark off the centre
+   * line the tabs beside it are set on.
+   *
+   * Both dimensions are declared rather than one, so the bar reserves the box
+   * before the bitmap decodes and the word beside it never shifts.
+   */
+  display: block;
+  width: var(--mark-size);
+  height: var(--mark-size);
 }
 
 .tab {

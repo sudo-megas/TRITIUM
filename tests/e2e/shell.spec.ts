@@ -103,12 +103,75 @@ test('the shell paints the stored palette on its first frame', async () => {
   expect(attribute).toBe('nord')
 })
 
-test('the Nerd Font glyph renders from the font patch', async () => {
+/*
+ * The mark is the maker's own artwork now, not a glyph borrowed from the font
+ * patch. naturalWidth is the assertion that carries the weight: a broken src, a
+ * refusal by the Content-Security-Policy, or an asset the build failed to emit
+ * all leave an <img> that a visibility query still calls visible, because the
+ * element is laid out either way. Only a real decode gives it intrinsic size.
+ */
+test('the application mark decodes, and fits inside the bar it sits in', async () => {
   const page = await app.firstWindow()
-  const glyph = page.getByTestId('mark-glyph')
-  await expect(glyph).toBeVisible()
-  const family = await glyph.evaluate((node) => getComputedStyle(node).fontFamily)
-  expect(family).toContain('CaskaydiaCove Nerd Font Mono')
+  const icon = page.getByTestId('mark-icon')
+  await expect(icon).toBeVisible()
+
+  const drawn = await icon.evaluate((node) => {
+    const image = node as HTMLImageElement
+    const mark = image.getBoundingClientRect()
+    const bar = image.closest('nav')?.getBoundingClientRect()
+    return {
+      natural: image.naturalWidth,
+      width: mark.width,
+      height: mark.height,
+      bar: bar?.height ?? 0
+    }
+  })
+
+  // The 128px file is the one that was imported, and it is square.
+  expect(drawn.natural).toBe(128)
+  expect(drawn.width).toBe(drawn.height)
+  expect(drawn.height).toBeGreaterThan(0)
+
+  // Drawn at a size the bar can hold. A mark taller than its own bar could only
+  // fit by overlapping something, which is the one thing nothing here may do.
+  expect(drawn.height).toBeLessThanOrEqual(drawn.bar)
+})
+
+/*
+ * The vendored font, proved by what the engine loaded rather than by what the
+ * stylesheet asked for. The test this replaces read font-family off the mark
+ * glyph — but a computed font-family returns whatever was requested whether or
+ * not the file behind the @font-face ever arrived, so it would have passed on a
+ * 404. Reading document.fonts asks the engine what it actually has.
+ *
+ * Note that the patched-glyph range is no longer proved by anything, because
+ * after this change the application draws no patched glyph at all. That proof
+ * returns with the first glyph F7 or F8 puts in the interface.
+ */
+test('the vendored font is declared four ways, and the faces in use are loaded', async () => {
+  const page = await app.firstWindow()
+  await expect(page.getByTestId('tab-summary')).toBeVisible()
+
+  const faces = await page.evaluate(async () => {
+    await document.fonts.ready
+    return Array.from(document.fonts)
+      .filter((face) => face.family === 'CaskaydiaCove Nerd Font Mono')
+      .map((face) => ({ weight: face.weight, style: face.style, status: face.status }))
+  })
+
+  // Regular, italic, bold, bold-italic — the four files in src/renderer/assets.
+  expect(faces).toHaveLength(4)
+
+  // Only the faces the interface actually sets are required to have loaded:
+  // body text is regular, and the mark beside the tabs is bold. An italic that
+  // nothing renders may legitimately still be sitting unloaded.
+  const face = (weight: string, style: string): string | undefined =>
+    faces.find((one) => one.weight === weight && one.style === style)?.status
+
+  expect(face('400', 'normal')).toBe('loaded')
+  expect(face('700', 'normal')).toBe('loaded')
+  expect(face('400', 'italic')).toBeDefined()
+  expect(face('700', 'italic')).toBeDefined()
 })
 
 test('the language switch flips a visible string and persists', async () => {

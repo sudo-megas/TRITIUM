@@ -85,6 +85,16 @@
   --control-height-sm: 24px;
   --tab-height: 36px;
 
+  /*
+   * The application mark in the tab bar. Its source file is build/icons/128.png
+   * — four times this box, so the artwork is still sharp on a HiDPI screen and
+   * has room to grow. The box itself has to clear the bar it sits in: at 24 it
+   * leaves six pixels of air above and below inside a 36px bar. Anything at the
+   * source file's own size would be three and a half times the bar's height and
+   * would have to overlap something to fit.
+   */
+  --mark-size: 24px;
+
   /* ---- Measures -----------------------------------------------------------
    * Widths that are decisions rather than spacing: how wide a label column is,
    * how narrow a control may become, how far a line of prose may run before it
