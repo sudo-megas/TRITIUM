@@ -435,8 +435,11 @@ made, rather than discovering the conflict and hard-coding its way out.
 | `src/renderer/forms/*.tsx` | `VehicleForm`, `FuelForm`, `FuelQuickAdd`, `CurrencyAsk` given a real form layout |
 | `src/renderer/VehiclePicker.tsx` | Restyled |
 | `src/renderer/state/settings.ts` | Every window follows `settings:changed` |
+| `src/main/index.ts` | Electron's default application menu removed |
 | `scripts/audit-overlap.mjs` | **New**, wired into `npm run audit` |
 | `tests/unit/palettes.test.ts` | **New.** Token completeness and computed contrast |
+| `tests/e2e/clipboard.spec.ts` | **New.** D4's clipboard verification, automated |
+| `build/icons/128.png`, `512.png` | **Read, not changed.** The two marks are imported from the maker's own artwork |
 
 Two corrections to what this milestone expected to write.
 
@@ -458,8 +461,43 @@ re-scoped; each one asserts exactly what it asserted before, about a palette
 that now has a name. The criterion should be read as "unchanged in what they
 prove", not "unchanged in their bytes".
 
+**A third correction: the application had a menu, and D4's verification was
+therefore never run.** Recorded in full in §4.1, because that is where the false
+claim was printed. In short: Electron installs a default menu when an app sets
+none, `autoHideMenuBar` hides the bar without removing the menu, and `Alt` still
+dropped it over the interface. It is gone, and the clipboard turns out not to
+need it.
+
+**The artwork arrived mid-milestone and is now placed.** The maker supplied
+`build/icons/` and asked for the mark in two places: the tab bar and About. This
+is the one part of §11.4 that F4b closes.
+
+- **Tab bar — `128.png` at 64px.** Fitting the mark into the existing 36px bar
+  was tried first and rejected by the maker: the bar was to grow instead. It
+  does. The mark is the tallest item in that row, so the row grows to hold it and
+  the tabs stretch to match — a 72px header, four pixels of air above and below.
+  That cost is the honest one, because the alternative is letting the mark hang
+  over what is beneath it. At 24px the photograph read as a grey tile; at 64 it
+  resolves into the headlight it is.
+- **About — `512.png` at 256px**, with a region-sized gap above it. About is the
+  one page whose height is governed by neither a row nor a bar, so it is the one
+  place the icon can be seen near the size it was drawn for.
+- Each mark is drawn at **half the size of its source file**, which is what keeps
+  it sharp on a HiDPI screen without carrying a larger bitmap for nothing. No
+  radius is added to either: the artwork carries its own rounded corners, and
+  rounding a rounded picture leaves a sliver of ground in every corner.
+- **The fa-car-side glyph it replaced is gone, and with it the only patched glyph
+  the application drew.** Nothing now proves the Nerd Font's patched range
+  renders; that proof returns with the first icon F7 or F8 puts in the interface.
+  What replaced its test is stronger for the font itself — the old one read
+  `font-family` off the glyph, which returns whatever the stylesheet asked for
+  whether or not the file behind the `@font-face` ever arrived, so it would have
+  passed against a 404. The new one waits for `document.fonts` and asks the
+  engine what it actually holds.
+
 Reused unchanged: `src/shared/consumption.ts`, `src/shared/format.ts`,
-`src/main/storage/*`. **F4b changes how the app looks, not what it does.**
+`src/main/storage/*`. **F4b changes how the app looks, not what it does** — with
+the single exception of the default menu, which was behaviour nobody chose.
 
 ### 2.4 Tests that must exist
 
@@ -476,6 +514,13 @@ Reused unchanged: `src/shared/consumption.ts`, `src/shared/format.ts`,
 - An e2e test switches through all eleven palettes and asserts the computed
   custom properties actually change.
 - **The existing 116 unit and 29 e2e tests pass unchanged.**
+- **The clipboard works with no application menu**, asserted rather than
+  observed: the menu is `null`, a field takes a paste, gives a copy and a cut
+  back, and the source address copies by triple click (D4, §4.1).
+- **Both marks decode.** An image element occupies space whether or not its
+  source ever loaded, so each is checked by its `naturalWidth` and by the file it
+  came from, and the bar's mark is measured against the bar to prove it fits
+  inside rather than over it.
 
 ---
 
@@ -488,7 +533,9 @@ Reused unchanged: `src/shared/consumption.ts`, `src/shared/format.ts`,
   rows — Hyper, the one genuinely Electron terminal, fell to roughly one frame
   per second painting a long list directly into the DOM.
 - **The charts are F8's.** F4b defines the series colours they will use.
-- **§11.4 stays open** — subtitle wording, README banner, icon artwork.
+- **§11.4 stays open except for the icon** — subtitle wording and the README
+  banner remain open. The icon artwork exists and is placed, in the tab bar and
+  on About (§2.3).
 - **No new font weights**, no second typeface, no animation library, no icon
   library, no CSS framework. The stack does not move for a coat of paint.
 
@@ -519,16 +566,24 @@ Reused unchanged: `src/shared/consumption.ts`, `src/shared/format.ts`,
 14. Palette switching is instant, and no global transition exists.
 15. The tab list and both panes' contents are settled and documented here.
 16. All existing tests pass unchanged; the five audits, both tsconfigs, the unit
-    suite, the build and the e2e suite are green.
+    suite, the build and the e2e suite are green. **Qualified twice**: by the six
+    palette-id literals of §2.3, and by one test replaced rather than kept — the
+    Nerd Font glyph test, whose subject no longer exists, and whose replacement
+    proves more about the font than it did (§2.3).
 17. **The app is run and looked at**, seeded, in at least one dark and one light
     palette — including the checks §4.1 names.
 
 ### 4.1 Checks that cannot be automated
 
-- **Icons, glyph by glyph, at real UI size.** Nerd Fonts ships three width builds
-  because monospace and legible icons genuinely conflict; we vendor Mono, which
-  has live upstream bugs for oversized glyphs, and our build carries only FA 4.7
-  and FA 6.5.1.
+- ~~**Icons, glyph by glyph, at real UI size.** Nerd Fonts ships three width
+  builds because monospace and legible icons genuinely conflict; we vendor Mono,
+  which has live upstream bugs for oversized glyphs, and our build carries only
+  FA 4.7 and FA 6.5.1.~~ **Moot for F4b: there are no glyph icons left to check.**
+  The single patched glyph the application drew — fa-car-side, in the tab bar —
+  has been replaced by the maker's own artwork (§2.3), and nothing else in the
+  interface uses the patched range. The check returns, with its reasoning intact,
+  the moment F7 or F8 puts a glyph in a table or a chart. The vendored font is
+  still verified, but as a font rather than as an icon set.
 - ~~**The font on Arch + GNOME + Wayland**, which has an open, unresolved Electron
   rendering regression (#47502).~~ **Withdrawn: the premise was false.** That
   issue closed within two days, root-caused to a GNOME Shell extension on the
@@ -543,9 +598,32 @@ Reused unchanged: `src/shared/consumption.ts`, `src/shared/format.ts`,
   short output the window commits to 720 and the bottom of it is rendered
   off-screen and unreachable. 1920 × 1080 has room; **1366 × 768 does not**,
   clearing 720 by fourteen pixels before any gap is subtracted.
-- **Clipboard with no application menu present** (D4). **Done and passing** —
+- ~~**Clipboard with no application menu present** (D4). **Done and passing** —
   `Ctrl+C` copied a selected address out of the About pane with no menu anywhere
-  in the application, so the rule costs nothing and no accelerators were needed.
+  in the application, so the rule costs nothing and no accelerators were needed.~~
+  **Corrected: the premise was false, and the check has moved out of this list.**
+  There *was* a menu. Electron builds a default application menu — File, Edit,
+  View, Window, carrying Reload, Force Reload, Toggle Developer Tools and a zoom
+  control — for any app that never sets one, and TRITIUM never did. The windows
+  set `autoHideMenuBar`, which hides the bar and reads like a decision, but
+  hiding is not removing: the accelerators stayed bound and **`Alt` still dropped
+  a native menu over the interface**, which is precisely the overlay D3 exists to
+  forbid, reachable by an accidental keystroke. So the copy that was observed
+  proved nothing about a menu-less window; the default menu's Edit submenu was
+  supplying it.
+
+  `Menu.setApplicationMenu(null)` now removes it, and the real answer is the one
+  D4 hoped for: **the clipboard survives with no menu at all.** Chromium
+  implements cut, copy, paste and select-all in the renderer rather than through
+  menu accelerators. No accelerators had to be wired.
+
+  This is no longer a manual check. `tests/e2e/clipboard.spec.ts` asserts the
+  application menu really is `null` *before* it asserts anything else — so it
+  cannot pass on a menu that came back — then pastes into a field, copies and
+  cuts back out of it, and copies the source address by triple click. That last
+  one also proves the `user-select` carve-out: the body sets `user-select: none`,
+  and without the exception for `.about__value` the gesture would select nothing
+  and the copy would return empty.
 
 ---
 
