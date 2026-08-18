@@ -5,7 +5,7 @@
 // browser: navigation away from the bundled renderer is refused outright, and
 // window.open stays refused. Windows are opened by this process or not at all.
 
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu } from 'electron'
 import { readSettings, writeSettings } from './storage/settings-file.js'
 import { createMainWindow, openFormWindow } from './windows.js'
 import {
@@ -254,6 +254,22 @@ if (!app.requestSingleInstanceLock()) {
   })
 
   void app.whenReady().then(() => {
+    /*
+     * Electron builds a default application menu when an app never sets one —
+     * File, Edit, View, Window, carrying Reload, Force Reload, Toggle Developer
+     * Tools and a zoom control. TRITIUM had it all along: autoHideMenuBar hides
+     * the bar but does not remove the menu, so pressing Alt dropped a native
+     * menu over the interface, which is exactly the overlay F4b's no-overlap
+     * rule exists to forbid — and it offered commands this application never
+     * designed and does not want.
+     *
+     * Removing it is what makes the rule true rather than merely hidden. The
+     * clipboard does not depend on it: Chromium implements the editing commands
+     * in the renderer, so cut, copy, paste and select-all survive with no menu
+     * at all, which tests/e2e/clipboard.spec.ts asserts rather than assumes.
+     */
+    Menu.setApplicationMenu(null)
+
     registerIpc()
     createWindow()
   })
