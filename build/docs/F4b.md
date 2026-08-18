@@ -529,12 +529,23 @@ Reused unchanged: `src/shared/consumption.ts`, `src/shared/format.ts`,
   because monospace and legible icons genuinely conflict; we vendor Mono, which
   has live upstream bugs for oversized glyphs, and our build carries only FA 4.7
   and FA 6.5.1.
-- **The font on Arch + GNOME + Wayland**, which has an open, unresolved Electron
-  rendering regression (#47502) — the maker's exact platform.
-- **The window at narrow and tall aspect ratios.** Fixed two-pane apps on Linux
-  are a named, repeated failure in tiling window managers — TRITIUM's exact
-  shape and primary platform.
-- **Clipboard with no application menu present** (D7).
+- ~~**The font on Arch + GNOME + Wayland**, which has an open, unresolved Electron
+  rendering regression (#47502).~~ **Withdrawn: the premise was false.** That
+  issue closed within two days, root-caused to a GNOME Shell extension on the
+  reporter's own machine. It was never an Electron regression and never applied
+  here. It is struck rather than deleted because it was stated as fact in this
+  document and in F4b-draft.md, and a claim that was published wrong should be
+  visibly withdrawn rather than quietly disappear.
+- **The window at narrow and tall aspect ratios.** Still required, and the reason
+  is now specific rather than general (`F4b-niri.md` §4.1): niri lets the client
+  have the final say on size, so width overflow is harmless — the column simply
+  widens. **Height is the real risk**, because niri has no vertical scroll: on a
+  short output the window commits to 720 and the bottom of it is rendered
+  off-screen and unreachable. 1920 × 1080 has room; **1366 × 768 does not**,
+  clearing 720 by fourteen pixels before any gap is subtracted.
+- **Clipboard with no application menu present** (D4). **Done and passing** —
+  `Ctrl+C` copied a selected address out of the About pane with no menu anywhere
+  in the application, so the rule costs nothing and no accelerators were needed.
 
 ---
 

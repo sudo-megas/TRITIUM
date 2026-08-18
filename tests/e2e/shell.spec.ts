@@ -2,8 +2,8 @@
 
 import { readFileSync, rmSync } from 'node:fs'
 import { parse } from 'smol-toml'
-import { test, expect, type ElectronApplication } from '@playwright/test'
-import { launchApp, makeDataDir, seedSettings, settingsPathIn } from './harness.js'
+import { test, expect, type ElectronApplication, type Page } from '@playwright/test'
+import { launchApp, makeDataDir, seedSettings, settingsPathIn, windowWith } from './harness.js'
 import { PALETTES } from '../../src/shared/settings.js'
 
 // The seventeen tokens every palette owes, plus the eight-colour chart series.
@@ -246,4 +246,43 @@ test('all eleven palettes resolve a complete token set, and none repeats another
   }
 
   expect(seen.size).toBe(PALETTES.length)
+})
+
+/*
+ * A window opened BEFORE the palette changed must change with it.
+ *
+ * Windows are isolated: each runs its own copy of the bundle with its own copy
+ * of the settings, taken when it opened. The main process has announced every
+ * settings write since F2 and the preload has exposed the channel since then
+ * too, but until F4b nothing had ever subscribed — so a form opened first kept
+ * the palette it was born with while the shell behind it changed. With eleven
+ * placeholder palettes nobody would have noticed; with eleven real ones it is
+ * the first thing anyone would see.
+ */
+test('a form opened before the palette changed follows it anyway', async () => {
+  const shell = await windowWith(app, 'tab-settings')
+
+  // Open the form FIRST, while the shell is still on the seeded palette. The
+  // picker lives in the tab bar, so this needs no navigation.
+  await shell.getByTestId('vehicle-add').click()
+  const form = await windowWith(app, 'vehicle-save')
+
+  const accentOf = (page: Page): Promise<string> =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
+    )
+
+  const before = await accentOf(form)
+  expect(before.length).toBeGreaterThan(0)
+
+  // Now change it in the shell, with the form already open and untouched.
+  await shell.getByTestId('tab-settings').click()
+  await shell.getByTestId('palette-select').selectOption('aubergine')
+
+  await expect(async () => {
+    expect(await accentOf(form)).not.toBe(before)
+  }).toPass({ timeout: 5_000 })
+
+  // Both windows agree, rather than the form merely having changed to something.
+  expect(await accentOf(form)).toBe(await accentOf(shell))
 })
