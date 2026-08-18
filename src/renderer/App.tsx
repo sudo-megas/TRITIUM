@@ -11,9 +11,10 @@ import { SettingsPane } from './panes/SettingsPane.js'
 import { AboutPane } from './panes/AboutPane.js'
 import { APP_NAME } from '../shared/app-meta.js'
 
-// fa-car, rendered from the Font Awesome patch inside the Nerd Font.
-// This proves the icon path: no icon library is a dependency (XTRITIUM §8).
-const MARK_GLYPH = ''
+// fa-car-side (U+EEA0), from the Font Awesome 6 range of the Nerd Font patch
+// (U+ED00-U+EFFF). The older U+F000-U+F2E0 range is Font Awesome 4.7 and is not
+// used. This proves the icon path: no icon library is a dependency (XTRITIUM §8).
+const MARK_GLYPH = ''
 
 const TABS = [
   'summary',
