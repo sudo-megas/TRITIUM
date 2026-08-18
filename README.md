@@ -5,8 +5,8 @@
 <h1 align="center">TRITIUM</h1>
 
 <p align="center">
-  <img alt="Version"      src="https://img.shields.io/badge/version-vX.X.X-4A9D8E?style=for-the-badge">
-  <img alt="Release date" src="https://img.shields.io/badge/released-XXXX--XX--XX-4A9D8E?style=for-the-badge">
+  <img alt="Version"      src="https://img.shields.io/badge/version-vX.X.X-3A6B9C?style=for-the-badge">
+  <img alt="Release date" src="https://img.shields.io/badge/released-XXXX--XX--XX-3A6B9C?style=for-the-badge">
   <img alt="Licence"      src="https://img.shields.io/badge/licence-GPL--3.0--or--later-6E7B8B?style=for-the-badge">
 </p>
 
