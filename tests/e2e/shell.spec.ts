@@ -255,6 +255,13 @@ test('About shows the full licence and holds no links', async () => {
 })
 
 test('the window refuses to shrink below 1280 x 720', async () => {
+  // Wait for the window before asking the main process about it. `launchApp`
+  // resolves when the Electron process is up, which is before app.whenReady
+  // has fired and createWindow has run — every other test in this file happens
+  // to await firstWindow() as its first line, and this one reached
+  // getAllWindows() while the list was still empty.
+  await app.firstWindow()
+
   await app.evaluate(async ({ BrowserWindow }) => {
     const [window] = BrowserWindow.getAllWindows()
     if (!window) throw new Error('no window')
