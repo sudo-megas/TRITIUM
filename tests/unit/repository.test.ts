@@ -13,7 +13,8 @@ import {
   saveVehicleRecord,
   slugFor,
   uniqueSlug,
-  vehicleFiles
+  vehicleFiles,
+  vehicleNames
 } from '../../src/main/storage/repository.js'
 import { COST_SPEC } from '../../src/main/storage/cost-file.js'
 import { FUEL_SPEC } from '../../src/main/storage/fuel-file.js'
@@ -96,6 +97,41 @@ describe('a whole vehicle on disk', () => {
       expect(bundle.fuel.entries).toHaveLength(1)
       expect(bundle.costs.entries).toHaveLength(1)
       expect(bundle.service.entries).toHaveLength(1)
+    } finally {
+      if (previous === undefined) delete process.env['XDG_DATA_HOME']
+      else process.env['XDG_DATA_HOME'] = previous
+      rmSync(home, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('a vehicle that is renamed', () => {
+  it('keeps the directory it was created in', () => {
+    // The slug is allocated once, at creation. Moving the directory on a rename
+    // would mean copying every fill-up the maker ever entered and deleting the
+    // original — a whole history rewritten for a cosmetic change.
+    const home = mkdtempSync(join(tmpdir(), 'tritium-rename-'))
+    const previous = process.env['XDG_DATA_HOME']
+    process.env['XDG_DATA_HOME'] = home
+
+    try {
+      const slug = uniqueSlug('SPORTAGE 1.6 T-GDI', listVehicleSlugs())
+      const document = parseVehicle(VEHICLE_SAMPLE)
+      saveVehicleRecord(slug, document)
+
+      const renamed = {
+        ...document,
+        vehicle: { ...document.vehicle, name: 'Kia Sportage, the blue one' }
+      }
+      saveVehicleRecord(slug, renamed)
+
+      expect(listVehicleSlugs()).toEqual([slug])
+      expect(readdirSync(join(home, 'tritium', 'vehicles'))).toEqual([slug])
+      expect(readFileSync(join(home, 'tritium', 'vehicles', slug, 'vehicle.toml'), 'utf8')).toContain(
+        'name = "Kia Sportage, the blue one"'
+      )
+      // And the picker still finds the new name under the old directory.
+      expect(vehicleNames()[slug]).toBe('Kia Sportage, the blue one')
     } finally {
       if (previous === undefined) delete process.env['XDG_DATA_HOME']
       else process.env['XDG_DATA_HOME'] = previous

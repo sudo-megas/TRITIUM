@@ -84,3 +84,53 @@ describe('settings.toml', () => {
     expect(document['appearance']?.['palette']).toBe('p05')
   })
 })
+
+describe('the vehicle the picker was left on (F3)', () => {
+  it('round-trips through settings.toml', () => {
+    const text = [
+      'schema_version = 1',
+      '[general]',
+      'language = "en"',
+      'currency = "TRY"',
+      'active_vehicle = "sportage-1-6-t-gdi"',
+      '[appearance]',
+      'palette = "p01"',
+      ''
+    ].join('\n')
+
+    const { settings, unknown } = parseSettings(text)
+    expect(settings.active_vehicle).toBe('sportage-1-6-t-gdi')
+
+    const written = serialiseSettings(settings, unknown)
+    const document = parse(written) as Record<string, Record<string, unknown>>
+    expect(document['general']?.['active_vehicle']).toBe('sportage-1-6-t-gdi')
+  })
+
+  it('is absent, not empty, before a vehicle exists', () => {
+    // The same reasoning as currency: a key that is not there yet must not be
+    // written as "", or the app would believe it had been answered.
+    const { settings, unknown } = parseSettings('schema_version = 1\n[general]\nlanguage = "en"\n')
+
+    expect(settings.active_vehicle).toBeUndefined()
+    expect(serialiseSettings(settings, unknown)).not.toContain('active_vehicle')
+  })
+
+  it('survives a file that also carries keys this milestone does not know', () => {
+    const text = [
+      'schema_version = 1',
+      '[general]',
+      'language = "tr"',
+      'active_vehicle = "astra"',
+      'nickname = "the blue one"',
+      '[appearance]',
+      'palette = "p03"',
+      ''
+    ].join('\n')
+
+    const { settings, unknown } = parseSettings(text)
+    const written = serialiseSettings(settings, unknown)
+
+    expect(written).toContain('active_vehicle = "astra"')
+    expect(written).toContain('nickname = "the blue one"')
+  })
+})

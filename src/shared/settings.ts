@@ -7,6 +7,15 @@
 
 export const SETTINGS_SCHEMA_VERSION = 1
 
+/**
+ * How the stored settings reach a renderer: on the command line, read before
+ * the window exists, so the first frame is already painted in the right palette
+ * and language (XTRITIUM §3.2). Declared here because main writes it and the
+ * preload reads it, and two copies of the same string is one typo away from a
+ * window that silently starts on the defaults.
+ */
+export const SETTINGS_ARG = '--tritium-settings='
+
 export const LANGUAGES = ['en', 'tr'] as const
 export type Language = (typeof LANGUAGES)[number]
 
@@ -53,6 +62,15 @@ export interface Settings {
    * arrive to find itself already answered.
    */
   currency?: string
+  /**
+   * The vehicle the picker was left on. XTRITIUM §4.4 does not draw this key;
+   * F3 adds it, because §3.2 says the app opens straight into the data and a
+   * picker that forgets which vehicle that was is not straight into anything.
+   *
+   * Optional: absent before the first vehicle exists, and absent again if the
+   * slug it named has been removed from disk by hand.
+   */
+  active_vehicle?: string
   distance: DistanceUnit
   volume: VolumeUnit
   consumption: ConsumptionUnit
@@ -94,6 +112,11 @@ export function isConsumptionUnit(value: unknown): value is ConsumptionUnit {
 
 /** A currency is whatever the maker answered once — non-empty text, nothing more. */
 export function isCurrency(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+/** A vehicle slug, as stored in active_vehicle. Any non-empty name of a directory. */
+export function isVehicleSlug(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 

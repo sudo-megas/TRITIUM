@@ -19,6 +19,44 @@
     "palette": "Palette",
     "paletteHint": "Placeholder colours — the eleven palettes are settled in the design phase."
   },
+  "vehicles": {
+    "picker": "Vehicle",
+    "none": "No vehicle",
+    "add": "Add",
+    "edit": "Edit",
+    "addTitle": "New vehicle",
+    "editTitle": "Edit vehicle",
+    "save": "Save",
+    "cancel": "Cancel",
+    "unset": "Not set",
+    "datePattern": "GG/AA/YYYY",
+    "dateWarning": "A date is not written as GG/AA/YYYY and will be saved empty.",
+    "saveFailed": "That vehicle's file could not be read or written. It has been left exactly as it was.",
+    "unreadable": "Unreadable file",
+    "fields": {
+      "name": "Name",
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "engine": "Engine",
+      "fuel_spec": "Fuel",
+      "plate": "Plate",
+      "vin": "VIN",
+      "tank_capacity_l": "Tank capacity (l)",
+      "purchase_date": "Purchase date",
+      "purchase_price": "Purchase price",
+      "registration_date": "Registration date",
+      "inspection_due": "Inspection due"
+    }
+  },
+  "currency": {
+    "title": "Currency",
+    "note": "Asked once, then fixed. TRITIUM never converts between currencies and never looks a rate up.",
+    "label": "Currency",
+    "other": "Another currency",
+    "code": "Code",
+    "confirm": "Confirm"
+  },
   "palettes": {
     "p01": "Palette 01",
     "p02": "Palette 02",

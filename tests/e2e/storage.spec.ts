@@ -6,14 +6,11 @@
 // document survives the two structured-clone hops between disk and renderer. A
 // typo in that seam would typecheck, ship, and only surface in F3.
 
-import { mkdirSync, readFileSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { parse } from 'smol-toml'
-import { test, expect, _electron as electron, type ElectronApplication } from '@playwright/test'
-
-const REPO = fileURLToPath(new URL('../..', import.meta.url))
+import { test, expect, type ElectronApplication } from '@playwright/test'
+import { launchApp, makeDataDir, seedSettings } from './harness.js'
 
 // A canonical fuel.toml — canonical meaning: what the serialiser emits. The
 // assertion below is an identity (write(read(x)) === x), which holds for any
@@ -43,17 +40,10 @@ let dataDir = ''
 
 const vehicleDir = (): string => join(dataDir, 'tritium', 'vehicles', 'sportage')
 
-async function launch(): Promise<ElectronApplication> {
-  return electron.launch({
-    args: [REPO],
-    cwd: REPO,
-    env: { ...process.env, XDG_DATA_HOME: dataDir }
-  })
-}
-
 test.beforeEach(async () => {
-  dataDir = mkdtempSync(join(tmpdir(), 'tritium-storage-'))
-  app = await launch()
+  dataDir = makeDataDir('tritium-storage-')
+  seedSettings(dataDir)
+  app = await launchApp(dataDir)
 })
 
 test.afterEach(async () => {

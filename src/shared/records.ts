@@ -154,3 +154,58 @@ export function nextId(kind: RecordKind, existing: readonly { id: string }[]): s
   }
   return formatId(kind, highest + 1)
 }
+
+// ---------------------------------------------------------------------------
+// Parsed document shapes.
+//
+// These live here, beside the records themselves, so a renderer can hold a
+// loaded vehicle without importing main-process code across the process
+// boundary — the storage modules import them back rather than declaring their
+// own, so there is exactly one description of what a parsed file looks like.
+// ---------------------------------------------------------------------------
+
+/** A TOML table as the parser hands it over, keys and all — known or not. */
+export type RecordTable = Record<string, unknown>
+
+/** A parsed `[[entry]]` file: fuel.toml, costs.toml, service.toml. */
+export interface EntryDocument<T> {
+  schemaVersion: number
+  entries: T[]
+  /** Unknown keys, per entry id — so inserting or deleting an entry cannot misalign them. */
+  entryRest: Record<string, RecordTable>
+  /** Unknown keys at the top level of the document. */
+  rest: RecordTable
+}
+
+/** A parsed `vehicle.toml`: a flat table, not an entry list. */
+export interface VehicleDocument {
+  schemaVersion: number
+  vehicle: Vehicle
+  rest: RecordTable
+}
+
+/** Everything one vehicle directory holds, read whole at once (XTRITIUM §4.1). */
+export interface VehicleBundle {
+  slug: string
+  vehicle: VehicleDocument | null
+  fuel: EntryDocument<FuelEntry>
+  costs: EntryDocument<CostEntry>
+  service: EntryDocument<ServiceEntry>
+}
+
+/** A vehicle with nothing filled in — the starting point of a new record. */
+export const EMPTY_VEHICLE: Vehicle = {
+  name: '',
+  make: '',
+  model: '',
+  year: 0,
+  engine: '',
+  fuel_spec: '',
+  plate: '',
+  vin: '',
+  tank_capacity_l: 0,
+  purchase_date: '',
+  purchase_price: 0,
+  registration_date: '',
+  inspection_due: ''
+}

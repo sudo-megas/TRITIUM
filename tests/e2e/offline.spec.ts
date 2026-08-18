@@ -2,13 +2,9 @@
 // severed, the app must behave exactly as it does without. audit-egress proves
 // this statically; this proves it at runtime.
 
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { test, expect, _electron as electron, type ElectronApplication } from '@playwright/test'
-
-const REPO = fileURLToPath(new URL('../..', import.meta.url))
+import { rmSync } from 'node:fs'
+import { test, expect, type ElectronApplication } from '@playwright/test'
+import { launchApp, makeDataDir, seedSettings, windowWith } from './harness.js'
 
 // Every hostname resolves to a dead port, and every proxy attempt fails.
 const SEVERED = ['--proxy-server=127.0.0.1:1', '--host-resolver-rules=MAP * 127.0.0.1:1']
@@ -17,12 +13,9 @@ let app: ElectronApplication
 let dataDir = ''
 
 test.beforeEach(async () => {
-  dataDir = mkdtempSync(join(tmpdir(), 'tritium-offline-'))
-  app = await electron.launch({
-    args: [REPO, ...SEVERED],
-    cwd: REPO,
-    env: { ...process.env, XDG_DATA_HOME: dataDir }
-  })
+  dataDir = makeDataDir('tritium-offline-')
+  seedSettings(dataDir)
+  app = await launchApp(dataDir, SEVERED)
 })
 
 test.afterEach(async () => {
@@ -61,4 +54,17 @@ test('no request ever leaves the app', async () => {
   await page.waitForTimeout(500)
 
   expect(requests).toEqual([])
+})
+
+test('a vehicle form opens with the network severed', async () => {
+  // F3's windows are the app's own. Nothing about opening one touches a
+  // network, and with every route dead it opens exactly as it does without.
+  const page = await app.firstWindow()
+
+  await expect(page.getByTestId('vehicle-picker')).toBeVisible()
+  await page.getByTestId('vehicle-add').click()
+
+  const form = await windowWith(app, 'vehicle-save')
+  await expect(form.getByTestId('vehicle-name')).toBeVisible()
+  expect(app.windows().length).toBe(2)
 })

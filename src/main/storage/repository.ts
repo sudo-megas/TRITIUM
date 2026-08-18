@@ -9,7 +9,14 @@
 
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { nextId, type CostEntry, type FuelEntry, type RecordKind, type ServiceEntry } from '../../shared/records.js'
+import {
+  nextId,
+  type CostEntry,
+  type FuelEntry,
+  type RecordKind,
+  type ServiceEntry,
+  type VehicleBundle
+} from '../../shared/records.js'
 import { readCosts, writeCosts, emptyCosts, type CostDocument } from './cost-file.js'
 import { readFuel, writeFuel, emptyFuel, type FuelDocument } from './fuel-file.js'
 import { vehiclesDir } from './paths.js'
@@ -97,13 +104,30 @@ export function listVehicleSlugs(): string[] {
     .sort()
 }
 
-export interface VehicleBundle {
-  slug: string
-  vehicle: VehicleDocument | null
-  fuel: FuelDocument
-  costs: CostDocument
-  service: ServiceDocument
+/**
+ * Slug to display name, for the picker — every vehicle's name without reading
+ * its fill-ups. A record that will not parse is simply absent from the map
+ * rather than raising: one unreadable vehicle must not empty the picker, and
+ * the caller shows the slug, which is the truth about where the file is.
+ */
+export function vehicleNames(): Record<string, string> {
+  const names: Record<string, string> = {}
+
+  for (const slug of listVehicleSlugs()) {
+    try {
+      const document = readVehicle(vehicleFiles(slug).vehicle)
+      if (document !== null && document.vehicle.name.length > 0) {
+        names[slug] = document.vehicle.name
+      }
+    } catch {
+      // Left out on purpose — loading it properly will report the corruption.
+    }
+  }
+
+  return names
 }
+
+export type { VehicleBundle }
 
 /**
  * Whole files in, at once (§4.1).

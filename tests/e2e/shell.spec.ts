@@ -1,13 +1,9 @@
 // The F1 shell, exercised end to end against the real Electron build.
 
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { readFileSync, rmSync } from 'node:fs'
 import { parse } from 'smol-toml'
-import { test, expect, _electron as electron, type ElectronApplication } from '@playwright/test'
-
-const REPO = fileURLToPath(new URL('../..', import.meta.url))
+import { test, expect, type ElectronApplication } from '@playwright/test'
+import { launchApp, makeDataDir, seedSettings, settingsPathIn } from './harness.js'
 
 const TABS = [
   'summary',
@@ -23,7 +19,7 @@ const TABS = [
 let app: ElectronApplication
 let dataDir = ''
 
-const settingsFile = (): string => join(dataDir, 'tritium', 'settings.toml')
+const settingsFile = (): string => settingsPathIn(dataDir)
 
 /** The write crosses IPC; wait for it to reach disk before restarting. */
 async function waitForSettings(fragment: string): Promise<void> {
@@ -34,21 +30,15 @@ async function waitForSettings(fragment: string): Promise<void> {
 
 async function relaunch(): Promise<ElectronApplication> {
   await app.close()
-  return electron.launch({
-    args: [REPO],
-    cwd: REPO,
-    env: { ...process.env, XDG_DATA_HOME: dataDir }
-  })
+  return launchApp(dataDir)
 }
 
 test.beforeEach(async () => {
-  // A throwaway data directory — the tests never touch the maker's own files.
-  dataDir = mkdtempSync(join(tmpdir(), 'tritium-e2e-'))
-  app = await electron.launch({
-    args: [REPO],
-    cwd: REPO,
-    env: { ...process.env, XDG_DATA_HOME: dataDir }
-  })
+  // A throwaway data directory — the tests never touch the maker's own files —
+  // seeded so the shell, and not the first-run currency question, is what opens.
+  dataDir = makeDataDir('tritium-e2e-')
+  seedSettings(dataDir)
+  app = await launchApp(dataDir)
 })
 
 test.afterEach(async () => {

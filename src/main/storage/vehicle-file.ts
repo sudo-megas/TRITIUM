@@ -8,7 +8,12 @@
 
 import { existsSync, readFileSync } from 'node:fs'
 import { parse } from 'smol-toml'
-import { RECORD_SCHEMA_VERSION, type Vehicle } from '../../shared/records.js'
+import {
+  EMPTY_VEHICLE,
+  RECORD_SCHEMA_VERSION,
+  type Vehicle,
+  type VehicleDocument
+} from '../../shared/records.js'
 import { formatMoney, formatTank, toMoney, toTank } from '../../shared/scaled.js'
 import { writeFileAtomicSync } from './atomic.js'
 import { CorruptFileError } from './errors.js'
@@ -43,27 +48,8 @@ const KNOWN_KEYS = [
   'inspection_due'
 ] as const
 
-export interface VehicleDocument {
-  schemaVersion: number
-  vehicle: Vehicle
-  rest: TomlTable
-}
-
-export const EMPTY_VEHICLE: Vehicle = {
-  name: '',
-  make: '',
-  model: '',
-  year: 0,
-  engine: '',
-  fuel_spec: '',
-  plate: '',
-  vin: '',
-  tank_capacity_l: 0,
-  purchase_date: '',
-  purchase_price: 0,
-  registration_date: '',
-  inspection_due: ''
-}
+export type { VehicleDocument }
+export { EMPTY_VEHICLE }
 
 export function parseVehicle(text: string, file = '<memory>'): VehicleDocument {
   let document: TomlTable

@@ -23,6 +23,7 @@ import {
   isDistanceUnit,
   isLanguage,
   isPalette,
+  isVehicleSlug,
   isVolumeUnit,
   readDecimals,
   type Settings
@@ -34,7 +35,7 @@ type TomlTable = Record<string, unknown>
 
 const TABLES = ['general', 'units', 'format', 'appearance'] as const
 const OWNED: Readonly<Record<(typeof TABLES)[number], readonly string[]>> = {
-  general: ['language', 'currency'],
+  general: ['language', 'currency', 'active_vehicle'],
   units: ['distance', 'volume', 'consumption'],
   format: ['decimals_consumption', 'decimals_cost_per_km'],
   appearance: ['palette']
@@ -73,6 +74,10 @@ export function parseSettings(text: string): { settings: Settings; unknown: Toml
     language: isLanguage(general['language']) ? general['language'] : DEFAULT_SETTINGS.language,
     // Absent until F3 asks the question once — never defaulted here.
     ...(isCurrency(general['currency']) ? { currency: general['currency'] } : {}),
+    // Absent until a vehicle exists to be active (F3).
+    ...(isVehicleSlug(general['active_vehicle'])
+      ? { active_vehicle: general['active_vehicle'] }
+      : {}),
     distance: isDistanceUnit(units['distance']) ? units['distance'] : DEFAULT_SETTINGS.distance,
     volume: isVolumeUnit(units['volume']) ? units['volume'] : DEFAULT_SETTINGS.volume,
     consumption: isConsumptionUnit(units['consumption'])
@@ -116,6 +121,7 @@ export function serialiseSettings(settings: Settings, unknown: TomlTable = {}): 
   document['general'] = {
     language: settings.language,
     ...(settings.currency !== undefined ? { currency: settings.currency } : {}),
+    ...(settings.active_vehicle !== undefined ? { active_vehicle: settings.active_vehicle } : {}),
     ...asTable(unknown['__general_rest'])
   }
   document['units'] = {

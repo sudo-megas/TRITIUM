@@ -10,6 +10,8 @@ import { applyLanguage } from '../i18n/index.js'
 interface SettingsStore extends Settings {
   setLanguage: (language: Language) => void
   setPalette: (palette: Palette) => void
+  setActiveVehicle: (slug: string) => void
+  setCurrency: (currency: string) => void
 }
 
 export function applyToDocument(settings: Settings): void {
@@ -31,6 +33,7 @@ function currentSettings(store: SettingsStore): Settings {
   return {
     language: store.language,
     ...(store.currency !== undefined ? { currency: store.currency } : {}),
+    ...(store.active_vehicle !== undefined ? { active_vehicle: store.active_vehicle } : {}),
     distance: store.distance,
     volume: store.volume,
     consumption: store.consumption,
@@ -58,6 +61,20 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     applyToDocument(next)
     set(next)
     void window.tritium.writeSettings(next)
+  },
+
+  // These two send ONE field, not the record. Both can be called from a form
+  // window, whose copy of the settings was taken when it opened; sending the
+  // whole record from there would push a stale palette over one the maker
+  // chose in the shell a moment ago. The main process merges over the file.
+  setActiveVehicle: (slug) => {
+    set({ active_vehicle: slug })
+    void window.tritium.writeSettings({ active_vehicle: slug })
+  },
+
+  setCurrency: (currency) => {
+    set({ currency })
+    void window.tritium.writeSettings({ currency })
   }
 }))
 

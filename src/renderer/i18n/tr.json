@@ -19,6 +19,44 @@
     "palette": "Palet",
     "paletteHint": "Geçici renkler — on bir palet tasarım aşamasında kesinleşir."
   },
+  "vehicles": {
+    "picker": "Araç",
+    "none": "Araç yok",
+    "add": "Ekle",
+    "edit": "Düzenle",
+    "addTitle": "Yeni araç",
+    "editTitle": "Aracı düzenle",
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "unset": "Seçilmedi",
+    "datePattern": "GG/AA/YYYY",
+    "dateWarning": "Bir tarih GG/AA/YYYY biçiminde yazılmamış, boş kaydedilecek.",
+    "saveFailed": "Bu aracın dosyası okunamadı veya yazılamadı. Dosya olduğu gibi bırakıldı.",
+    "unreadable": "Okunamayan dosya",
+    "fields": {
+      "name": "Ad",
+      "make": "Marka",
+      "model": "Model",
+      "year": "Yıl",
+      "engine": "Motor",
+      "fuel_spec": "Yakıt",
+      "plate": "Plaka",
+      "vin": "Şasi no",
+      "tank_capacity_l": "Depo hacmi (l)",
+      "purchase_date": "Alış tarihi",
+      "purchase_price": "Alış fiyatı",
+      "registration_date": "Tescil tarihi",
+      "inspection_due": "Muayene tarihi"
+    }
+  },
+  "currency": {
+    "title": "Para birimi",
+    "note": "Bir kez sorulur, sonra değişmez. TRITIUM para birimleri arasında çeviri yapmaz, kur aramaz.",
+    "label": "Para birimi",
+    "other": "Başka bir para birimi",
+    "code": "Kod",
+    "confirm": "Onayla"
+  },
   "palettes": {
     "p01": "Palet 01",
     "p02": "Palet 02",

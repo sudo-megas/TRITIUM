@@ -4,11 +4,13 @@
 // The tab names and count are design-phase property (XTRITIUM §11); the *bar*
 // is F1's. Every tab except SETTINGS and ABOUT shows the empty two-pane layout.
 
-import { useState, type JSX } from 'react'
+import { useEffect, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EmptyPanes } from './panes/EmptyPanes.js'
 import { SettingsPane } from './panes/SettingsPane.js'
 import { AboutPane } from './panes/AboutPane.js'
+import { VehiclePicker } from './VehiclePicker.js'
+import { useVehicles } from './state/vehicles.js'
 import { APP_NAME } from '../shared/app-meta.js'
 
 // fa-car-side (U+EEA0), from the Font Awesome 6 range of the Nerd Font patch
@@ -40,6 +42,14 @@ export function App(): JSX.Element {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('summary')
   const Pane = PANES[tab] ?? EmptyPanes
+  const refresh = useVehicles((s) => s.refresh)
+
+  // The list is read once at start and again whenever a form window writes.
+  // Both windows read the same files, so neither may keep its own idea of them.
+  useEffect(() => {
+    void refresh()
+    return window.tritium.onVehiclesChanged(() => void refresh())
+  }, [refresh])
 
   return (
     <div className="shell">
@@ -64,6 +74,8 @@ export function App(): JSX.Element {
             {t(`tabs.${id}`)}
           </button>
         ))}
+
+        <VehiclePicker />
       </nav>
 
       <Pane />

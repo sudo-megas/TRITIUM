@@ -10,19 +10,18 @@
 
 import { existsSync, readFileSync } from 'node:fs'
 import { parse } from 'smol-toml'
-import { RECORD_SCHEMA_VERSION, type RecordKind, formatId, idSequence } from '../../shared/records.js'
+import {
+  RECORD_SCHEMA_VERSION,
+  type EntryDocument,
+  type RecordKind,
+  formatId,
+  idSequence
+} from '../../shared/records.js'
 import { writeFileAtomicSync } from './atomic.js'
 import { CorruptFileError } from './errors.js'
 import { asTable, asTableArray, carriedLines, line, unknownKeys, type TomlTable } from './toml.js'
 
-export interface EntryDocument<T> {
-  schemaVersion: number
-  entries: T[]
-  /** Unknown keys, per entry id — so inserting or deleting an entry cannot misalign them. */
-  entryRest: Record<string, TomlTable>
-  /** Unknown keys at the top level of the document. */
-  rest: TomlTable
-}
+export type { EntryDocument }
 
 export interface EntrySpec<T extends { id: string }> {
   kind: RecordKind
