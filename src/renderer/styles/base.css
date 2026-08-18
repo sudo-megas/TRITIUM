@@ -275,14 +275,20 @@ select,
 .cells {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--measure-cell), 1fr));
-  gap: var(--border-width);
-  background: var(--border);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius);
+  gap: var(--gap-inside);
 }
 
+/*
+ * Each cell draws its own edges rather than the grid showing a background
+ * through one-pixel gaps. That trick works only while the cells fill whole
+ * rows, and the column count here follows the pane's width, so the last row is
+ * usually short — and every unfilled slot showed as a solid block of border
+ * colour, which read as a broken cell rather than as no cell at all.
+ */
 .cell {
-  background: var(--surface);
+  background: var(--surface-raised);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
   min-height: var(--space-48);
 }
 
@@ -653,6 +659,21 @@ select,
 .entries th:first-child,
 .entries td:first-child {
   text-align: left;
+}
+
+/*
+ * The action column takes all the slack, so the figures pack together at the
+ * left instead of being spread evenly across the whole pane. A table set to the
+ * full width divides its surplus between every column, which at this width put
+ * a hundred and fifty pixels between one number and the next — the opposite of
+ * the density a column of figures is read with. Now the data reads as one
+ * block and the action sits at the far edge, where it cannot be mistaken for
+ * part of the row's data.
+ */
+.entries th:last-child,
+.entries td:last-child {
+  width: 100%;
+  text-align: right;
 }
 
 .entries td {

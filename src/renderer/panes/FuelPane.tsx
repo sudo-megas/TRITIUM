@@ -17,7 +17,6 @@ import { formatDate, formatFigure, formatMoneyText } from '../../shared/format.j
 import { PUMP_DECIMALS } from '../../shared/scaled.js'
 import { useSettings } from '../state/settings.js'
 import { useVehicles } from '../state/vehicles.js'
-import { Cells } from './EmptyPanes.js'
 
 export function FuelPane(): JSX.Element {
   const { t } = useTranslation()
@@ -39,7 +38,17 @@ export function FuelPane(): JSX.Element {
 
   return (
     <div className="panes">
-      <section className="pane">
+      {/*
+       * The table spans both halves. Eight columns of figures do not fit in
+       * 608 pixels at the minimum window width — they overflowed by about
+       * seventy and put a horizontal scrollbar under the pane, which is the one
+       * thing a table of numbers must never do.
+       *
+       * F7 reclaims the right half for the detail region that replaces the
+       * tooltip this app does not have. Until that exists, the half was holding
+       * empty cells, and the table needs the room more than the placeholder did.
+       */}
+      <section className="pane pane--wide">
         <div className="pane__head">
           <button
             type="button"
@@ -120,10 +129,6 @@ export function FuelPane(): JSX.Element {
             })}
           </tbody>
         </table>
-      </section>
-
-      <section className="pane">
-        <Cells count={8} />
       </section>
     </div>
   )
