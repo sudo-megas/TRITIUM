@@ -47,11 +47,46 @@ export const COST_CATEGORIES: Readonly<Record<CostGroup, readonly string[]>> = {
   manual: []
 }
 
+/**
+ * The one category in the tree whose entries do not live in costs.toml.
+ *
+ * §6.1 files Periyodik Bakım under TEKRAR EDEN, and §6.2 sends it to
+ * service.toml. Named here rather than spelled into the two places that care,
+ * so the exception has one address.
+ */
+export const SERVICE_CATEGORY = 'periyodik-bakim'
+
 /** XTRITIUM §4.4 — "editable list; ships: EFT, kredi kartı, banka kartı". */
 export const PAYMENT_METHODS = ['eft', 'kredi-karti', 'banka-karti'] as const
 
 export function isCostGroup(value: unknown): value is CostGroup {
   return typeof value === 'string' && (COST_GROUPS as readonly string[]).includes(value)
+}
+
+/**
+ * The categories a cost form may offer for a group.
+ *
+ * §6.1's tree minus Periyodik Bakım: the cost form writes costs.toml, and a
+ * category whose entries land in service.toml does not belong in its picker.
+ * F6 gives that one its own entry path (F5.md decision 3).
+ *
+ * The category stays in `COST_CATEGORIES` — a costs.toml that already carries
+ * one, hand-written or left by an earlier version, must still read back as
+ * itself rather than falling through to manual.
+ */
+export function pickableCategories(group: CostGroup): readonly string[] {
+  return COST_CATEGORIES[group].filter((category) => category !== SERVICE_CATEGORY)
+}
+
+/**
+ * Whether a group asks the maker to type its category instead of picking one.
+ *
+ * True for `manual` alone, and it is the emptiness of its category list that
+ * says so — §6.1 gives MANUAL no fixed categories on purpose ("add custom: …"),
+ * so the fact is read from the tree rather than restated beside it.
+ */
+export function takesTypedCategory(group: CostGroup): boolean {
+  return COST_CATEGORIES[group].length === 0
 }
 
 // ---------------------------------------------------------------------------

@@ -11,11 +11,13 @@ import {
   saveFuel,
   saveService,
   saveVehicleRecord,
-  slugFor,
   uniqueSlug,
   vehicleFiles,
   vehicleNames
 } from '../../src/main/storage/repository.js'
+// F5 moved slugFor into shared/: the cost form slugifies a typed MANUAL
+// category with it, and the renderer cannot import main-process code.
+import { slugFor } from '../../src/shared/slug.js'
 import { COST_SPEC } from '../../src/main/storage/cost-file.js'
 import { FUEL_SPEC } from '../../src/main/storage/fuel-file.js'
 import { SERVICE_SPEC } from '../../src/main/storage/service-file.js'

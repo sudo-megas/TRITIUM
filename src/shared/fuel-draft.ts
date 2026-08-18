@@ -6,7 +6,7 @@
 // "54,0" means.
 
 import { entryTotal, sortByOdometer } from './consumption.js'
-import { formatDate, parseDate, parseInput, toInput } from './format.js'
+import { formatDate, parseDate, parseInput, toInput, todayIso } from './format.js'
 import type { FuelEntry } from './records.js'
 import { PUMP_DECIMALS } from './scaled.js'
 
@@ -17,20 +17,6 @@ export interface FuelDraft {
   price_per_litre: string
   full_tank: boolean
   fuel_type: string
-}
-
-/**
- * Today, from the local calendar.
- *
- * Deliberately not `toISOString().slice(0, 10)`: that is UTC, and this machine
- * is UTC+3 — a fill-up entered at 01:00 would be filed on yesterday. Nothing
- * here reads a locale either (§3.6); the calendar is not a locale.
- */
-export function todayIso(now: Date = new Date()): string {
-  const year = now.getFullYear().toString().padStart(4, '0')
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
-  const day = now.getDate().toString().padStart(2, '0')
-  return `${year}-${month}-${day}`
 }
 
 /**

@@ -17,49 +17,12 @@ import {
   type ServiceEntry,
   type VehicleBundle
 } from '../../shared/records.js'
+import { slugFor } from '../../shared/slug.js'
 import { readCosts, writeCosts, emptyCosts, type CostDocument } from './cost-file.js'
 import { readFuel, writeFuel, emptyFuel, type FuelDocument } from './fuel-file.js'
 import { vehiclesDir } from './paths.js'
 import { readService, writeService, emptyService, type ServiceDocument } from './service-file.js'
 import { readVehicle, writeVehicle, type VehicleDocument } from './vehicle-file.js'
-
-/**
- * Turkish letters, transliterated by an explicit table.
- *
- * This is deliberate rather than clever. A locale-aware lowercase would map
- * "İ" to a dotted i and "I" to a dotless ı under a Turkish locale and to
- * something else entirely under any other — which is exactly the kind of
- * ambient-locale dependency XTRITIUM §3.6 forbids and audit-locale hunts for.
- * The table gives the same slug on every machine, in every locale, forever.
- */
-const TRANSLITERATIONS: Readonly<Record<string, string>> = {
-  ı: 'i',
-  İ: 'i',
-  ğ: 'g',
-  Ğ: 'g',
-  ş: 's',
-  Ş: 's',
-  ö: 'o',
-  Ö: 'o',
-  ç: 'c',
-  Ç: 'c',
-  ü: 'u',
-  Ü: 'u'
-}
-
-export function slugFor(name: string): string {
-  let mapped = ''
-  for (const character of name) mapped += TRANSLITERATIONS[character] ?? character
-
-  // toLowerCase is locale-independent by specification — it is toLocaleLowerCase
-  // that consults the ambient locale, and the Turkish letters are already gone.
-  const slug = mapped
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-
-  return slug.length > 0 ? slug : 'vehicle'
-}
 
 /** `slugFor`, with a numeric suffix when the name is already taken. */
 export function uniqueSlug(name: string, taken: readonly string[]): string {
@@ -196,6 +159,43 @@ export function updateFuelEntry(slug: string, entry: FuelEntry): boolean {
 
 export function saveCosts(slug: string, document: CostDocument): void {
   writeCosts(vehicleFiles(slug).costs, document)
+}
+
+/**
+ * Append a cost, allocating its id here (F5).
+ *
+ * Word for word the reasoning `addFuelEntry` gives: read-modify-write in this
+ * process, against the file as it is right now, because the form window and the
+ * shell are both looking at the same costs.toml and a whole document handed
+ * back by a window that has been open an hour would drop whatever was written
+ * meanwhile.
+ */
+export function addCostEntry(slug: string, entry: Omit<CostEntry, 'id'>): CostEntry {
+  const files = vehicleFiles(slug)
+  const document = readCosts(files.costs)
+  const added: CostEntry = { ...entry, id: allocateId('cost', document.entries) }
+
+  document.entries.push(added)
+  writeCosts(files.costs, document)
+
+  return added
+}
+
+/**
+ * Replace one cost in place, by id (XTRITIUM §3.8). An id that is no longer in
+ * the file is left alone — it was deleted by hand while the form was open, and
+ * re-adding it would be the app arguing with the maker's own editor.
+ */
+export function updateCostEntry(slug: string, entry: CostEntry): boolean {
+  const files = vehicleFiles(slug)
+  const document = readCosts(files.costs)
+  const index = document.entries.findIndex((existing) => existing.id === entry.id)
+  if (index < 0) return false
+
+  document.entries[index] = entry
+  writeCosts(files.costs, document)
+
+  return true
 }
 
 export function saveService(slug: string, document: ServiceDocument): void {

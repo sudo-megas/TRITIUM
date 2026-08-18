@@ -97,6 +97,13 @@ const api = {
     ipcRenderer.invoke('fuel:update', slug, entry),
   saveCosts: (slug: string, document: unknown): Promise<void> =>
     ipcRenderer.invoke('costs:save', slug, document),
+  // F5 — one cost at a time, the id allocated in the main process, exactly as
+  // a fill-up is. A form window open for an hour cannot hand back a stale
+  // document and lose what was written meanwhile.
+  addCost: (slug: string, entry: unknown): Promise<unknown> =>
+    ipcRenderer.invoke('cost:add', slug, entry),
+  updateCost: (slug: string, entry: unknown): Promise<boolean> =>
+    ipcRenderer.invoke('cost:update', slug, entry),
   saveService: (slug: string, document: unknown): Promise<void> =>
     ipcRenderer.invoke('service:save', slug, document),
 

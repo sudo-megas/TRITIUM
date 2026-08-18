@@ -9,6 +9,7 @@ import { app, BrowserWindow, ipcMain, Menu } from 'electron'
 import { readSettings, writeSettings } from './storage/settings-file.js'
 import { createMainWindow, openFormWindow } from './windows.js'
 import {
+  addCostEntry,
   addFuelEntry,
   listVehicleSlugs,
   loadVehicle,
@@ -17,10 +18,17 @@ import {
   saveService,
   saveVehicleRecord,
   uniqueSlug,
+  updateCostEntry,
   updateFuelEntry,
   vehicleNames
 } from './storage/repository.js'
-import { isDateString, type FuelEntry } from '../shared/records.js'
+import {
+  COST_GROUPS,
+  isCostGroup,
+  isDateString,
+  type CostEntry,
+  type FuelEntry
+} from '../shared/records.js'
 import type { CostDocument } from './storage/cost-file.js'
 import type { FuelDocument } from './storage/fuel-file.js'
 import type { ServiceDocument } from './storage/service-file.js'
@@ -82,6 +90,39 @@ function readFuelInput(value: unknown): Omit<FuelEntry, 'id'> {
     price_per_litre: integerOr(raw.price_per_litre, 0),
     full_tank: raw.full_tank === true,
     fuel_type: typeof raw.fuel_type === 'string' ? raw.fuel_type : ''
+  }
+}
+
+/** A string as it arrives over the bridge, or empty. */
+function stringOr(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
+/**
+ * A cost as a form window sends it, coerced to the record's shape (§4.4).
+ *
+ * The same insistence `readFuelInput` makes, for the same reason: a field that
+ * arrived undefined would reach `formatMoney` and be written as `NaN`, and the
+ * one process responsible for keeping costs.toml readable would be the one that
+ * broke it.
+ *
+ * `amount` is forced positive here as well as in the draft. `income` is the
+ * sign (§4.4), and a negative amount on disk would be the same fact stored
+ * twice — the boundary should not be the only place that is true.
+ */
+function readCostInput(value: unknown): Omit<CostEntry, 'id'> {
+  const raw = (value ?? {}) as Partial<CostEntry>
+  return {
+    date: isDateString(raw.date) ? raw.date : '',
+    group: isCostGroup(raw.group) ? raw.group : COST_GROUPS[2],
+    category: stringOr(raw.category),
+    title: stringOr(raw.title),
+    amount: Math.abs(integerOr(raw.amount, 0)),
+    income: raw.income === true,
+    payment_method: stringOr(raw.payment_method),
+    bank: stringOr(raw.bank),
+    instalment: stringOr(raw.instalment),
+    note: stringOr(raw.note)
   }
 }
 
@@ -211,8 +252,36 @@ function registerIpc(): void {
     return changed
   })
 
+  /*
+   * The broadcast here is F5 repairing an omission, not adding a feature.
+   *
+   * F4's fourth decision gave every fuel write a `broadcast` so that a form
+   * window and the shell could not hold different ideas of the same file. It
+   * did not reach costs: this was the one write path in the process with
+   * nothing after it, so a cost saved in a form window never reached the shell.
+   * `service:save` below has the same gap, and F6 closes that one.
+   */
   ipcMain.handle('costs:save', (_event, slug: unknown, document: unknown) => {
     saveCosts(String(slug), document as CostDocument)
+    broadcast('vehicles:changed')
+  })
+
+  /** Append a cost (F5). The id is allocated in the repository — see addCostEntry. */
+  ipcMain.handle('cost:add', (_event, slug: unknown, entry: unknown) => {
+    const added = addCostEntry(String(slug), readCostInput(entry))
+    broadcast('vehicles:changed')
+    return added
+  })
+
+  /** Edit one cost in place (XTRITIUM §3.8). The rest of the file is untouched. */
+  ipcMain.handle('cost:update', (_event, slug: unknown, entry: unknown) => {
+    const raw = (entry ?? {}) as Partial<CostEntry>
+    const id = typeof raw.id === 'string' ? raw.id : ''
+    if (id.length === 0) return false
+
+    const changed = updateCostEntry(String(slug), { ...readCostInput(entry), id })
+    if (changed) broadcast('vehicles:changed')
+    return changed
   })
 
   ipcMain.handle('service:save', (_event, slug: unknown, document: unknown) => {

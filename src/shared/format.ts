@@ -166,3 +166,22 @@ export function parseDate(text: string): string | null {
 
   return `${match[3]}-${match[2]}-${match[1]}`
 }
+
+/**
+ * Today, from the local calendar.
+ *
+ * Deliberately not `toISOString().slice(0, 10)`: that is UTC, and this machine
+ * is UTC+3 — an entry made at 01:00 would be filed on yesterday. `audit-locale`
+ * cannot catch that, because it is not a locale call; nothing here reads a
+ * locale either (§3.6), since the calendar is not a locale.
+ *
+ * It lived in `fuel-draft.ts` while fuel was the only thing that dated itself.
+ * F5 gave costs a date too, and cost code importing fuel code to learn what day
+ * it is would have been the wrong shape for a fact neither of them owns.
+ */
+export function todayIso(now: Date = new Date()): string {
+  const year = now.getFullYear().toString().padStart(4, '0')
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
+  const day = now.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+}

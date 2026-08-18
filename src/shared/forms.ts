@@ -9,17 +9,17 @@
 
 export const FORM_ARG = '--tritium-form='
 
-export const FORM_KINDS = ['vehicle', 'currency', 'fuel-quick', 'fuel'] as const
+export const FORM_KINDS = ['vehicle', 'currency', 'fuel-quick', 'fuel', 'cost'] as const
 export type FormKind = (typeof FORM_KINDS)[number]
 
 export interface FormRequest {
   kind: FormKind
   /**
-   * The vehicle. On the vehicle form, absent means a new one; on a fuel form it
-   * is the vehicle the fill-up belongs to and is always there.
+   * The vehicle. On the vehicle form, absent means a new one; on an entry form
+   * it is the vehicle the record belongs to and is always there.
    */
   slug?: string
-  /** The fill-up being edited (XTRITIUM §3.8). Absent means a new one. */
+  /** The entry being edited (XTRITIUM §3.8). Absent means a new one. */
   entry?: string
 }
 

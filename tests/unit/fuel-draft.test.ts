@@ -8,10 +8,12 @@ import {
   emptyDraft,
   entryOf,
   goesBackwards,
-  lastOdometer,
-  todayIso
+  lastOdometer
 } from '../../src/shared/fuel-draft.js'
-import { formatDate } from '../../src/shared/format.js'
+// F5 moved todayIso into format.js, beside the other date handling — costs date
+// themselves too, and cost code importing fuel code to learn the day would have
+// been the wrong shape for a fact neither owns.
+import { formatDate, todayIso } from '../../src/shared/format.js'
 import type { FuelEntry } from '../../src/shared/records.js'
 import { toPump } from '../../src/shared/scaled.js'
 
