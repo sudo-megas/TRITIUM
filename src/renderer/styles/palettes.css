@@ -1,154 +1,517 @@
 /*
  * The ONLY file in TRITIUM allowed to contain a colour literal (XTRITIUM §8,
- * enforced by scripts/audit-colours.mjs).
+ * enforced by scripts/audit-colours.mjs). Everything else in the interface
+ * reaches colour through these names.
  *
- * Eleven palettes: ten to be ported from JADEITE plus Ubuntu Aubergine.
- * Their identities and their real values are design-phase work (XTRITIUM §11).
- * Everything below is a PLACEHOLDER and is deliberately garish so that nobody
- * mistakes it for the design phase's output (F1 §3).
+ * Eleven palettes, seventeen tokens each, plus the eight-colour series the
+ * charts will spend. Ten are ported from JADEITE and keep their upstream
+ * identities; the eleventh is Ubuntu Aubergine, built from Canonical's own
+ * published brand palette. Ubuntu Orange and Dark Aubergine are that project's
+ * verbatim; everything else in that block is derived.
+ *
+ * Nothing here is a placeholder any more. Every value is checked by
+ * tests/unit/palettes.test.ts, which computes real WCAG contrast rather than
+ * trusting the eye: body text clears 4.5:1 on all three grounds, the accent
+ * clears 3:1 on both surfaces -- which is the constraint that actually limits
+ * how dark or saturated an accent may be -- borders sit in a deliberate band,
+ * no surface is pure black and no text is pure white, and the borders stay
+ * achromatic so that colour in this interface always means something.
+ *
+ * Two things are deliberately absent. There is no overlay surface: nothing in
+ * TRITIUM is ever drawn on top of anything else, so a colour for the thing that
+ * floats above would have nothing to describe. And no value here is derived at
+ * runtime -- no color-mix(), no relative colour syntax -- because a token that
+ * computes itself cannot be checked by reading it, and these are checked.
+ *
+ * The accent's hover is a step in lightness with the hue held, so hovering lights
+ * the same colour rather than swapping it for its neighbour.
  */
-
+/*
+ * The app opens on this one. :root carries it so the very first frame is
+ * painted before any attribute is read; every block below has the same
+ * specificity and comes later, so whichever palette the document names wins.
+ */
+/* Default Dark — dark. Source: TRITIUM. Accent: tritium glow. */
 :root,
-[data-palette='p01'] {
-  --bg: #101014;
-  --bg-raised: #1b1b22;
-  --bg-sunken: #08080b;
-  --fg: #f2f2f5;
-  --fg-dim: #9a9aa8;
-  --line: #2e2e3a;
-  --accent: #ff00ff;
-  --accent-fg: #000000;
-  --warn: #ffcc00;
-  --good: #00ff88;
+[data-palette='default-dark'] {
+  color-scheme: dark;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #101215;
+  --surface-raised: #171a1f;
+  --surface-sunken: #0c0e11;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #3d424b;
+  --border-strong: #60656d;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #e6e9ee;
+  --text-muted: #98a1af;
+  --text-subtle: #6c7684;
+  --text-on-accent: #0c2017;
+
+  /* the accent, and the same colour lit up */
+  --accent: #67cfa5;
+  --accent-hover: #63e3b1;
+
+  /* the four signals */
+  --danger: #c96a5f;
+  --warning: #c9a25f;
+  --success: #6fa86a;
+  --info: #5f92c9;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #4dece4;
+  --selection: #2b3540;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #67cfa5;
+  --accent-seq-2: #5f92c9;
+  --accent-seq-3: #a08bc4;
+  --accent-seq-4: #c9a25f;
+  --accent-seq-5: #6fa86a;
+  --accent-seq-6: #c98fa8;
+  --accent-seq-7: #7fa8b8;
+  --accent-seq-8: #b08968;
 }
 
-[data-palette='p02'] {
-  --bg: #001018;
-  --bg-raised: #04202c;
-  --bg-sunken: #000509;
-  --fg: #e6fbff;
-  --fg-dim: #6fa5b5;
-  --line: #0b3546;
-  --accent: #00ffd5;
-  --accent-fg: #001018;
-  --warn: #ff8a00;
-  --good: #7cff00;
+/* Default Light — light. Source: TRITIUM. Accent: tritium glow. */
+[data-palette='default-light'] {
+  color-scheme: light;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #eceef0;
+  --surface-raised: #f7f8f9;
+  --surface-sunken: #e2e5e8;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #acb1b6;
+  --border-strong: #7f8790;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #1b1f24;
+  --text-muted: #59616b;
+  --text-subtle: #7d858f;
+  --text-on-accent: #f7f8f9;
+
+  /* the accent, and the same colour lit up */
+  --accent: #067f5c;
+  --accent-hover: #00694a;
+
+  /* the four signals */
+  --danger: #a8433a;
+  --warning: #8a6416;
+  --success: #3c7737;
+  --info: #2f5f96;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #247472;
+  --selection: #cfd6dd;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #067f5c;
+  --accent-seq-2: #2f5f96;
+  --accent-seq-3: #6a4f96;
+  --accent-seq-4: #8a6416;
+  --accent-seq-5: #3c7737;
+  --accent-seq-6: #96406a;
+  --accent-seq-7: #3f7a8a;
+  --accent-seq-8: #8a5a3a;
 }
 
-[data-palette='p03'] {
-  --bg: #180010;
-  --bg-raised: #2a0620;
-  --bg-sunken: #0c0008;
-  --fg: #ffe9f7;
-  --fg-dim: #b56f9c;
-  --line: #460b33;
-  --accent: #ff0066;
-  --accent-fg: #ffffff;
-  --warn: #ffdd00;
-  --good: #00ff99;
+/* Noctalia — dark. Source: noctalia-dev/noctalia. */
+[data-palette='noctalia'] {
+  color-scheme: dark;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #070722;
+  --surface-raised: #11112d;
+  --surface-sunken: #04041a;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #3c3e46;
+  --border-strong: #5e6069;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #f3edf7;
+  --text-muted: #b9bce0;
+  --text-subtle: #7c80b4;
+  --text-on-accent: #0e0e43;
+
+  /* the accent, and the same colour lit up */
+  --accent: #fff59b;
+  --accent-hover: #ebe188;
+
+  /* the four signals */
+  --danger: #fd4663;
+  --warning: #ffc46b;
+  --success: #9bfece;
+  --info: #a9aefe;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #a9aefe;
+  --selection: #2e2e7a;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #fff59b;
+  --accent-seq-2: #a9aefe;
+  --accent-seq-3: #9bfece;
+  --accent-seq-4: #ffc46b;
+  --accent-seq-5: #fd4663;
+  --accent-seq-6: #c9a6ff;
+  --accent-seq-7: #6fd3f5;
+  --accent-seq-8: #8288fc;
 }
 
-[data-palette='p04'] {
-  --bg: #0d1400;
-  --bg-raised: #182600;
-  --bg-sunken: #060a00;
-  --fg: #f0ffdd;
-  --fg-dim: #9ab56f;
-  --line: #2c4600;
-  --accent: #aaff00;
-  --accent-fg: #0d1400;
-  --warn: #ff6600;
-  --good: #00ffcc;
+/* Catppuccin Latte — light. Source: catppuccin/palette. */
+[data-palette='catppuccin-latte'] {
+  color-scheme: light;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #e6e9ef;
+  --surface-raised: #eff1f5;
+  --surface-sunken: #dce0e8;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #a8acb8;
+  --border-strong: #7f828d;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #4c4f69;
+  --text-muted: #5c5f77;
+  --text-subtle: #7f8294;
+  --text-on-accent: #eff1f5;
+
+  /* the accent, and the same colour lit up */
+  --accent: #1a62f1;
+  --accent-hover: #0149d0;
+
+  /* the four signals */
+  --danger: #cf0637;
+  --warning: #955a00;
+  --success: #1c7800;
+  --info: #007379;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #6578ed;
+  --selection: #acb0be;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #1a62f1;
+  --accent-seq-2: #1c7800;
+  --accent-seq-3: #8839ef;
+  --accent-seq-4: #e05500;
+  --accent-seq-5: #007379;
+  --accent-seq-6: #c958ac;
+  --accent-seq-7: #955a00;
+  --accent-seq-8: #008fa5;
 }
 
-[data-palette='p05'] {
-  --bg: #14100a;
-  --bg-raised: #241d12;
-  --bg-sunken: #0a0805;
-  --fg: #fff4e0;
-  --fg-dim: #b59a6f;
-  --line: #463a22;
-  --accent: #ffaa00;
-  --accent-fg: #14100a;
-  --warn: #ff3300;
-  --good: #66ff33;
+/* Catppuccin Frappe — dark. Source: catppuccin/palette. */
+[data-palette='catppuccin-frappe'] {
+  color-scheme: dark;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #303446;
+  --surface-raised: #414559;
+  --surface-sunken: #292c3c;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #555860;
+  --border-strong: #7e818a;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #c6d0f5;
+  --text-muted: #b5bfe2;
+  --text-subtle: #838ba7;
+  --text-on-accent: #232634;
+
+  /* the accent, and the same colour lit up */
+  --accent: #8caaee;
+  --accent-hover: #a0bdfe;
+
+  /* the four signals */
+  --danger: #e78284;
+  --warning: #e5c890;
+  --success: #a6d189;
+  --info: #81c8be;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #babbf1;
+  --selection: #626880;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #8caaee;
+  --accent-seq-2: #a6d189;
+  --accent-seq-3: #ca9ee6;
+  --accent-seq-4: #ef9f76;
+  --accent-seq-5: #81c8be;
+  --accent-seq-6: #f4b8e4;
+  --accent-seq-7: #e5c890;
+  --accent-seq-8: #85c1dc;
 }
 
-[data-palette='p06'] {
-  --bg: #0a0a14;
-  --bg-raised: #121226;
-  --bg-sunken: #05050a;
-  --fg: #e6e6ff;
-  --fg-dim: #7a7ab5;
-  --line: #22224a;
-  --accent: #5566ff;
-  --accent-fg: #ffffff;
-  --warn: #ffbb00;
-  --good: #33ffaa;
+/* Catppuccin Macchiato — dark. Source: catppuccin/palette. */
+[data-palette='catppuccin-macchiato'] {
+  color-scheme: dark;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #24273a;
+  --surface-raised: #363a4f;
+  --surface-sunken: #1e2030;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #4c4e57;
+  --border-strong: #72747d;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #cad3f5;
+  --text-muted: #b8c0e0;
+  --text-subtle: #8087a2;
+  --text-on-accent: #181926;
+
+  /* the accent, and the same colour lit up */
+  --accent: #8aadf4;
+  --accent-hover: #a2c1ff;
+
+  /* the four signals */
+  --danger: #ed8796;
+  --warning: #eed49f;
+  --success: #a6da95;
+  --info: #8bd5ca;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #b7bdf8;
+  --selection: #5b6078;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #8aadf4;
+  --accent-seq-2: #a6da95;
+  --accent-seq-3: #c6a0f6;
+  --accent-seq-4: #f5a97f;
+  --accent-seq-5: #8bd5ca;
+  --accent-seq-6: #f5bde6;
+  --accent-seq-7: #eed49f;
+  --accent-seq-8: #7dc4e4;
 }
 
-[data-palette='p07'] {
-  --bg: #ffffff;
-  --bg-raised: #f2f2f5;
-  --bg-sunken: #e4e4ea;
-  --fg: #101014;
-  --fg-dim: #55555f;
-  --line: #ccccd6;
-  --accent: #cc0000;
-  --accent-fg: #ffffff;
-  --warn: #aa6600;
-  --good: #007744;
+/* Catppuccin Mocha — dark. Source: catppuccin/palette. */
+[data-palette='catppuccin-mocha'] {
+  color-scheme: dark;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #1e1e2e;
+  --surface-raised: #313244;
+  --surface-sunken: #181825;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #474850;
+  --border-strong: #6b6d76;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #cdd6f4;
+  --text-muted: #bac2de;
+  --text-subtle: #7f849c;
+  --text-on-accent: #11111b;
+
+  /* the accent, and the same colour lit up */
+  --accent: #89b4fa;
+  --accent-hover: #a6c8fe;
+
+  /* the four signals */
+  --danger: #f38ba8;
+  --warning: #f9e2af;
+  --success: #a6e3a1;
+  --info: #94e2d5;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #b4befe;
+  --selection: #585b70;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #89b4fa;
+  --accent-seq-2: #a6e3a1;
+  --accent-seq-3: #cba6f7;
+  --accent-seq-4: #fab387;
+  --accent-seq-5: #94e2d5;
+  --accent-seq-6: #f5c2e7;
+  --accent-seq-7: #f9e2af;
+  --accent-seq-8: #74c7ec;
 }
 
-[data-palette='p08'] {
-  --bg: #f5f0e6;
-  --bg-raised: #ece4d4;
-  --bg-sunken: #ded3bd;
-  --fg: #241d12;
-  --fg-dim: #6b5c42;
-  --line: #c9b894;
-  --accent: #8b4513;
-  --accent-fg: #f5f0e6;
-  --warn: #b35900;
-  --good: #2e6b2e;
+/* Rose Pine Dawn — light. Source: rose-pine/palette. */
+[data-palette='rose-pine-dawn'] {
+  color-scheme: light;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #faf4ed;
+  --surface-raised: #fffaf3;
+  --surface-sunken: #f2e9e1;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #bab5b4;
+  --border-strong: #8d898c;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #575279;
+  --text-muted: #6f6b89;
+  --text-subtle: #8e899b;
+  --text-on-accent: #fffaf3;
+
+  /* the accent, and the same colour lit up */
+  --accent: #286983;
+  --accent-hover: #08526b;
+
+  /* the four signals */
+  --danger: #a6566d;
+  --warning: #9c6100;
+  --success: #4d7950;
+  --info: #397782;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #907aa9;
+  --selection: #cecacd;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #286983;
+  --accent-seq-2: #397782;
+  --accent-seq-3: #907aa9;
+  --accent-seq-4: #9c6100;
+  --accent-seq-5: #a6566d;
+  --accent-seq-6: #c77370;
+  --accent-seq-7: #4d7950;
+  --accent-seq-8: #6f6b89;
 }
 
-[data-palette='p09'] {
-  --bg: #001400;
-  --bg-raised: #002600;
-  --bg-sunken: #000a00;
-  --fg: #ccffcc;
-  --fg-dim: #66aa66;
-  --line: #004400;
-  --accent: #00ff00;
-  --accent-fg: #001400;
-  --warn: #ffff00;
-  --good: #00ffff;
+/* Nord — dark. Source: nordtheme/nord. */
+[data-palette='nord'] {
+  color-scheme: dark;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #2e3440;
+  --surface-raised: #3b4252;
+  --surface-sunken: #272c36;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #53575f;
+  --border-strong: #7c8089;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #eceff4;
+  --text-muted: #d8dee9;
+  --text-subtle: #8a93a5;
+  --text-on-accent: #2e3440;
+
+  /* the accent, and the same colour lit up */
+  --accent: #88c0d0;
+  --accent-hover: #9bd3e4;
+
+  /* the four signals */
+  --danger: #e28189;
+  --warning: #ebcb8b;
+  --success: #a3be8c;
+  --info: #81a1c1;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #88c0d0;
+  --selection: #4c566a;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #88c0d0;
+  --accent-seq-2: #a3be8c;
+  --accent-seq-3: #b48ead;
+  --accent-seq-4: #ebcb8b;
+  --accent-seq-5: #8fbcbb;
+  --accent-seq-6: #81a1c1;
+  --accent-seq-7: #d08770;
+  --accent-seq-8: #5e81ac;
 }
 
-[data-palette='p10'] {
-  --bg: #121212;
-  --bg-raised: #1e1e1e;
-  --bg-sunken: #0a0a0a;
-  --fg: #eeeeee;
-  --fg-dim: #888888;
-  --line: #333333;
-  --accent: #999999;
-  --accent-fg: #121212;
-  --warn: #cccccc;
-  --good: #dddddd;
+/* Kanagawa Lotus — light. Source: rebelot/kanagawa.nvim. */
+[data-palette='kanagawa-lotus'] {
+  color-scheme: light;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #e5ddb0;
+  --surface-raised: #f2ecbc;
+  --surface-sunken: #dcd5ac;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #a3a298;
+  --border-strong: #7a7970;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #545464;
+  --text-muted: #625f52;
+  --text-subtle: #7a7970;
+  --text-on-accent: #f2ecbc;
+
+  /* the accent, and the same colour lit up */
+  --accent: #4d699b;
+  --accent-hover: #375282;
+
+  /* the four signals */
+  --danger: #b22a41;
+  --warning: #944d00;
+  --success: #4f672d;
+  --info: #456660;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #5d57a3;
+  --selection: #d5cea3;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #4d699b;
+  --accent-seq-2: #4f672d;
+  --accent-seq-3: #624c83;
+  --accent-seq-4: #944d00;
+  --accent-seq-5: #456660;
+  --accent-seq-6: #b35b79;
+  --accent-seq-7: #77713f;
+  --accent-seq-8: #43436c;
 }
 
-/* Ubuntu Aubergine (Canonical) — the eleventh, XTRITIUM §8. Also placeholder. */
+/* Aubergine — dark. Source: Canonical's published brand palette. */
 [data-palette='aubergine'] {
-  --bg: #2c001e;
-  --bg-raised: #3b0a2a;
-  --bg-sunken: #1a0012;
-  --fg: #f7f2f5;
-  --fg-dim: #b48ca5;
-  --line: #5e2750;
+  color-scheme: dark;
+
+  /* ground: three steps, told apart by fill alone */
+  --surface: #22111a;
+  --surface-raised: #2e2028;
+  --surface-sunken: #16030e;
+
+  /* edges: achromatic, because colour here is never structure */
+  --border: #58454f;
+  --border-strong: #806875;
+
+  /* type: three tones, and what sits on the accent */
+  --text: #f4eef1;
+  --text-muted: #b6a6ae;
+  --text-subtle: #87747e;
+  --text-on-accent: #2c001e;
+
+  /* the accent, and the same colour lit up */
   --accent: #e95420;
-  --accent-fg: #ffffff;
-  --warn: #efb73e;
-  --good: #38b44a;
+  --accent-hover: #fd6a3b;
+
+  /* the four signals */
+  --danger: #e24e96;
+  --warning: #cf8700;
+  --success: #409d48;
+  --info: #009fd6;
+
+  /* focus and selection, the two that may be chromatic */
+  --focus-ring: #61bee6;
+  --selection: #5d2748;
+
+  /* the chart series, in the order F8 will spend them */
+  --accent-seq-1: #e26943;
+  --accent-seq-2: #cf9b20;
+  --accent-seq-3: #6b961e;
+  --accent-seq-4: #2bb091;
+  --accent-seq-5: #00a3c2;
+  --accent-seq-6: #6790e2;
+  --accent-seq-7: #a584dc;
+  --accent-seq-8: #c361a5;
 }

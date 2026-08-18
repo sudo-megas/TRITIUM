@@ -1,0 +1,45 @@
+/* Fixture: a palette built to break, one seeded defect per rule, so
+ * tests/unit/palettes.test.ts can prove each check actually catches the
+ * thing it claims to catch. Never loaded by the app. Each comment below
+ * names the one rule its neighbouring line exists to break; several land on
+ * the same token where that is the honest consequence of one bad value
+ * (a black surface-sunken, for instance, is also a very low-contrast
+ * background for --text, and both are true).
+ */
+
+[data-palette='fixture-broken'] {
+  --surface: #ffffff;
+  --surface-raised: #ffffff; /* same colour as --surface: fails "must differ" and the >=1.1 ratio */
+  --surface-sunken: #000000; /* pure black: fails the no-extremes rule */
+
+  --border: #93a0d8; /* contrast on --surface is a fine 2.5:1, but this is a blue, not a grey: fails the chroma <= 0.04 rule */
+  --border-strong: #f2f2f2; /* ~1.12:1 on --surface: fails the >=3 floor */
+
+  --text: #b0b0b0; /* ~2.17:1 on --surface: fails the >=4.5 floor */
+  --text-muted: #d8d8d8; /* ~1.43:1 on --surface: fails the >=4.5 floor */
+  --text-subtle: #f5f5f5; /* ~1.09:1 on --surface: fails the >=3 floor */
+  --text-on-accent: #ffffff; /* pure white: fails no-extremes, and ~1.16:1 on --accent fails the >=4.5 floor */
+
+  --accent: #eeeeee; /* ~1.16:1 on both --surface and --surface-raised: fails the binding 3:1 constraint on both */
+  --accent-hover: #3355ff;
+
+  --danger: #ffb3b3; /* ~1.70:1 on --surface: fails the >=4.5 floor */
+  --success: #b3ffb3; /* ~1.18:1 on --surface: fails the >=4.5 floor */
+  --info: #b3d1ff; /* ~1.56:1 on --surface: fails the >=4.5 floor */
+  /* --warning is missing entirely: fails completeness */
+
+  --focus-ring: #3355ff; /* clears 3:1 on its own, but equals --accent-hover: fails "must be distinguishable" */
+  --selection: #3355ff33;
+
+  --acent: #ff0000; /* typo of --accent: fails "no token outside the set" */
+  --surface-overlay: #123456; /* the token D1 forbids outright: fails "no forbidden token" */
+
+  --accent-seq-1: #446622;
+  --accent-seq-2: #446622; /* identical to --accent-seq-1: fails "all eight distinct" */
+  --accent-seq-3: #663322;
+  --accent-seq-4: #224466;
+  --accent-seq-5: #662244;
+  --accent-seq-6: #226644;
+  --accent-seq-7: #664422;
+  --accent-seq-8: #eeeeee; /* ~1.16:1 on --surface: fails the >=3 floor */
+}

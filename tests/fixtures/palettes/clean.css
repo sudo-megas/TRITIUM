@@ -1,0 +1,50 @@
+/* Fixture: a hand-checked palette that satisfies every rule in
+ * tests/unit/palettes.test.ts. Nothing here is eyeballed — every contrast
+ * ratio and every chroma figure was computed with the same formulas the
+ * test itself uses before this file was written, so the "good" half of the
+ * test proves the checker accepts a palette that genuinely earns it.
+ *
+ * A mix of hex and oklch() on purpose, since the real stylesheet may use
+ * either token by token (see --accent, --border, --focus-ring below).
+ */
+
+[data-palette='fixture-clean'] {
+  --surface: #ffffff;
+  --surface-raised: #f1f1f5;
+  --surface-sunken: #e3e3ea;
+
+  --border: oklch(0.8293 0.0124 286.13);
+  --border-strong: #8d8d99;
+
+  --text: #17171b;
+  --text-muted: #4b4b55;
+  --text-subtle: #6f6f7a;
+  --text-on-accent: #f5f7f5;
+
+  --accent: oklch(0.5139 0.1091 161.63);
+  --accent-hover: #0b5f40;
+
+  --danger: #ab2323;
+  --warning: #7a4a00;
+  --success: #17703c;
+  --info: #1156a3;
+
+  --focus-ring: oklch(0.4991 0.2071 261.77);
+  --selection: #1256d633;
+
+  /* Do not resurrect --surface-overlay: #ff00ff; here — D1 forbids a
+     surface that floats above another, so the token has no meaning in this
+     app. This comment exists to prove the reader below strips comments
+     before it goes looking for declarations: if it did not, the mention
+     above would register as a real one and this fixture would fail its own
+     "no forbidden token" check by accident. */
+
+  --accent-seq-1: #a3221c;
+  --accent-seq-2: #a15a00;
+  --accent-seq-3: #756b00;
+  --accent-seq-4: #157a4a;
+  --accent-seq-5: #0a7a72;
+  --accent-seq-6: #1a5fc4;
+  --accent-seq-7: #5a3fa8;
+  --accent-seq-8: #a3227a;
+}

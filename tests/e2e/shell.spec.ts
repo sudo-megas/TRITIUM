@@ -4,6 +4,39 @@ import { readFileSync, rmSync } from 'node:fs'
 import { parse } from 'smol-toml'
 import { test, expect, type ElectronApplication } from '@playwright/test'
 import { launchApp, makeDataDir, seedSettings, settingsPathIn } from './harness.js'
+import { PALETTES } from '../../src/shared/settings.js'
+
+// The seventeen tokens every palette owes, plus the eight-colour chart series.
+// Deliberately spelled out rather than derived from the stylesheet: a test that
+// reads its expectations out of the file it is checking proves only that the
+// file agrees with itself.
+const TOKENS = [
+  '--surface',
+  '--surface-raised',
+  '--surface-sunken',
+  '--border',
+  '--border-strong',
+  '--text',
+  '--text-muted',
+  '--text-subtle',
+  '--text-on-accent',
+  '--accent',
+  '--accent-hover',
+  '--danger',
+  '--warning',
+  '--success',
+  '--info',
+  '--focus-ring',
+  '--selection',
+  '--accent-seq-1',
+  '--accent-seq-2',
+  '--accent-seq-3',
+  '--accent-seq-4',
+  '--accent-seq-5',
+  '--accent-seq-6',
+  '--accent-seq-7',
+  '--accent-seq-8'
+] as const
 
 const TABS = [
   'summary',
@@ -169,4 +202,48 @@ test('settings.toml is valid TOML and carries schema_version', async () => {
 
   const document = parse(readFileSync(settingsFile(), 'utf8')) as Record<string, unknown>
   expect(document['schema_version']).toBe(1)
+})
+
+/*
+ * Every palette, switched in the running application and read back through the
+ * cascade rather than out of the file. The unit suite proves the stylesheet
+ * declares what it should; this proves the browser resolves it — which is a
+ * different claim, and the one that fails when a selector is misspelled, a
+ * block is shadowed, or a token is declared somewhere the document never
+ * reaches.
+ */
+test('all eleven palettes resolve a complete token set, and none repeats another', async () => {
+  const page = await app.firstWindow()
+  await page.getByTestId('tab-settings').click()
+
+  const seen = new Map<string, string>()
+
+  for (const id of PALETTES) {
+    await page.getByTestId('palette-select').selectOption(id)
+
+    await expect(async () => {
+      const attribute = await page.evaluate(
+        () => document.documentElement.dataset['palette'] ?? ''
+      )
+      expect(attribute).toBe(id)
+    }).toPass({ timeout: 5_000 })
+
+    const resolved = await page.evaluate((names: string[]) => {
+      const style = getComputedStyle(document.documentElement)
+      return names.map((name) => style.getPropertyValue(name).trim())
+    }, [...TOKENS])
+
+    TOKENS.forEach((name, index) => {
+      expect(resolved[index], `${id} must define ${name}`).not.toBe('')
+    })
+
+    // Two palettes resolving to the same twenty-five values would mean one of
+    // them never took effect — the failure a per-token check cannot see.
+    const signature = resolved.join('|')
+    const clash = seen.get(signature)
+    expect(clash, `${id} resolves identically to ${clash ?? ''}`).toBeUndefined()
+    seen.set(signature, id)
+  }
+
+  expect(seen.size).toBe(PALETTES.length)
 })
