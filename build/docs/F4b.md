@@ -400,7 +400,7 @@ tabs that render empty cells today are waiting on F5–F8, not on a decision.
 | Service | The service table, with the range chips above it | The selected record in full · what falls due next |
 | Charts | The seven charts as a list, the range chips, and the custom date range | The chosen chart, its readout, and — for the bar charts — the data table §7.2 requires beneath it |
 | Statistics | Best and worst tank · km per day | Projected annual cost · true cost per km including purchase price |
-| Settings | Language · units · format · currency | The eleven palettes, and a specimen showing the one in force |
+| Settings | Language · units · format · currency | The eleven palettes, each as its own specimen |
 | About | The mark, the rows, the addresses | The licence |
 
 Two consequences worth stating plainly, because both are places where §7 and the
@@ -467,6 +467,22 @@ claim was printed. In short: Electron installs a default menu when an app sets
 none, `autoHideMenuBar` hides the bar without removing the menu, and `Alt` still
 dropped it over the interface. It is gone, and the clipboard turns out not to
 need it.
+
+**Two smaller settlements, recorded so neither reads as dropped.**
+
+- **D14 said the Settings pane would hold "a specimen showing the one in force".
+  Eleven specimens shipped instead** — one miniature per palette, beside the
+  picker. It is the better answer and the table above now says so: a single
+  specimen shows what is already visible in the window around it, whereas eleven
+  let the choice be made by looking rather than by reading a name and switching.
+- **`F4b-niri.md` §1.5 asked for `nativeTheme.themeSource` to be pinned, and it
+  is resolved by design rather than by that fix.** The concern was that a
+  user-agent-rendered control could arrive in the desktop's light or dark idea of
+  itself and contradict the palette in force. Every one of the eleven palette
+  blocks declares its own `color-scheme`, which is what governs those controls in
+  Chromium 150, so the document rather than the desktop decides. The native
+  `<select>` popup is the one surface this cannot reach from CSS, and it stays on
+  the maker's hands-on list.
 
 **The artwork arrived mid-milestone and is now placed.** The maker supplied
 `build/icons/` and asked for the mark in two places: the tab bar and About. This
