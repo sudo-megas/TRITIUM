@@ -414,7 +414,10 @@
   --info: #81a1c1;
 
   /* focus and selection, the two that may be chromatic */
-  --focus-ring: #88c0d0;
+  /* Aurora purple, not the frost blue the accent already uses: every other
+     palette keeps focus distinct from accent, and Nord was the one that did
+     not, so a focused control and an accented one were the same pixels. */
+  --focus-ring: #b48ead;
   --selection: #4c566a;
 
   /* the chart series, in the order F8 will spend them */

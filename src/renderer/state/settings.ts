@@ -5,7 +5,7 @@
 
 import { create } from 'zustand'
 import { DEFAULT_SETTINGS, type Language, type Palette, type Settings } from '../../shared/settings.js'
-import { applyLanguage } from '../i18n/index.js'
+import { applyLanguage, applyWindowTitle } from '../i18n/index.js'
 
 interface SettingsStore extends Settings {
   setLanguage: (language: Language) => void
@@ -18,6 +18,7 @@ export function applyToDocument(settings: Settings): void {
   document.documentElement.dataset['palette'] = settings.palette
   document.documentElement.lang = settings.language
   applyLanguage(settings.language)
+  applyWindowTitle()
 }
 
 const initial: Settings = window.tritium?.initialSettings ?? { ...DEFAULT_SETTINGS }

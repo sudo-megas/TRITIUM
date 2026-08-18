@@ -68,6 +68,45 @@ function load(window: BrowserWindow, packaged: boolean): void {
   else void window.loadFile(rendererFile())
 }
 
+/**
+ * How long to wait for 'ready-to-show' before showing the window anyway.
+ *
+ * Long enough that it never fires on a healthy launch, short enough that a
+ * stuck window still arrives while the maker is still looking at the screen.
+ */
+const SHOW_FALLBACK_MS = 3000
+
+/**
+ * Show a window when it is ready — and show it anyway if that never happens.
+ *
+ * Waiting for 'ready-to-show' is the right primary path: showing immediately
+ * would flash an unpainted window. But the event is not guaranteed to arrive.
+ * Electron issue 48859 is open against exactly this: on Wayland the event can
+ * simply never fire, reproducing across three GPU vendors and traced into
+ * Blink rather than any one driver. A window that never fires it never calls
+ * show(), and from the maker's side that is not a glitch — the window silently
+ * does not exist, with nothing in the log to say why.
+ *
+ * Electron's own advice for a late 'ready-to-show' is to pair the fallback with
+ * a backgroundColor. TRITIUM cannot: the main process would have to name a
+ * colour, and XTRITIUM §8 keeps every colour literal in palettes.css and
+ * nowhere else. The trade is acceptable — by three seconds the renderer has
+ * long since painted, so the flash that backgroundColor guards against is not
+ * the failure this is here to survive.
+ */
+function showWhenReady(window: BrowserWindow): void {
+  let shown = false
+  const show = (): void => {
+    if (shown || window.isDestroyed()) return
+    shown = true
+    window.show()
+  }
+
+  window.once('ready-to-show', show)
+  const fallback = setTimeout(show, SHOW_FALLBACK_MS)
+  window.once('closed', () => clearTimeout(fallback))
+}
+
 export function createMainWindow(settings: Settings, packaged: boolean): BrowserWindow {
   const window = new BrowserWindow({
     width: MIN_WIDTH,
@@ -79,7 +118,7 @@ export function createMainWindow(settings: Settings, packaged: boolean): Browser
     webPreferences: webPreferences(packaged, [`${SETTINGS_ARG}${JSON.stringify(settings)}`])
   })
 
-  window.once('ready-to-show', () => window.show())
+  showWhenReady(window)
   harden(window)
   load(window, packaged)
 
@@ -106,6 +145,19 @@ export function openFormWindow(
   const window = new BrowserWindow({
     ...size,
     ...(modal && parent !== undefined ? { parent, modal: true } : {}),
+    // Fixed size, and that is what makes a form float on a tiling desktop.
+    //
+    // A scrolling tiler decides for itself whether a new window joins the
+    // tiling or floats above it, and niri's rule is that it floats if it has a
+    // parent OR fixed dimensions. Giving these three a parent would have worked
+    // too — and would have been wrong: §5.1 calls a form non-anchored, a parent
+    // anchors it, and F3 wrote a test saying exactly that. Fixed dimensions get
+    // the same floating behaviour while leaving the window owned by nobody.
+    //
+    // It costs nothing that was not already decided: these sizes were chosen to
+    // fit the form rather than to fill a screen, and the form scrolls if its
+    // contents ever outgrow them.
+    resizable: false,
     show: false,
     autoHideMenuBar: true,
     webPreferences: webPreferences(packaged, [
@@ -114,7 +166,7 @@ export function openFormWindow(
     ])
   })
 
-  window.once('ready-to-show', () => window.show())
+  showWhenReady(window)
   harden(window)
   load(window, packaged)
 
