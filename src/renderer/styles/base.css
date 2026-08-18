@@ -194,7 +194,12 @@ select,
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  padding: var(--space-0) var(--space-16);
+  /*
+   * The vertical padding is what stops the mark meeting the bar's own edges.
+   * Together with --mark-size it is what sets the bar's height, since this is
+   * the tallest item in the row and the tabs beside it stretch to match.
+   */
+  padding: var(--mark-air) var(--space-16);
   font-weight: 700;
   letter-spacing: var(--tracking-label);
   color: var(--accent);
@@ -423,6 +428,19 @@ select,
 }
 
 /* ── about ───────────────────────────────────────────────────────────── */
+
+/*
+ * The artwork already carries its own rounded corners, so nothing is added here
+ * — a radius on top of a radius rounds the picture twice and leaves a sliver of
+ * ground showing through each corner.
+ */
+.about__icon {
+  display: block;
+  width: var(--about-mark-size);
+  height: var(--about-mark-size);
+  margin-top: var(--about-mark-air);
+  margin-bottom: var(--gap-between);
+}
 
 .about__mark {
   font-size: var(--text-2xl);

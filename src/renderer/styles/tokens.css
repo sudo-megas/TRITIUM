@@ -86,14 +86,36 @@
   --tab-height: 36px;
 
   /*
-   * The application mark in the tab bar. Its source file is build/icons/128.png
-   * — four times this box, so the artwork is still sharp on a HiDPI screen and
-   * has room to grow. The box itself has to clear the bar it sits in: at 24 it
-   * leaves six pixels of air above and below inside a 36px bar. Anything at the
-   * source file's own size would be three and a half times the bar's height and
-   * would have to overlap something to fit.
+   * The application mark in the tab bar. Its source file is build/icons/128.png,
+   * twice this box, which is what keeps it sharp on a HiDPI screen.
+   *
+   * This measurement governs the height of the bar rather than fitting inside
+   * it: the mark is the tallest thing in that row, so the row grows to hold it
+   * and every tab grows with it. That is the deliberate reading — a mark this
+   * size cannot be had without the bar becoming a header. The alternative would
+   * be to let it hang over what is below, and nothing here may overlap anything.
+   *
+   * --tab-height below is therefore a floor, not the height: it is what the bar
+   * measures when nothing taller is in it.
    */
-  --mark-size: 24px;
+  --mark-size: 64px;
+
+  /* Air above and below the mark, so it does not touch the bar's own edges. */
+  --mark-air: var(--space-4);
+
+  /*
+   * The mark on the About page, where the application introduces itself and has
+   * the room to do it properly. Drawn from build/icons/512.png — twice this box,
+   * the same two-to-one the bar's mark keeps, and the reason every mark here is
+   * sharp on a HiDPI screen. Nothing on this page is constrained by a row's
+   * height, so it is the one place the artwork can be seen at something like the
+   * size it was drawn for.
+   */
+  --about-mark-size: 256px;
+
+  /* The mark is given its own air above, so the page opens on the artwork
+   * rather than on a picture pressed against the top of its pane. */
+  --about-mark-air: var(--gap-region);
 
   /* ---- Measures -----------------------------------------------------------
    * Widths that are decisions rather than spacing: how wide a label column is,

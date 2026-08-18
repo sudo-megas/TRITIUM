@@ -138,6 +138,30 @@ test('the application mark decodes, and fits inside the bar it sits in', async (
 })
 
 /*
+ * The larger mark on About, checked the same way and for the same reason: a
+ * decode is the only thing that separates a drawn image from an element that
+ * merely occupies space.
+ */
+test('About shows the mark at the size that page has room for', async () => {
+  const page = await app.firstWindow()
+  await page.getByTestId('tab-about').click()
+
+  const icon = page.getByTestId('about-icon')
+  await expect(icon).toBeVisible()
+
+  const drawn = await icon.evaluate((node) => {
+    const image = node as HTMLImageElement
+    const box = image.getBoundingClientRect()
+    return { natural: image.naturalWidth, width: box.width, height: box.height }
+  })
+
+  // A different file from the one in the bar, and a larger box.
+  expect(drawn.natural).toBe(512)
+  expect(drawn.width).toBe(drawn.height)
+  expect(drawn.width).toBeGreaterThan(64)
+})
+
+/*
  * The vendored font, proved by what the engine loaded rather than by what the
  * stylesheet asked for. The test this replaces read font-family off the mark
  * glyph — but a computed font-family returns whatever was requested whether or

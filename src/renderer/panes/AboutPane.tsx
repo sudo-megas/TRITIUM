@@ -7,6 +7,10 @@
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import licenceText from '../../../LICENSE?raw'
+// The 512px file, drawn at half its size so the artwork stays sharp on a HiDPI
+// screen. The tab bar's mark comes from the 128px file; this is the one place
+// with room to show the icon at something like its intended size.
+import aboutIcon from '../../../build/icons/512.png'
 import {
   APP_NAME,
   APP_VERSION,
@@ -30,6 +34,9 @@ export function AboutPane(): JSX.Element {
   return (
     <div className="panes">
       <section className="pane">
+        {/* Decorative: the wordmark directly beneath it already names the
+            application, so an alt text here would only say it twice. */}
+        <img className="about__icon" src={aboutIcon} alt="" data-testid="about-icon" />
         <p className="about__mark">{APP_NAME}</p>
         <p className="about__sub">{t('app.subtitle')}</p>
 
