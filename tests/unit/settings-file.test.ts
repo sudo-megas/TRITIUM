@@ -1,5 +1,7 @@
 // settings.toml round-trips: what the maker can read in Neovim is what the app
-// reads back, schema_version included, and keys F1 does not own survive.
+// reads back, schema_version included, and keys this milestone does not own
+// survive. F2 completed the schema, so the fixtures build on DEFAULT_SETTINGS
+// rather than naming two fields and hoping the rest do not exist.
 
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -26,23 +28,25 @@ afterEach(() => {
 
 describe('settings.toml', () => {
   it('stamps schema_version on every write', () => {
-    const text = serialiseSettings({ language: 'tr', palette: 'aubergine' })
+    const text = serialiseSettings({ ...DEFAULT_SETTINGS, language: 'tr', palette: 'aubergine' })
     const document = parse(text) as Record<string, unknown>
     expect(document['schema_version']).toBe(SETTINGS_SCHEMA_VERSION)
   })
 
   it('round-trips language and palette', () => {
-    const text = serialiseSettings({ language: 'tr', palette: 'p07' })
-    expect(parseSettings(text).settings).toEqual({ language: 'tr', palette: 'p07' })
+    const settings = { ...DEFAULT_SETTINGS, language: 'tr', palette: 'p07' } as const
+    const text = serialiseSettings(settings)
+    expect(parseSettings(text).settings).toEqual(settings)
   })
 
   it('writes valid TOML through the atomic helper and reads it back', () => {
     const file = join(dir, 'settings.toml')
-    writeSettings({ language: 'tr', palette: 'p03' }, {}, file)
+    const settings = { ...DEFAULT_SETTINGS, language: 'tr', palette: 'p03' } as const
+    writeSettings(settings, {}, file)
 
     const onDisk = readFileSync(file, 'utf8')
     expect(() => parse(onDisk)).not.toThrow()
-    expect(readSettings(file).settings).toEqual({ language: 'tr', palette: 'p03' })
+    expect(readSettings(file).settings).toEqual(settings)
   })
 
   it('returns defaults when the file does not exist', () => {

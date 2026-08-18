@@ -5,8 +5,8 @@
 // GG/AA/YYYY (XTRITIUM §8).
 
 export const APP_NAME = 'TRITIUM'
-export const APP_VERSION = '0.1.0'
-export const RELEASE_DATE = '17/08/2026'
+export const APP_VERSION = '0.1.1'
+export const RELEASE_DATE = '18/08/2026'
 export const MAKER = 'sudo-megas'
 export const SOURCE_ADDRESS = 'https://github.com/sudo-megas/TRITIUM'
 export const LICENCE_ID = 'GPL-3.0-or-later'

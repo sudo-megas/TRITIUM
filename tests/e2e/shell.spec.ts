@@ -145,14 +145,29 @@ test('About shows the full licence and holds no links', async () => {
 })
 
 test('the window refuses to shrink below 1280 x 720', async () => {
-  const size = await app.evaluate(async ({ BrowserWindow }) => {
+  await app.evaluate(async ({ BrowserWindow }) => {
     const [window] = BrowserWindow.getAllWindows()
     if (!window) throw new Error('no window')
     window.setSize(400, 300)
-    return window.getSize()
   })
-  expect(size[0]).toBeGreaterThanOrEqual(1280)
-  expect(size[1]).toBeGreaterThanOrEqual(720)
+
+  // Polled rather than sampled once: the resize is a round trip through the
+  // compositor, and reading the size in the same tick can catch the requested
+  // 400 before the minimum is applied. The guarantee XTRITIUM §7 makes is that
+  // the window does not STAY smaller than this.
+  await expect
+    .poll(
+      async () => {
+        const size = await app.evaluate(async ({ BrowserWindow }) => {
+          const [window] = BrowserWindow.getAllWindows()
+          if (!window) throw new Error('no window')
+          return window.getSize()
+        })
+        return (size[0] ?? 0) >= 1280 && (size[1] ?? 0) >= 720
+      },
+      { timeout: 5_000 }
+    )
+    .toBe(true)
 })
 
 test('settings.toml is valid TOML and carries schema_version', async () => {

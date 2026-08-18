@@ -6,7 +6,28 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { readSettings, writeSettings } from './storage/settings-file.js'
-import { DEFAULT_SETTINGS, isLanguage, isPalette, type Settings } from '../shared/settings.js'
+import {
+  listVehicleSlugs,
+  loadVehicle,
+  saveCosts,
+  saveFuel,
+  saveService,
+  saveVehicleRecord
+} from './storage/repository.js'
+import type { CostDocument } from './storage/cost-file.js'
+import type { FuelDocument } from './storage/fuel-file.js'
+import type { ServiceDocument } from './storage/service-file.js'
+import type { VehicleDocument } from './storage/vehicle-file.js'
+import {
+  isConsumptionUnit,
+  isCurrency,
+  isDistanceUnit,
+  isLanguage,
+  isPalette,
+  isVolumeUnit,
+  readDecimals,
+  type Settings
+} from '../shared/settings.js'
 
 const MIN_WIDTH = 1280
 const MIN_HEIGHT = 720
@@ -62,14 +83,64 @@ function registerIpc(): void {
     return settings
   })
 
+  /**
+   * A write is a MERGE over what is on disk, not a replacement.
+   *
+   * The renderer sends the field it just changed. Rebuilding the record from
+   * defaults instead would answer a palette click by erasing the currency the
+   * maker was asked for exactly once — so every field the caller did not send,
+   * or sent invalidly, keeps the value the file already holds.
+   */
   ipcMain.handle('settings:write', (_event, incoming: unknown) => {
+    const current = readSettings()
+    carried = current.unknown
+
     const candidate = incoming as Partial<Settings> | null
     const settings: Settings = {
-      language: isLanguage(candidate?.language) ? candidate.language : DEFAULT_SETTINGS.language,
-      palette: isPalette(candidate?.palette) ? candidate.palette : DEFAULT_SETTINGS.palette
+      ...current.settings,
+      ...(isLanguage(candidate?.language) ? { language: candidate.language } : {}),
+      ...(isCurrency(candidate?.currency) ? { currency: candidate.currency } : {}),
+      ...(isDistanceUnit(candidate?.distance) ? { distance: candidate.distance } : {}),
+      ...(isVolumeUnit(candidate?.volume) ? { volume: candidate.volume } : {}),
+      ...(isConsumptionUnit(candidate?.consumption) ? { consumption: candidate.consumption } : {}),
+      decimals_consumption: readDecimals(
+        candidate?.decimals_consumption,
+        current.settings.decimals_consumption
+      ),
+      decimals_cost_per_km: readDecimals(
+        candidate?.decimals_cost_per_km,
+        current.settings.decimals_cost_per_km
+      ),
+      ...(isPalette(candidate?.palette) ? { palette: candidate.palette } : {})
     }
+
     writeSettings(settings, carried)
     return settings
+  })
+
+  // Storage (F2). Enumerated, one channel per capability — no generic bridge.
+  // A CorruptFileError thrown in here rejects the renderer's promise; nothing
+  // is written, and the file the maker can still repair by hand stays as it is.
+  ipcMain.handle('vehicles:list', () => listVehicleSlugs())
+
+  ipcMain.handle('vehicle:load', (_event, slug: unknown) =>
+    loadVehicle(typeof slug === 'string' ? slug : '')
+  )
+
+  ipcMain.handle('vehicle:save', (_event, slug: unknown, document: unknown) => {
+    saveVehicleRecord(String(slug), document as VehicleDocument)
+  })
+
+  ipcMain.handle('fuel:save', (_event, slug: unknown, document: unknown) => {
+    saveFuel(String(slug), document as FuelDocument)
+  })
+
+  ipcMain.handle('costs:save', (_event, slug: unknown, document: unknown) => {
+    saveCosts(String(slug), document as CostDocument)
+  })
+
+  ipcMain.handle('service:save', (_event, slug: unknown, document: unknown) => {
+    saveService(String(slug), document as ServiceDocument)
   })
 }
 
