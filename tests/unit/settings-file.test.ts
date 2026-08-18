@@ -34,14 +34,14 @@ describe('settings.toml', () => {
   })
 
   it('round-trips language and palette', () => {
-    const settings = { ...DEFAULT_SETTINGS, language: 'tr', palette: 'p07' } as const
+    const settings = { ...DEFAULT_SETTINGS, language: 'tr', palette: 'catppuccin-mocha' } as const
     const text = serialiseSettings(settings)
     expect(parseSettings(text).settings).toEqual(settings)
   })
 
   it('writes valid TOML through the atomic helper and reads it back', () => {
     const file = join(dir, 'settings.toml')
-    const settings = { ...DEFAULT_SETTINGS, language: 'tr', palette: 'p03' } as const
+    const settings = { ...DEFAULT_SETTINGS, language: 'tr', palette: 'noctalia' } as const
     writeSettings(settings, {}, file)
 
     const onDisk = readFileSync(file, 'utf8')
@@ -71,7 +71,7 @@ describe('settings.toml', () => {
       '[units]',
       'distance = "km"',
       '[appearance]',
-      'palette = "p05"',
+      'palette = "catppuccin-frappe"',
       ''
     ].join('\n')
 
@@ -81,7 +81,7 @@ describe('settings.toml', () => {
 
     expect(document['general']?.['currency']).toBe('TRY')
     expect(document['units']?.['distance']).toBe('km')
-    expect(document['appearance']?.['palette']).toBe('p05')
+    expect(document['appearance']?.['palette']).toBe('catppuccin-frappe')
   })
 })
 
@@ -94,7 +94,7 @@ describe('the vehicle the picker was left on (F3)', () => {
       'currency = "TRY"',
       'active_vehicle = "sportage-1-6-t-gdi"',
       '[appearance]',
-      'palette = "p01"',
+      'palette = "default-light"',
       ''
     ].join('\n')
 
@@ -123,7 +123,7 @@ describe('the vehicle the picker was left on (F3)', () => {
       'active_vehicle = "astra"',
       'nickname = "the blue one"',
       '[appearance]',
-      'palette = "p03"',
+      'palette = "noctalia"',
       ''
     ].join('\n')
 

@@ -379,10 +379,49 @@ declared per element where they earn their place, never globally.
 
 ### 2.2 The tab list and pane contents (§11.1)
 
-Currently eight tabs — `summary · fuel · costs · service · charts · statistics ·
-settings · about` — of which four render real panes and four render empty cells.
-F4b settles the final list and what occupies each pane's halves, against §7.1's
-settled Summary blocks, §7.2's seven charts and §7.3's Statistics section.
+**The list is settled as it stands, unchanged: eight tabs.**
+
+`summary · fuel · costs · service · charts · statistics · settings · about`
+
+Checked against the constitution rather than against taste, it already covers
+§7 exactly and has nothing spare: `summary` is §7.1, `charts` is §7.2's seven,
+`statistics` is §7.3's dedicated section, `fuel`/`costs`/`service` are the three
+kinds of record the app keeps, and `settings`/`about` are the two the app keeps
+about itself. Nothing in §7 is homeless and no tab is inventing work. The four
+tabs that render empty cells today are waiting on F5–F8, not on a decision.
+
+**Both panes' halves, settled:**
+
+| Tab | Left pane | Right pane |
+|---|---|---|
+| Summary | Vehicle header · Gas card · Costs card · Lifetime totals | Trend cards, static grid, all visible at once · Last entries |
+| Fuel | The fill-up table, with the range chips above it | The selected fill-up in full, and the figures derived from it |
+| Costs | The cost table, with the range chips above it | The selected record in full · breakdown by category |
+| Service | The service table, with the range chips above it | The selected record in full · what falls due next |
+| Charts | The seven charts as a list, the range chips, and the custom date range | The chosen chart, its readout, and — for the bar charts — the data table §7.2 requires beneath it |
+| Statistics | Best and worst tank · km per day | Projected annual cost · true cost per km including purchase price |
+| Settings | Language · units · format · currency | The eleven palettes, and a specimen showing the one in force |
+| About | The mark, the rows, the addresses | The licence |
+
+Two consequences worth stating plainly, because both are places where §7 and the
+standing aesthetic law disagree and somebody later would otherwise have to guess.
+
+**§7.2 settles a tooltip on every chart. Tooltips overlay.** The law is newer
+than §7 and governs, so the tooltip becomes a **readout region beneath the
+chart, in flow, owning its own space** — the crosshair moves, the readout
+changes, nothing is covered. This is better here regardless of the law: the
+figure stays legible while the pointer moves, it can be read without hovering,
+and it does not vanish the instant the mouse leaves the plot.
+
+**§7.2 settles a per-chart fullscreen button. A layer over the app overlays.**
+The button stays; what it opens is a **real second window**, which is already
+this application's answer for anything that wants the whole screen (§5.1). The
+alternative — the chart expanding to fill both panes, still in flow — is
+acceptable if the window proves awkward on the target desktop, and F8 may choose
+between them. What it may not do is float the chart above the shell.
+
+Both are F8's to build. F4b's job is that F8 arrives with the answer already
+made, rather than discovering the conflict and hard-coding its way out.
 
 ### 2.3 What is written
 

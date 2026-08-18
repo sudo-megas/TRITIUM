@@ -58,8 +58,8 @@ test('the shell paints the stored palette on its first frame', async () => {
   // which the defaults could show (XTRITIUM §3.2 — straight into the data).
   const page = await app.firstWindow()
   await page.getByTestId('tab-settings').click()
-  await page.getByTestId('palette-select').selectOption('p09')
-  await waitForSettings('palette = "p09"')
+  await page.getByTestId('palette-select').selectOption('nord')
+  await waitForSettings('palette = "nord"')
 
   app = await relaunch()
   const restarted = await app.firstWindow()
@@ -67,7 +67,7 @@ test('the shell paints the stored palette on its first frame', async () => {
   const attribute = await restarted.evaluate(
     () => document.documentElement.dataset['palette'] ?? ''
   )
-  expect(attribute).toBe('p09')
+  expect(attribute).toBe('nord')
 })
 
 test('the Nerd Font glyph renders from the font patch', async () => {
@@ -163,9 +163,9 @@ test('the window refuses to shrink below 1280 x 720', async () => {
 test('settings.toml is valid TOML and carries schema_version', async () => {
   const page = await app.firstWindow()
   await page.getByTestId('tab-settings').click()
-  await page.getByTestId('palette-select').selectOption('p04')
+  await page.getByTestId('palette-select').selectOption('catppuccin-latte')
 
-  await waitForSettings('palette = "p04"')
+  await waitForSettings('palette = "catppuccin-latte"')
 
   const document = parse(readFileSync(settingsFile(), 'utf8')) as Record<string, unknown>
   expect(document['schema_version']).toBe(1)

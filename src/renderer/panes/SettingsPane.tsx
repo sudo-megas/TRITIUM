@@ -43,6 +43,11 @@ export function SettingsPane(): JSX.Element {
           </select>
         </div>
 
+      </section>
+
+      <section className="pane">
+        <h2 className="section__title">{t('settings.palette')}</h2>
+
         <div className="field">
           <span className="field__label" id="label-palette">
             {t('settings.palette')}
@@ -64,8 +69,16 @@ export function SettingsPane(): JSX.Element {
           </select>
         </div>
 
-        <p className="field__label">{t('settings.paletteHint')}</p>
+        <p className="field__hint">{t('settings.paletteHint')}</p>
 
+        {/*
+         * Each swatch carries its own data-palette, and palettes.css selects on
+         * that attribute rather than on the root alone — so the tokens inside a
+         * swatch resolve to the palette it stands for, not the one in force.
+         * That makes every swatch a small picture of the application under that
+         * palette: bar, accent rule, ground, and two lines of text. All eleven
+         * can be compared without switching to any of them.
+         */}
         <div className="swatches">
           {PALETTES.map((id) => (
             <button
@@ -77,12 +90,16 @@ export function SettingsPane(): JSX.Element {
               aria-pressed={id === palette}
               aria-label={t(`palettes.${id}`)}
               onClick={() => setPalette(id)}
-            />
+            >
+              <span className="swatch__bar" />
+              <span className="swatch__body">
+                <span className="swatch__line" />
+                <span className="swatch__line swatch__line--short" />
+              </span>
+            </button>
           ))}
         </div>
       </section>
-
-      <section className="pane" />
     </div>
   )
 }

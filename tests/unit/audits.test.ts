@@ -1,4 +1,4 @@
-// The four audits are the project's guard rails (XTRITIUM §9.4). A gate that
+// The five audits are the project's guard rails (XTRITIUM §9.4). A gate that
 // cannot fail is decoration, so each one is pointed at a file that breaks its
 // rule and must reject it — and at a clean file it must let through.
 
@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url))
 
-const AUDITS = ['egress', 'strings', 'colours', 'locale'] as const
+const AUDITS = ['egress', 'strings', 'colours', 'locale', 'overlap'] as const
 
 function runAudit(name: string, src: string): { status: number; output: string } {
   const result = spawnSync(process.execPath, [`scripts/audit-${name}.mjs`], {
@@ -26,7 +26,7 @@ function fixture(name: string): string {
   return fileURLToPath(new URL(`../fixtures/audits/${name}`, import.meta.url))
 }
 
-describe('the four audits', () => {
+describe('the five audits', () => {
   for (const name of AUDITS) {
     it(`audit-${name} rejects a file that breaks its rule`, () => {
       const { status, output } = runAudit(name, fixture(name))

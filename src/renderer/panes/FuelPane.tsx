@@ -77,6 +77,16 @@ export function FuelPane(): JSX.Element {
             </tr>
           </thead>
           <tbody>
+            {/* Emptiness is a sentence inside the table, not a screen instead
+                of it: the headers and the column widths stay exactly where a
+                filled app would put them. */}
+            {rows.length === 0 && (
+              <tr>
+                <td className="entries__empty" colSpan={8} data-testid="fuel-empty">
+                  {t('table.empty')}
+                </td>
+              </tr>
+            )}
             {rows.map((entry) => {
               const point = points[entry.id]
               return (

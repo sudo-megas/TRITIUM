@@ -1,4 +1,4 @@
-// Fixture: nothing here breaks any of the four rules.
+// Fixture: nothing here breaks any of the five rules.
 import { useTranslation } from 'react-i18next'
 
 export function Innocent() {

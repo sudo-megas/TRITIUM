@@ -17,7 +17,7 @@
     "title": "Ayarlar",
     "language": "Dil",
     "palette": "Palet",
-    "paletteHint": "Geçici renkler — on bir palet tasarım aşamasında kesinleşir."
+    "paletteHint": "On bir palet. Seçim anında uygulanır ve hatırlanır."
   },
   "vehicles": {
     "picker": "Araç",
@@ -85,17 +85,20 @@
     "code": "Kod",
     "confirm": "Onayla"
   },
+  "table": {
+    "empty": "Görüntülenecek kayıt yok."
+  },
   "palettes": {
-    "p01": "Palet 01",
-    "p02": "Palet 02",
-    "p03": "Palet 03",
-    "p04": "Palet 04",
-    "p05": "Palet 05",
-    "p06": "Palet 06",
-    "p07": "Palet 07",
-    "p08": "Palet 08",
-    "p09": "Palet 09",
-    "p10": "Palet 10",
+    "default-light": "Varsayılan Açık",
+    "default-dark": "Varsayılan Koyu",
+    "noctalia": "Noctalia",
+    "catppuccin-latte": "Catppuccin Latte",
+    "catppuccin-frappe": "Catppuccin Frappé",
+    "catppuccin-macchiato": "Catppuccin Macchiato",
+    "catppuccin-mocha": "Catppuccin Mocha",
+    "rose-pine-dawn": "Rosé Pine Dawn",
+    "nord": "Nord",
+    "kanagawa-lotus": "Kanagawa Lotus",
     "aubergine": "Ubuntu Aubergine"
   },
   "about": {

@@ -78,4 +78,30 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   }
 }))
 
+/**
+ * Windows are isolated, so a form opened before a palette switch would keep the
+ * palette it was born with. That was invisible while every palette was a
+ * placeholder; with eleven real ones it is the first thing anybody would see.
+ *
+ * The main process already announces every write, so each window follows along
+ * and re-applies the two settings that are visible in it. Only the document and
+ * this store are touched — never the file. The window that made the change has
+ * already written it, and a follower that wrote back would start a conversation
+ * between windows that no one ends.
+ *
+ * The subscription is never torn down on purpose: it lives exactly as long as
+ * the window does.
+ */
+function followSettings(): void {
+  if (window.tritium === undefined) return
+  window.tritium.onSettingsChanged(() => {
+    void window.tritium.readSettings().then((settings) => {
+      applyToDocument(settings)
+      useSettings.setState(settings)
+    })
+  })
+}
+
+followSettings()
+
 export const initialSettings = initial

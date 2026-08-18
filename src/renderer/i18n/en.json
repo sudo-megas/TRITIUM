@@ -17,7 +17,7 @@
     "title": "Settings",
     "language": "Language",
     "palette": "Palette",
-    "paletteHint": "Placeholder colours — the eleven palettes are settled in the design phase."
+    "paletteHint": "Eleven palettes. The choice applies at once and is remembered."
   },
   "vehicles": {
     "picker": "Vehicle",
@@ -85,17 +85,20 @@
     "code": "Code",
     "confirm": "Confirm"
   },
+  "table": {
+    "empty": "There are no records to display."
+  },
   "palettes": {
-    "p01": "Palette 01",
-    "p02": "Palette 02",
-    "p03": "Palette 03",
-    "p04": "Palette 04",
-    "p05": "Palette 05",
-    "p06": "Palette 06",
-    "p07": "Palette 07",
-    "p08": "Palette 08",
-    "p09": "Palette 09",
-    "p10": "Palette 10",
+    "default-light": "Default Light",
+    "default-dark": "Default Dark",
+    "noctalia": "Noctalia",
+    "catppuccin-latte": "Catppuccin Latte",
+    "catppuccin-frappe": "Catppuccin Frappé",
+    "catppuccin-macchiato": "Catppuccin Macchiato",
+    "catppuccin-mocha": "Catppuccin Mocha",
+    "rose-pine-dawn": "Rosé Pine Dawn",
+    "nord": "Nord",
+    "kanagawa-lotus": "Kanagawa Lotus",
     "aubergine": "Ubuntu Aubergine"
   },
   "about": {

@@ -1,8 +1,14 @@
 /*
- * Structure only. Not one colour literal lives here — every colour is a custom
- * property from palettes.css (XTRITIUM §8, enforced by audit-colours).
- * Spacing, density and the visual design of forms, tables and cards are
- * design-phase work (XTRITIUM §11); this is the frame, not the furniture.
+ * Structure. Not one colour literal lives here — every colour is a custom
+ * property from palettes.css (XTRITIUM §8, enforced by audit-colours), and
+ * every measurement is a token from tokens.css.
+ *
+ * The rule that shapes this file more than any other: nothing overlaps
+ * anything. Surfaces are told apart by a step in fill, a border, or a gap that
+ * lets the ground show through — never by lifting one above another. That is
+ * why there is no outer shadow anywhere below, no stacking order, and no
+ * element positioned out of flow. It is enforced by audit-overlap, but it is
+ * meant to be read here as intent rather than as a rule that was obeyed.
  */
 
 @font-face {
@@ -50,89 +56,186 @@ body,
 }
 
 body {
-  font-family: 'CaskaydiaCove Nerd Font Mono', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  background: var(--bg);
-  color: var(--fg);
-  /* XTRITIUM §7 — the compositor decorates; the app never drags its own frame. */
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  background: var(--surface);
+  color: var(--text);
+
+  /*
+   * The typeface is a programming font and ships with programming ligatures.
+   * A note reading "cost != estimate" would silently become a single glyph the
+   * maker never typed, so they are off everywhere. Nothing in this interface
+   * wants them.
+   */
+  font-variant-ligatures: none;
+
+  /*
+   * Deliberately absent: -webkit-font-smoothing. It does nothing on Linux and
+   * copying it from a macOS codebase would be superstition.
+   */
+
+  /* Chrome is the compositor's (XTRITIUM §7); the app never drags its frame. */
   overflow: hidden;
+
+  /*
+   * Text selection is off by default, so dragging across the interface does not
+   * paint half the layout blue. It is switched back on below for everything a
+   * person might legitimately want to copy — which matters here more than
+   * usual, because this application has no context menu at all, and
+   * select-then-copy is the whole of its clipboard story.
+   */
+  user-select: none;
+}
+
+input,
+textarea,
+.entries th,
+.entries td,
+.about__value,
+.licence {
+  user-select: text;
+}
+
+/*
+ * Nothing in this application is a link — every address is selectable text
+ * (XTRITIUM §3.5) — so the hand cursor would be a promise the app never keeps.
+ * Controls take the ordinary arrow, and text takes a caret.
+ */
+button,
+select,
+[role='tab'] {
+  cursor: default;
+}
+
+/* ── scrollbars ──────────────────────────────────────────────────────────
+ * Styled through the -webkit- family: Electron gives the user no override, so
+ * an unstyled scrollbar would arrive in whatever the platform theme decided and
+ * ignore all eleven palettes. Not thin — a thin bar in a dense table is a
+ * target nobody can hit. The gutter is reserved permanently so that a column
+ * does not shift sideways the moment a list grows long enough to scroll.
+ */
+.pane,
+.form,
+.licence {
+  scrollbar-gutter: stable;
+}
+
+::-webkit-scrollbar {
+  width: var(--space-12);
+  height: var(--space-12);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-sunken);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  /* The border is the same colour as the track, so it reads as padding and the
+   * thumb looks narrower than the hit area actually is. */
+  border: var(--space-2) solid var(--surface-sunken);
+  border-radius: var(--radius-lg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-subtle);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--surface-sunken);
 }
 
 /* ── shell ───────────────────────────────────────────────────────────── */
 
 .shell {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
 }
 
+/*
+ * The bar is square. It meets three window edges, and a rounded corner there
+ * would show the desktop through the gap.
+ */
 .tabbar {
   display: flex;
   align-items: stretch;
-  gap: 0;
-  background: var(--bg-raised);
-  border-bottom: 1px solid var(--line);
+  gap: var(--space-0);
+  min-height: var(--tab-height);
+  background: var(--surface-raised);
+  border-bottom: var(--border-width) solid var(--border);
+  border-radius: var(--radius-none);
 }
 
 .tabbar__mark {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 1rem;
+  gap: var(--space-8);
+  padding: var(--space-0) var(--space-16);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-label);
   color: var(--accent);
-  border-right: 1px solid var(--line);
+  border-right: var(--border-width) solid var(--border);
 }
 
 .tabbar__glyph {
   /* One Font Awesome glyph from the Nerd Font patch — no icon library. */
-  font-size: 1.1rem;
+  font-size: var(--text-md);
   line-height: 1;
 }
 
 .tab {
   appearance: none;
   border: 0;
-  border-right: 1px solid var(--line);
+  border-right: var(--border-width) solid var(--border);
+  border-radius: var(--radius-none);
   background: transparent;
-  color: var(--fg-dim);
+  color: var(--text-muted);
   font: inherit;
-  letter-spacing: 0.1em;
-  padding: 0.7rem 1.15rem;
-  cursor: pointer;
+  /* Tracking is allowed here: no column of figures aligns beneath a tab. */
+  letter-spacing: var(--tracking-label);
+  padding: var(--space-0) var(--space-16);
 }
 
 .tab:hover {
-  color: var(--fg);
-  background: var(--bg-sunken);
+  color: var(--text);
+  background: var(--surface-sunken);
 }
 
+/*
+ * The selected tab is marked three ways at once — colour, fill, and a rule
+ * along its lower edge — so it still reads with the palette taken away. The
+ * rule is an inset shadow rather than a border, because a border would make
+ * this tab one pixel taller than its neighbours and shift the whole bar.
+ */
 .tab[aria-selected='true'] {
   color: var(--accent);
-  background: var(--bg);
+  background: var(--surface);
   box-shadow: inset 0 -2px 0 0 var(--accent);
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-inset);
 }
 
-/* ── the two big panes ───────────────────────────────────────────────── */
-
+/* ── the two big panes ───────────────────────────────────────────────────
+ * The panes are separated by a one-pixel gap that lets the border colour show
+ * through from behind. It is a gap, not a drawn line on either pane, so neither
+ * pane owns the edge and neither can paint over it.
+ */
 .panes {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1px;
-  background: var(--line);
+  gap: var(--border-width);
+  background: var(--border);
   min-height: 0;
 }
 
 .pane {
-  background: var(--bg);
-  padding: 1rem;
+  background: var(--surface);
+  padding: var(--gap-between);
   overflow: auto;
   min-height: 0;
 }
@@ -142,166 +245,224 @@ body {
 }
 
 /*
- * The empty state is the filled layout with empty cells — no "get started"
- * screens anywhere in TRITIUM (XTRITIUM §7).
+ * The empty state is the filled layout with empty cells. There are no "get
+ * started" screens anywhere in TRITIUM (XTRITIUM §7): an empty table keeps its
+ * headers and its shape, and says it is empty in a sentence rather than
+ * replacing itself with a picture.
  */
 .cells {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: var(--border-width);
+  background: var(--border);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
 }
 
 .cell {
-  background: var(--bg);
-  min-height: 3.2rem;
+  background: var(--surface);
+  min-height: var(--space-48);
 }
 
-/* ── settings ────────────────────────────────────────────────────────── */
+.section__title {
+  margin: var(--space-0) var(--space-0) var(--gap-inside);
+  font-size: var(--text-xs);
+  /* A heading, not a column head: nothing aligns beneath it, so tracking is
+   * what separates it from the body text without spending a second weight. */
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ── fields and controls ─────────────────────────────────────────────── */
 
 .field {
   display: grid;
-  grid-template-columns: 12rem minmax(0, 1fr);
+  grid-template-columns: 176px minmax(0, 1fr);
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--line);
-  max-width: 42rem;
+  gap: var(--gap-between);
+  padding: var(--space-8) var(--space-0);
+  border-bottom: var(--border-width) solid var(--border);
+  max-width: 640px;
 }
 
 .field__label {
-  color: var(--fg-dim);
-  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  letter-spacing: var(--tracking-label);
+}
+
+.field__hint {
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+  min-height: var(--space-16);
 }
 
 .control {
   appearance: none;
   font: inherit;
-  color: var(--fg);
-  background: var(--bg-raised);
-  border: 1px solid var(--line);
-  padding: 0.4rem 0.6rem;
-  min-width: 14rem;
+  height: var(--control-height);
+  color: var(--text);
+  background: var(--surface-raised);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-0) var(--space-8);
+  min-width: 224px;
+}
+
+.control:hover {
+  border-color: var(--accent);
 }
 
 .control:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-inset);
 }
 
+/*
+ * The swatches are the one place a focus ring has to sit outside the element —
+ * a 28px square has no room for a ring within it. The gap between them is
+ * therefore --focus-clearance, which is wide enough that two rings can never
+ * touch, let alone overlap.
+ */
 .swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
+  gap: var(--focus-clearance);
+  margin-top: var(--gap-inside);
 }
 
+/*
+ * A swatch is a small picture of the whole application rather than a square of
+ * accent: a bar with its accent rule, a ground, and two lines standing in for
+ * text. Because the element carries its own data-palette, every token inside it
+ * resolves to the palette it represents — so eleven of these show eleven
+ * applications side by side, and none of them has to be switched to first.
+ */
 .swatch {
-  width: 2.2rem;
-  height: 2.2rem;
-  border: 1px solid var(--line);
-  background: var(--accent);
-  cursor: pointer;
-  padding: 0;
+  width: 56px;
+  height: var(--row-height-head);
+  display: grid;
+  grid-template-rows: var(--space-12) minmax(0, 1fr);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: var(--space-0);
+  overflow: hidden;
+}
+
+.swatch__bar {
+  background: var(--surface-raised);
+  border-bottom: var(--border-width-strong) solid var(--accent);
+}
+
+.swatch__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-0) var(--space-6);
+  background: var(--surface);
+}
+
+.swatch__line {
+  height: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--text-muted);
+}
+
+.swatch__line--short {
+  width: 55%;
+  background: var(--text-subtle);
 }
 
 .swatch[aria-pressed='true'] {
-  outline: 2px solid var(--fg);
-  outline-offset: 1px;
+  outline: var(--focus-width) solid var(--text);
+  outline-offset: var(--focus-offset);
+}
+
+.swatch:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 /* ── about ───────────────────────────────────────────────────────────── */
 
 .about__mark {
-  font-size: 1.6rem;
+  font-size: var(--text-2xl);
   font-weight: 700;
-  letter-spacing: 0.3em;
+  letter-spacing: var(--tracking-label);
   color: var(--accent);
-  margin: 0 0 0.25rem;
+  margin: var(--space-0) var(--space-0) var(--space-4);
 }
 
 .about__sub {
-  color: var(--fg-dim);
-  margin: 0 0 1.25rem;
+  color: var(--text-muted);
+  margin: var(--space-0) var(--space-0) var(--gap-between);
 }
 
 .about__rows {
   display: grid;
-  grid-template-columns: 10rem minmax(0, 1fr);
-  gap: 0.25rem 1rem;
-  margin-bottom: 1.25rem;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: var(--space-4) var(--gap-between);
+  margin-bottom: var(--gap-between);
 }
 
 .about__key {
-  color: var(--fg-dim);
+  color: var(--text-muted);
 }
 
 /*
- * XTRITIUM §3.5 — every address is selectable text and never a link.
- * There is no <a> anywhere in TRITIUM.
+ * XTRITIUM §3.5 — every address is selectable text and never a link. There is
+ * no <a> anywhere in TRITIUM, and with no context menu either, this being
+ * selectable is the only way an address can be copied.
  */
 .about__value {
-  user-select: text;
   word-break: break-all;
 }
 
 .licence {
   white-space: pre-wrap;
-  user-select: text;
-  background: var(--bg-sunken);
-  border: 1px solid var(--line);
-  padding: 0.75rem;
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
+  background: var(--surface-sunken);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap-inside);
+  margin: var(--space-0);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
   max-height: 100%;
   overflow: auto;
 }
 
-.section__title {
-  margin: 0 0 0.75rem;
-  font-size: 0.85rem;
-  letter-spacing: 0.18em;
-  color: var(--fg-dim);
-  text-transform: uppercase;
-}
-
-/* ---------------------------------------------------------------------------
- * F3 — the vehicle picker and the form windows.
- *
- * Plain and unstyled on purpose. The visual design of forms, tables and cards
- * is design-phase work (XTRITIUM §11) and has not happened yet; what is here
- * lays the controls out and gets out of the way.
- * ------------------------------------------------------------------------ */
+/* ── the vehicle picker ──────────────────────────────────────────────── */
 
 .picker {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--gap-inside);
   margin-left: auto;
-  padding: 0 0.75rem;
-  border-left: 1px solid var(--line);
+  padding: var(--space-0) var(--space-12);
+  border-left: var(--border-width) solid var(--border);
 }
 
 .picker__select {
-  min-width: 12rem;
+  min-width: 192px;
 }
 
 .picker__error {
-  color: var(--warn);
-  font-size: 0.8rem;
+  color: var(--danger);
+  font-size: var(--text-sm);
 }
 
 .picker__button {
   appearance: none;
-  border: 1px solid var(--line);
-  background: var(--bg-sunken);
-  color: var(--fg);
+  height: var(--control-height-sm);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text);
   font: inherit;
-  font-size: 0.85rem;
-  padding: 0.3rem 0.7rem;
-  cursor: pointer;
+  font-size: var(--text-sm);
+  padding: var(--space-0) var(--space-12);
 }
 
 .picker__button:hover:not(:disabled) {
@@ -309,18 +470,27 @@ body {
   color: var(--accent);
 }
 
-.picker__button:disabled {
-  color: var(--fg-dim);
-  cursor: default;
+.picker__button:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-inset);
 }
 
-/* A form window: its own window, so it fills what it is given. */
+.picker__button:disabled {
+  color: var(--text-subtle);
+  border-color: var(--border);
+}
+
+/* ── form windows ────────────────────────────────────────────────────────
+ * A form is a real, separate OS window (XTRITIUM §5.1) rather than a layer over
+ * the shell — which is the same instinct as the no-overlap rule, expressed at
+ * window level. It fills whatever the compositor gives it.
+ */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--gap-between);
   height: 100%;
-  padding: 1.25rem;
+  padding: var(--gap-region);
   overflow: auto;
 }
 
@@ -329,85 +499,96 @@ body {
 }
 
 .form__title {
-  margin: 0;
-  font-size: 1rem;
-  letter-spacing: 0.18em;
+  margin: var(--space-0);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--accent);
 }
 
 .form__note {
-  margin: 0;
-  color: var(--fg-dim);
-  font-size: 0.85rem;
-  line-height: 1.5;
+  margin: var(--space-0);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
 }
 
 .form__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem 1.25rem;
+  gap: var(--gap-inside) var(--gap-between);
 }
 
 .form__warning {
-  margin: 0;
-  color: var(--warn);
-  font-size: 0.85rem;
+  margin: var(--space-0);
+  color: var(--warning);
+  font-size: var(--text-sm);
 }
 
 .form__error {
-  margin: 0;
-  color: var(--warn);
-  font-size: 0.85rem;
-  line-height: 1.5;
+  margin: var(--space-0);
+  color: var(--danger);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
 }
 
 .form__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: var(--focus-clearance);
   margin-top: auto;
 }
 
-.field__hint {
-  color: var(--fg-dim);
-  font-size: 0.8rem;
-  min-height: 1rem;
-}
-
-/* ---------------------------------------------------------------------------
- * F4 — the fuel pane and its entry list.
- *
- * PROVISIONAL. F7 replaces this list with the dense table and the time-range
- * chips XTRITIUM §7 settles; this is the least furniture that lets a fill-up be
- * entered and a consumption figure be read.
- * ------------------------------------------------------------------------ */
-
 .pane__head {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: var(--gap-inside);
+  margin-bottom: var(--gap-inside);
 }
 
 .field--check {
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--gap-inside);
 }
 
+/* ── the entry list ──────────────────────────────────────────────────────
+ * PROVISIONAL as data: F7 replaces this with the dense TanStack table and the
+ * time-range chips XTRITIUM §7 settles. What it is NOT provisional about is the
+ * treatment, which F7 inherits:
+ *
+ *   Rows are 32px — the band dense financial tools use, not the 56px a consumer
+ *   list would take. One light rule under each row and no zebra striping: every
+ *   row state (hover, selected, focus) has to live in the row's own background,
+ *   and a stripe would spend the one background level those states need.
+ *
+ *   Figures are right-aligned; dates and identifiers stay left even though they
+ *   are digits, because they are read as labels rather than compared as
+ *   quantities. In a monospace face right-alignment is all that decimal
+ *   alignment needs — the advance width is constant, so 1.234,56 lands under
+ *   999,99 without any of the usual machinery.
+ *
+ *   No state ever changes size or weight. A row that grows bold on hover
+ *   reflows the column beside it, and in a table of figures that is intolerable.
+ */
 .entries {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
 }
 
 .entries th {
+  height: var(--row-height-head);
   text-align: right;
-  padding: 0.35rem 0.5rem;
-  border-bottom: 1px solid var(--line);
-  color: var(--fg-dim);
+  padding: var(--space-0) var(--space-8);
+  border-bottom: var(--border-width) solid var(--border-strong);
+  color: var(--text-muted);
   font-weight: normal;
-  letter-spacing: 0.08em;
+  /*
+   * No letter-spacing here, unlike every other label in this file. A column of
+   * figures aligns directly beneath this cell, and tracking would widen the
+   * header past the fixed advance width the column is built on.
+   */
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -418,8 +599,21 @@ body {
 }
 
 .entries td {
+  height: var(--row-height);
   text-align: right;
-  padding: 0.35rem 0.5rem;
-  border-bottom: 1px solid var(--line);
+  padding: var(--space-0) var(--space-8);
+  border-bottom: var(--border-width) solid var(--border);
   white-space: nowrap;
+}
+
+.entries tbody tr:hover td {
+  background: var(--surface-raised);
+}
+
+/* Emptiness is stated in a sentence, in the table's own body, with the headers
+ * and the layout left standing. */
+.entries__empty {
+  color: var(--text-muted);
+  text-align: left;
+  white-space: normal;
 }

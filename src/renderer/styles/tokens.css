@@ -1,0 +1,137 @@
+/*
+ * Geometry, density and type. Nothing in this file depends on the palette, and
+ * not one colour literal lives here — colour is palettes.css's job alone
+ * (XTRITIUM §8, enforced by audit-colours).
+ *
+ * Two ideas govern everything below.
+ *
+ * The first is that this is a monospace interface. The typeface has one advance
+ * width, so a column of figures aligns by itself and the whole layout can be
+ * reasoned about in character cells. Sizes are therefore whole pixels: a
+ * fractional font size drifts the advance width and the columns stop landing on
+ * the same grid.
+ *
+ * The second is that nothing overlaps anything. Separation is spatial — a gap,
+ * a border, a change of fill — never an element lifted above its neighbour. The
+ * one thing in the interface that legitimately paints outside its own box is
+ * the focus ring, so the ladder below reserves room for it rather than letting
+ * it land on whatever happens to be next door.
+ */
+
+:root {
+  /* ---- Spacing ------------------------------------------------------------
+   * An 8px ladder with the half-steps a dense table actually needs. Named by
+   * the value so a rule reads as what it measures.
+   */
+  --space-0: 0;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+
+  /* Three bands, so spacing carries meaning instead of taste: tight inside a
+   * component, wider between components, wider still between regions. Reach for
+   * these first and the raw ladder only when a band does not fit. */
+  --gap-inside: var(--space-8);
+  --gap-between: var(--space-16);
+  --gap-region: var(--space-32);
+
+  /* ---- Type ---------------------------------------------------------------
+   * One family, two weights. The vendored Nerd Font ships regular, italic, bold
+   * and bold-italic; a fifth face would cost about 2.8 MB, so hierarchy is
+   * built from size, position and the text-tone ladder instead of from weight.
+   *
+   * The ramp tightens at the small end because 11, 12 and 13 are each genuinely
+   * useful here, and opens up above the body size where a step has to be seen
+   * across a whole pane.
+   */
+  --font-ui: 'CaskaydiaCove Nerd Font Mono', monospace;
+
+  --text-micro: 10px; /* units and qualifiers riding beside a number */
+  --text-xs: 11px; /* column units, dense meta */
+  --text-sm: 12px; /* table cells, secondary text */
+  --text-base: 13px; /* body, fields, tabs */
+  --text-md: 15px; /* section headings */
+  --text-lg: 19px; /* pane titles */
+  --text-xl: 24px; /* the mark in the tab bar */
+  --text-2xl: 31px; /* the mark on the About pane */
+
+  /* Unitless, so a nested element inherits a ratio and not a resolved height. */
+  --leading-tight: 1.25; /* headings and single-line labels */
+  --leading-snug: 1.35; /* table cells */
+  --leading-normal: 1.5; /* prose: the licence, hints, empty-state sentences */
+
+  /* Tracking is permitted only where no column of figures sits beneath the
+   * text — a tab label, a section heading. Anywhere a table follows, tracking
+   * breaks the fixed advance width that makes the column align, so it is
+   * forbidden. This token exists to make the allowed case explicit. */
+  --tracking-label: 0.04em;
+
+  /* ---- Density ------------------------------------------------------------
+   * Row heights sit in the band dense financial tools use, not the consumer
+   * default. Controls are shorter than a row so a control inside a row does not
+   * push it taller.
+   */
+  --row-height: 32px;
+  --row-height-head: 36px;
+  --control-height: 28px;
+  --control-height-sm: 24px;
+  --tab-height: 36px;
+
+  /* ---- Edges --------------------------------------------------------------
+   * Radius nests: an inner radius is the outer one minus the padding between
+   * them, so concentric corners stay concentric. The tab bar is square — it
+   * meets the window edge and a rounded corner there would show the ground
+   * through it.
+   */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius: 4px;
+  --radius-lg: 8px;
+
+  --border-width: 1px;
+  --border-width-strong: 2px;
+
+  /* ---- Focus --------------------------------------------------------------
+   * The ring is an outline, never a shadow: an outer shadow paints across
+   * whatever sits beside the control, and nothing here may do that.
+   *
+   * An outline paints outside the border box too, so the default ring is drawn
+   * INSIDE the control instead, just within its own border. That is what
+   * --focus-inset is for, and it is why most of this interface needs no
+   * clearance at all: the ring never leaves the control that owns it.
+   *
+   * Where a ring genuinely has to sit outside — a swatch, which has no room
+   * within — use --focus-offset and leave --focus-clearance of empty space on
+   * every side, so two rings can never meet.
+   */
+  --focus-width: 2px;
+  --focus-inset: -2px; /* the default: negative offset draws the ring within the border */
+  --focus-offset: 2px; /* the exception: only where clearance below is honoured */
+  --focus-clearance: var(--space-8); /* 2 × (ring + offset), rounded to the ladder */
+
+  /* ---- Motion -------------------------------------------------------------
+   * Transform and opacity only — anything else asks the compositor to relayout,
+   * and on this app's target desktop that is visible. Note what is deliberately
+   * absent: colour never transitions. The palette switch is specified to be
+   * instant (XTRITIUM §8), and a cross-fade over eleven palettes would read as
+   * the application thinking about it.
+   */
+  --motion-fast: 90ms;
+  --motion: 140ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion: 0ms;
+  }
+}

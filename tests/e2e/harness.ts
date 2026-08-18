@@ -33,7 +33,7 @@ export function settingsPathIn(dataDir: string): string {
 
 /** Write a settings.toml the app will read as an existing installation. */
 export function seedSettings(dataDir: string, options: SeedOptions = {}): void {
-  const { currency = 'TRY', language = 'en', palette = 'p01', activeVehicle } = options
+  const { currency = 'TRY', language = 'en', palette = 'default-dark', activeVehicle } = options
 
   const general = [`language = "${language}"`]
   if (currency !== null) general.push(`currency = "${currency}"`)

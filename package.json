@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "start": "electron-vite preview",
-    "audit": "node scripts/audit-egress.mjs && node scripts/audit-strings.mjs && node scripts/audit-colours.mjs && node scripts/audit-locale.mjs",
+    "audit": "node scripts/audit-egress.mjs && node scripts/audit-strings.mjs && node scripts/audit-colours.mjs && node scripts/audit-locale.mjs && node scripts/audit-overlap.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "eslint .",
     "format": "prettier --write .",

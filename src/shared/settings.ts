@@ -21,21 +21,21 @@ export type Language = (typeof LANGUAGES)[number]
 
 /**
  * Eleven palettes: ten ported from JADEITE plus Ubuntu Aubergine (XTRITIUM §8).
- * The ten JADEITE identities and every palette's real values are design-phase
- * work (XTRITIUM §11) — these ids are provisional and the colours in
- * palettes.css are deliberately wrong so nobody mistakes them for the design.
+ * The order here is the order they are offered in, and the id is what lands in
+ * settings.toml — the maker edits that file by hand, so the ids are the real
+ * names rather than a numbering.
  */
 export const PALETTES = [
-  'p01',
-  'p02',
-  'p03',
-  'p04',
-  'p05',
-  'p06',
-  'p07',
-  'p08',
-  'p09',
-  'p10',
+  'default-light',
+  'default-dark',
+  'noctalia',
+  'catppuccin-latte',
+  'catppuccin-frappe',
+  'catppuccin-macchiato',
+  'catppuccin-mocha',
+  'rose-pine-dawn',
+  'nord',
+  'kanagawa-lotus',
   'aubergine'
 ] as const
 export type Palette = (typeof PALETTES)[number]
@@ -87,7 +87,10 @@ export const DEFAULT_SETTINGS: Settings = {
   consumption: 'l100km',
   decimals_consumption: 2,
   decimals_cost_per_km: 3,
-  palette: 'p01'
+  // The constitution fixes the count and the roster but never named the one
+  // the app opens on. Dark, because the interface is dense figures on a ground
+  // that should stay out of their way.
+  palette: 'default-dark'
 }
 
 export function isLanguage(value: unknown): value is Language {
