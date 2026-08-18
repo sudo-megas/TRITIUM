@@ -2,7 +2,7 @@
 // (build/docs/F4b.md §4): seventeen tokens each, plus an eight-entry chart
 // series, and a contract that is arithmetic rather than taste — WCAG
 // contrast floors, an achromatic-border rule, and the binding constraint
-// that --accent clears 3:1 against both surface tokens (D6). None of that is
+// that --accent clears 3:1 against both surface tokens (D8). None of that is
 // visible by reading the file, so this test parses it and runs the same
 // maths a browser's own contrast checker runs, reproduced here rather than
 // borrowed from one, so a failure means the palette is actually wrong and
@@ -15,12 +15,14 @@
 // purpose, so "the fixture palette built to fail" can show each check
 // catching the specific thing it claims to catch.
 //
-// palettes.css itself is being rewritten elsewhere in this milestone, at the
-// same time this file is being written. Today it still carries the old
-// ten-token names (--bg, --fg, --line, ...) and ten placeholder palettes
-// named p01…p10. That means every assertion in "the real file" below is
-// expected to fail, loudly and specifically, until the rewrite lands — that
-// failure is this test doing its job, not a bug in it.
+// This file was written against the placeholder palettes, before the rewrite
+// existed: every assertion below failed on purpose for as long as palettes.css
+// still carried the old ten-token names and its ten p01…p10 placeholders. The
+// rewrite has landed and they pass. What they caught on the way is the reason
+// the order matters — among other things, eight of the eleven palettes had an
+// accent-hover that moved hue instead of lightness, which is a hover state that
+// is both wrong and nearly invisible, and no amount of looking at the file had
+// found it.
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
