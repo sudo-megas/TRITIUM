@@ -77,6 +77,51 @@
       "full_tank": "Full tank"
     }
   },
+  "costs": {
+    "add": "Add cost",
+    "addTitle": "New cost",
+    "editTitle": "Edit cost",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "incomeHint": "A payout or a refund. The amount is stored as entered; only its sign changes where it is shown.",
+    "typedCategoryHint": "MANUAL takes a category of your own. It is stored as a key, so Lastik and lastik are one category.",
+    "saveFailed": "That cost could not be read or written. The file has been left exactly as it was.",
+    "fields": {
+      "date": "Date",
+      "group": "Group",
+      "category": "Category",
+      "title": "Title",
+      "amount": "Amount",
+      "income": "Negative cost (income)",
+      "payment_method": "Payment method",
+      "bank": "Bank",
+      "instalment": "Instalment",
+      "note": "Note"
+    },
+    "groups": {
+      "ilk-alis": "İLK ALIŞ",
+      "tekrar-eden": "TEKRAR EDEN",
+      "manual": "MANUAL"
+    },
+    "categories": {
+      "kapora": "Kapora",
+      "arac-bedeli": "Araç Bedeli",
+      "noter-ruhsat": "Noter (Ruhsat)",
+      "plaka-noter": "Plaka (Noter)",
+      "plaka-so": "Plaka (Ş.O)",
+      "periyodik-bakim": "Periyodik Bakım",
+      "mtv-1": "MTV 1",
+      "mtv-2": "MTV 2",
+      "trafik-sigortasi": "Trafik Sigortası",
+      "kasko": "Kasko"
+    },
+    "methods": {
+      "eft": "EFT",
+      "kredi-karti": "Kredi Kartı",
+      "banka-karti": "Banka Kartı"
+    }
+  },
   "currency": {
     "title": "Currency",
     "note": "Asked once, then fixed. TRITIUM never converts between currencies and never looks a rate up.",

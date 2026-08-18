@@ -5,6 +5,7 @@ import './styles/tokens.css'
 import './styles/palettes.css'
 import './styles/base.css'
 import { App } from './App.js'
+import { CostForm } from './forms/CostForm.js'
 import { CurrencyAsk } from './forms/CurrencyAsk.js'
 import { FuelForm } from './forms/FuelForm.js'
 import { FuelQuickAdd } from './forms/FuelQuickAdd.js'
@@ -26,6 +27,14 @@ function view(): JSX.Element {
   if (request.kind === 'fuel') {
     return (
       <FuelForm
+        slug={request.slug ?? ''}
+        {...(request.entry !== undefined ? { entry: request.entry } : {})}
+      />
+    )
+  }
+  if (request.kind === 'cost') {
+    return (
+      <CostForm
         slug={request.slug ?? ''}
         {...(request.entry !== undefined ? { entry: request.entry } : {})}
       />

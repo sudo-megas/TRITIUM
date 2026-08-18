@@ -77,6 +77,51 @@
       "full_tank": "Dolu depo"
     }
   },
+  "costs": {
+    "add": "Gider ekle",
+    "addTitle": "Yeni gider",
+    "editTitle": "Gideri düzenle",
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "edit": "Düzenle",
+    "incomeHint": "Bir geri ödeme veya iade. Tutar girildiği gibi saklanır; yalnızca gösterildiği yerde işareti değişir.",
+    "typedCategoryHint": "MANUAL kendi kategorinizi yazdığınız yerdir. Anahtar olarak saklanır, bu yüzden Lastik ile lastik tek kategoridir.",
+    "saveFailed": "Bu gider okunamadı veya yazılamadı. Dosya olduğu gibi bırakıldı.",
+    "fields": {
+      "date": "Tarih",
+      "group": "Grup",
+      "category": "Kategori",
+      "title": "Başlık",
+      "amount": "Tutar",
+      "income": "Negatif gider (gelir)",
+      "payment_method": "Ödeme yöntemi",
+      "bank": "Banka",
+      "instalment": "Taksit",
+      "note": "Açıklama"
+    },
+    "groups": {
+      "ilk-alis": "İLK ALIŞ",
+      "tekrar-eden": "TEKRAR EDEN",
+      "manual": "MANUAL"
+    },
+    "categories": {
+      "kapora": "Kapora",
+      "arac-bedeli": "Araç Bedeli",
+      "noter-ruhsat": "Noter (Ruhsat)",
+      "plaka-noter": "Plaka (Noter)",
+      "plaka-so": "Plaka (Ş.O)",
+      "periyodik-bakim": "Periyodik Bakım",
+      "mtv-1": "MTV 1",
+      "mtv-2": "MTV 2",
+      "trafik-sigortasi": "Trafik Sigortası",
+      "kasko": "Kasko"
+    },
+    "methods": {
+      "eft": "EFT",
+      "kredi-karti": "Kredi Kartı",
+      "banka-karti": "Banka Kartı"
+    }
+  },
   "currency": {
     "title": "Para birimi",
     "note": "Bir kez sorulur, sonra değişmez. TRITIUM para birimleri arasında çeviri yapmaz, kur aramaz.",

@@ -34,7 +34,8 @@ const WINDOW_TITLES: Record<string, string> = {
   vehicle: 'vehicles.addTitle',
   currency: 'currency.title',
   'fuel-quick': 'fuel.quickTitle',
-  fuel: 'fuel.addTitle'
+  fuel: 'fuel.addTitle',
+  cost: 'costs.addTitle'
 }
 
 /**
