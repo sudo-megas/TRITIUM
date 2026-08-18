@@ -212,7 +212,7 @@ select,
 .tab[aria-selected='true'] {
   color: var(--accent);
   background: var(--surface);
-  box-shadow: inset 0 -2px 0 0 var(--accent);
+  box-shadow: inset 0 calc(-1 * var(--border-width-strong)) 0 0 var(--accent);
 }
 
 .tab:focus-visible {
@@ -252,7 +252,7 @@ select,
  */
 .cells {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--measure-cell), 1fr));
   gap: var(--border-width);
   background: var(--border);
   border: var(--border-width) solid var(--border);
@@ -278,12 +278,12 @@ select,
 
 .field {
   display: grid;
-  grid-template-columns: 176px minmax(0, 1fr);
+  grid-template-columns: var(--measure-label) minmax(0, 1fr);
   align-items: center;
   gap: var(--gap-between);
   padding: var(--space-8) var(--space-0);
   border-bottom: var(--border-width) solid var(--border);
-  max-width: 640px;
+  max-width: var(--measure-form);
 }
 
 .field__label {
@@ -306,7 +306,7 @@ select,
   border: var(--border-width) solid var(--border-strong);
   border-radius: var(--radius-sm);
   padding: var(--space-0) var(--space-8);
-  min-width: 224px;
+  min-width: var(--measure-control);
 }
 
 .control:hover {
@@ -319,10 +319,11 @@ select,
 }
 
 /*
- * The swatches are the one place a focus ring has to sit outside the element —
- * a 28px square has no room for a ring within it. The gap between them is
- * therefore --focus-clearance, which is wide enough that two rings can never
- * touch, let alone overlap.
+ * The swatches are the one place a focus ring has to sit outside the element:
+ * a swatch is a picture of a palette edge to edge, and a ring drawn within it
+ * would cover the very thing being judged. The gap between them is therefore
+ * --focus-clearance, wide enough that two rings can never touch, let alone
+ * overlap.
  */
 .swatches {
   display: flex;
@@ -339,7 +340,7 @@ select,
  * applications side by side, and none of them has to be switched to first.
  */
 .swatch {
-  width: 56px;
+  width: var(--measure-swatch);
   height: var(--row-height-head);
   display: grid;
   grid-template-rows: var(--space-12) minmax(0, 1fr);
@@ -402,7 +403,7 @@ select,
 
 .about__rows {
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
+  grid-template-columns: var(--measure-key) minmax(0, 1fr);
   gap: var(--space-4) var(--gap-between);
   margin-bottom: var(--gap-between);
 }
@@ -451,7 +452,7 @@ select,
 }
 
 .picker__select {
-  min-width: 192px;
+  min-width: var(--measure-picker);
 }
 
 .picker__error {

@@ -85,6 +85,20 @@
   --control-height-sm: 24px;
   --tab-height: 36px;
 
+  /* ---- Measures -----------------------------------------------------------
+   * Widths that are decisions rather than spacing: how wide a label column is,
+   * how narrow a control may become, how far a line of prose may run before it
+   * gets hard to track back. They live here for the same reason the ladder
+   * does — so the same decision is not made twice with two different answers.
+   */
+  --measure-label: 176px; /* the label column of a field row */
+  --measure-key: 160px; /* the key column of the About list */
+  --measure-control: 224px; /* the narrowest a control may be */
+  --measure-picker: 192px; /* the vehicle picker's select */
+  --measure-form: 640px; /* how far a field row runs before it stops */
+  --measure-cell: 176px; /* the narrowest an empty cell may be */
+  --measure-swatch: 56px; /* a palette swatch: a small picture of the app */
+
   /* ---- Edges --------------------------------------------------------------
    * Radius nests: an inner radius is the outer one minus the padding between
    * them, so concentric corners stay concentric. The tab bar is square — it
