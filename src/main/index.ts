@@ -9,6 +9,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { readSettings, writeSettings } from './storage/settings-file.js'
 import { createMainWindow, openFormWindow } from './windows.js'
 import {
+  addFuelEntry,
   listVehicleSlugs,
   loadVehicle,
   saveCosts,
@@ -16,8 +17,10 @@ import {
   saveService,
   saveVehicleRecord,
   uniqueSlug,
+  updateFuelEntry,
   vehicleNames
 } from './storage/repository.js'
+import { isDateString, type FuelEntry } from '../shared/records.js'
 import type { CostDocument } from './storage/cost-file.js'
 import type { FuelDocument } from './storage/fuel-file.js'
 import type { ServiceDocument } from './storage/service-file.js'
@@ -54,6 +57,31 @@ function settingsNow(): Settings {
 function broadcast(channel: string): void {
   for (const window of BrowserWindow.getAllWindows()) {
     if (!window.isDestroyed()) window.webContents.send(channel)
+  }
+}
+
+/** A scaled integer as it arrives over the bridge, or the fallback. */
+function integerOr(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : fallback
+}
+
+/**
+ * A fill-up as a form window sends it, coerced to the record's shape (§4.4).
+ *
+ * The renderer is ours, but a field that arrived undefined would reach
+ * formatPump and be written as `NaN` — a file that no longer parses, produced
+ * by the one process that is supposed to keep it readable. The boundary
+ * insists on the types rather than trusting them.
+ */
+function readFuelInput(value: unknown): Omit<FuelEntry, 'id'> {
+  const raw = (value ?? {}) as Partial<FuelEntry>
+  return {
+    date: isDateString(raw.date) ? raw.date : '',
+    odometer_km: integerOr(raw.odometer_km, 0),
+    litres: integerOr(raw.litres, 0),
+    price_per_litre: integerOr(raw.price_per_litre, 0),
+    full_tank: raw.full_tank === true,
+    fuel_type: typeof raw.fuel_type === 'string' ? raw.fuel_type : ''
   }
 }
 
@@ -158,6 +186,29 @@ function registerIpc(): void {
 
   ipcMain.handle('fuel:save', (_event, slug: unknown, document: unknown) => {
     saveFuel(String(slug), document as FuelDocument)
+    broadcast('vehicles:changed')
+  })
+
+  /**
+   * Add a fill-up (F4). The id is allocated in the repository, against the file
+   * as it is at this moment — see addFuelEntry. The shell is told at once, so a
+   * fill-up entered in a form window appears without anyone restarting anything.
+   */
+  ipcMain.handle('fuel:add', (_event, slug: unknown, entry: unknown) => {
+    const added = addFuelEntry(String(slug), readFuelInput(entry))
+    broadcast('vehicles:changed')
+    return added
+  })
+
+  /** Edit one fill-up in place (XTRITIUM §3.8). The rest of the file is untouched. */
+  ipcMain.handle('fuel:update', (_event, slug: unknown, entry: unknown) => {
+    const raw = (entry ?? {}) as Partial<FuelEntry>
+    const id = typeof raw.id === 'string' ? raw.id : ''
+    if (id.length === 0) return false
+
+    const changed = updateFuelEntry(String(slug), { ...readFuelInput(entry), id })
+    if (changed) broadcast('vehicles:changed')
+    return changed
   })
 
   ipcMain.handle('costs:save', (_event, slug: unknown, document: unknown) => {
@@ -169,10 +220,14 @@ function registerIpc(): void {
   })
 
   // Form windows (XTRITIUM §5.1). The renderer asks; this process decides.
-  ipcMain.handle('form:open', (_event, kind: unknown, slug: unknown) => {
+  ipcMain.handle('form:open', (_event, kind: unknown, slug: unknown, entry: unknown) => {
     if (!isFormKind(kind)) return
     openFormWindow(
-      { kind, ...(typeof slug === 'string' && slug.length > 0 ? { slug } : {}) },
+      {
+        kind,
+        ...(typeof slug === 'string' && slug.length > 0 ? { slug } : {}),
+        ...(typeof entry === 'string' && entry.length > 0 ? { entry } : {})
+      },
       settingsNow(),
       app.isPackaged,
       mainWindow ?? undefined

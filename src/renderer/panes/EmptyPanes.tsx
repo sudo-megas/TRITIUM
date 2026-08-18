@@ -6,7 +6,7 @@ import type { JSX } from 'react'
 const LEFT_CELLS = 12
 const RIGHT_CELLS = 8
 
-function Cells({ count }: { count: number }): JSX.Element {
+export function Cells({ count }: { count: number }): JSX.Element {
   return (
     <div className="cells">
       {Array.from({ length: count }, (_, index) => (

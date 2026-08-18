@@ -88,6 +88,13 @@ const api = {
     ipcRenderer.invoke('vehicle:save', slug, document),
   saveFuel: (slug: string, document: unknown): Promise<void> =>
     ipcRenderer.invoke('fuel:save', slug, document),
+  // F4 — one fill-up at a time. The id is allocated in the main process,
+  // against the file as it is then, so a form window that has been open a
+  // while cannot hand back a stale document and lose what was written meanwhile.
+  addFuel: (slug: string, entry: unknown): Promise<unknown> =>
+    ipcRenderer.invoke('fuel:add', slug, entry),
+  updateFuel: (slug: string, entry: unknown): Promise<boolean> =>
+    ipcRenderer.invoke('fuel:update', slug, entry),
   saveCosts: (slug: string, document: unknown): Promise<void> =>
     ipcRenderer.invoke('costs:save', slug, document),
   saveService: (slug: string, document: unknown): Promise<void> =>
@@ -95,8 +102,8 @@ const api = {
 
   // Form windows. The renderer asks the main process to open one; window.open
   // is still refused, which is the point of asking.
-  openForm: (kind: string, slug?: string): Promise<void> =>
-    ipcRenderer.invoke('form:open', kind, slug),
+  openForm: (kind: string, slug?: string, entry?: string): Promise<void> =>
+    ipcRenderer.invoke('form:open', kind, slug, entry),
   closeForm: (): Promise<void> => ipcRenderer.invoke('form:close'),
 
   onVehiclesChanged: (listener: () => void): (() => void) =>

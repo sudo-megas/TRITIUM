@@ -5,6 +5,8 @@ import './styles/palettes.css'
 import './styles/base.css'
 import { App } from './App.js'
 import { CurrencyAsk } from './forms/CurrencyAsk.js'
+import { FuelForm } from './forms/FuelForm.js'
+import { FuelQuickAdd } from './forms/FuelQuickAdd.js'
 import { VehicleForm } from './forms/VehicleForm.js'
 import { applyToDocument, initialSettings } from './state/settings.js'
 
@@ -19,6 +21,15 @@ function view(): JSX.Element {
   const request = window.tritium?.formRequest ?? null
   if (request === null) return <App />
   if (request.kind === 'currency') return <CurrencyAsk />
+  if (request.kind === 'fuel-quick') return <FuelQuickAdd slug={request.slug ?? ''} />
+  if (request.kind === 'fuel') {
+    return (
+      <FuelForm
+        slug={request.slug ?? ''}
+        {...(request.entry !== undefined ? { entry: request.entry } : {})}
+      />
+    )
+  }
   return <VehicleForm {...(request.slug !== undefined ? { slug: request.slug } : {})} />
 }
 

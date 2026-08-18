@@ -155,6 +155,45 @@ export function saveFuel(slug: string, document: FuelDocument): void {
   writeFuel(vehicleFiles(slug).fuel, document)
 }
 
+/**
+ * Append a fill-up, allocating its id here (F4).
+ *
+ * Read-modify-write, in this process, against the file as it is right now —
+ * not a whole document handed back by a window that may have been open for an
+ * hour. Two entry paths and a shell all look at the same fuel.toml, so a save
+ * that carried a stale copy of the file would silently drop whatever was
+ * written while the form sat there. The same reasoning as vehicle:create
+ * allocating the slug here and nowhere else.
+ */
+export function addFuelEntry(slug: string, entry: Omit<FuelEntry, 'id'>): FuelEntry {
+  const files = vehicleFiles(slug)
+  const document = readFuel(files.fuel)
+  const added: FuelEntry = { ...entry, id: allocateId('fuel', document.entries) }
+
+  document.entries.push(added)
+  writeFuel(files.fuel, document)
+
+  return added
+}
+
+/**
+ * Replace one fill-up in place, by id (XTRITIUM §3.8 — entries are editable at
+ * any time). An id that is no longer in the file is left alone: it was deleted
+ * by hand while the form was open, and re-adding it would be the app arguing
+ * with the maker's own editor.
+ */
+export function updateFuelEntry(slug: string, entry: FuelEntry): boolean {
+  const files = vehicleFiles(slug)
+  const document = readFuel(files.fuel)
+  const index = document.entries.findIndex((existing) => existing.id === entry.id)
+  if (index < 0) return false
+
+  document.entries[index] = entry
+  writeFuel(files.fuel, document)
+
+  return true
+}
+
 export function saveCosts(slug: string, document: CostDocument): void {
   writeCosts(vehicleFiles(slug).costs, document)
 }

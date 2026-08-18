@@ -56,6 +56,31 @@ test('no request ever leaves the app', async () => {
   expect(requests).toEqual([])
 })
 
+test('a fill-up is entered and computed with the network severed', async () => {
+  // F4's whole path — a vehicle, a form window, a write, and a figure derived
+  // from it — with every route to the network dead. Nothing in it was ever
+  // going to ask the outside world anything, and this is the proof at runtime.
+  const page = await app.firstWindow()
+
+  await page.getByTestId('vehicle-add').click()
+  const vehicleForm = await windowWith(app, 'vehicle-save')
+  await vehicleForm.getByTestId('vehicle-name').fill('Kia Sportage')
+  await vehicleForm.getByTestId('vehicle-save').click()
+
+  await page.getByTestId('tab-fuel').click()
+  await expect(page.getByTestId('fuel-quick-add')).toBeEnabled()
+  await page.getByTestId('fuel-quick-add').click()
+
+  const form = await windowWith(app, 'fuel-save')
+  await form.getByTestId('fuel-odometer_km').fill('19500')
+  await form.getByTestId('fuel-litres').fill('30')
+  await form.getByTestId('fuel-price_per_litre').fill('73,380')
+  await expect(form.getByTestId('fuel-total-preview')).toHaveText('2.201,40 ₺')
+  await form.getByTestId('fuel-save').click()
+
+  await expect(page.getByTestId('fuel-row-f-0001')).toBeVisible()
+})
+
 test('a vehicle form opens with the network severed', async () => {
   // F3's windows are the app's own. Nothing about opening one touches a
   // network, and with every route dead it opens exactly as it does without.

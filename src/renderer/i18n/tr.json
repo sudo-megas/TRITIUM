@@ -49,6 +49,34 @@
       "inspection_due": "Muayene tarihi"
     }
   },
+  "fuel": {
+    "quickAdd": "Hızlı ekle",
+    "fullAdd": "Tüm alanlar",
+    "quickTitle": "Hızlı ekle",
+    "addTitle": "Yeni yakıt kaydı",
+    "editTitle": "Yakıt kaydını düzenle",
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "edit": "Düzenle",
+    "total": "Tutar",
+    "consumption": "l/100km",
+    "full": "Dolu",
+    "partial": "Kısmi",
+    "anyFuel": "belirtilmemiş",
+    "previousOdometer": "Önceki: {{value}} km",
+    "backwards": "Bu kilometre öncekinden ({{value}} km) küçük. Yazıldığı gibi kaydedilecek.",
+    "quickDefaults": "{{date}} tarihine, dolu depo olarak, {{fuel}} yakıtıyla kaydedilir. Tümü tüm alanlar formundan düzenlenebilir.",
+    "fullTankHint": "Tüketim yalnızca ardışık dolu depolar arasında hesaplanır.",
+    "saveFailed": "Bu yakıt kaydı okunamadı veya yazılamadı. Dosya olduğu gibi bırakıldı.",
+    "fields": {
+      "date": "Tarih",
+      "odometer_km": "Kilometre",
+      "litres": "Litre",
+      "price_per_litre": "Litre fiyatı",
+      "fuel_type": "Yakıt",
+      "full_tank": "Dolu depo"
+    }
+  },
   "currency": {
     "title": "Para birimi",
     "note": "Bir kez sorulur, sonra değişmez. TRITIUM para birimleri arasında çeviri yapmaz, kur aramaz.",

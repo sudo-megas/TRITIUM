@@ -20,7 +20,11 @@ export const MIN_HEIGHT = 720
 /** Sizes chosen to fit the form, not to fill the screen. */
 const FORM_SIZES: Record<FormRequest['kind'], { width: number; height: number }> = {
   vehicle: { width: 760, height: 700 },
-  currency: { width: 460, height: 300 }
+  currency: { width: 460, height: 300 },
+  // Quick-add is three fields and a total (§5.1); the full form is every field
+  // of §4.4's fuel.toml. Neither is the main window and neither fills a screen.
+  'fuel-quick': { width: 480, height: 480 },
+  fuel: { width: 620, height: 660 }
 }
 
 /**

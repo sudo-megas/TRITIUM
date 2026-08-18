@@ -374,3 +374,52 @@ body {
   font-size: 0.8rem;
   min-height: 1rem;
 }
+
+/* ---------------------------------------------------------------------------
+ * F4 — the fuel pane and its entry list.
+ *
+ * PROVISIONAL. F7 replaces this list with the dense table and the time-range
+ * chips XTRITIUM §7 settles; this is the least furniture that lets a fill-up be
+ * entered and a consumption figure be read.
+ * ------------------------------------------------------------------------ */
+
+.pane__head {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.field--check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.entries {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.entries th {
+  text-align: right;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--fg-dim);
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.entries th:first-child,
+.entries td:first-child {
+  text-align: left;
+}
+
+.entries td {
+  text-align: right;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}

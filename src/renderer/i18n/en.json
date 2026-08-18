@@ -49,6 +49,34 @@
       "inspection_due": "Inspection due"
     }
   },
+  "fuel": {
+    "quickAdd": "Quick add",
+    "fullAdd": "Full form",
+    "quickTitle": "Quick add",
+    "addTitle": "New fill-up",
+    "editTitle": "Edit fill-up",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "total": "Total",
+    "consumption": "l/100km",
+    "full": "Full",
+    "partial": "Partial",
+    "anyFuel": "unspecified",
+    "previousOdometer": "Previous: {{value}} km",
+    "backwards": "This reading is lower than the previous one ({{value}} km). It will be saved as typed.",
+    "quickDefaults": "Filed on {{date}}, as a full tank, {{fuel}}. All of it editable in the full form.",
+    "fullTankHint": "Consumption is computed only between consecutive full tanks.",
+    "saveFailed": "That fill-up could not be read or written. The file has been left exactly as it was.",
+    "fields": {
+      "date": "Date",
+      "odometer_km": "Odometer (km)",
+      "litres": "Litres",
+      "price_per_litre": "Price per litre",
+      "fuel_type": "Fuel",
+      "full_tank": "Full tank"
+    }
+  },
   "currency": {
     "title": "Currency",
     "note": "Asked once, then fixed. TRITIUM never converts between currencies and never looks a rate up.",
