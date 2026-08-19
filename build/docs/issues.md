@@ -896,13 +896,111 @@ rather than by assuming the rewrite still worked.
 
 ---
 
+<!-- F16. Found by building the import, not by running the app. -->
+
+### I-33 · A clause in the constitution that was never a decision
+**Status: FIXED in F16** · found F16 · in XTRITIUM since it was drafted
+
+`XTRITIUM.md` §4.1 said: *"The app ships no backup feature, no export feature, no
+import feature, no MIME type."*
+
+Asked about it while scoping F16, **the maker said he never wrote it.** It was
+improvised into the constitution when the document was drafted.
+
+That is a defect in a document, which this register has always counted (I-07,
+I-18, I-19, I-10). It is the largest of them, and not because of what it banned:
+XTRITIUM opens by claiming *"Every decision below was made deliberately, one at a
+time, before a line of code was written."* For this clause that claim was
+**false**, and the clause had been quoted as settled scope by **five** milestone
+documents — F2, F3, F7, F8 and F11 each cite §4.1 by number when ruling export or
+import out. A sentence nobody chose had been shaping the project for eleven
+milestones on borrowed authority.
+
+**Fix:** §4.1 amended, dated 19/08/2026, recording *that it was not the maker's*
+rather than quietly deleting it. The correction is narrow: import is permitted and
+the backups an import needs; **export and the MIME type stay banned** — not on the
+clause's authority, which it turns out never had any, but because they are still
+true. The phone exports and the desktop has no reason to; nothing has asked for a
+file association.
+
+The five F-documents are **left as they are**. They recorded what was true when
+they were written; editing them is the drift §0 forbids.
+
+**The lesson is not "check with the maker".** It is that a document asserting its
+own provenance can be wrong about it, and nothing in eleven milestones of gates
+could have caught that — only asking could.
+
+---
+
+### I-34 · §9.1's table went stale again, one day after being fixed
+**Status: FIXED in F16** · found F16 · introduced by the 19/08/2026 amendment
+
+The amendment that corrected §9.1's version map was written **before F15
+existed** and was never revisited. So `v0.2.5` went into the tags, into
+`package.json` and into `app-meta.ts` while the constitution's table still stopped
+at `F14 → v0.2.4`.
+
+I-10 took ten milestones to close and its whole lesson was that a wrong table is a
+correction rather than a ceremony. The correction then re-introduced the same
+condition within a day, because it fixed the rows that existed and left no habit
+of adding the next one.
+
+**Fix:** F15 and F16 are in the table, and the addendum says why a second
+correction was needed — *"A table that is corrected once and then left to drift
+again has learned nothing from being corrected."*
+
+**Found by** an agent reading XTRITIUM in full to answer a different question.
+Nothing checks that the constitution's table agrees with the tags, and after two
+misses that is worth saying out loud rather than trusting a third time.
+
+---
+
+### I-35 · A fill-up history written into vehicle.toml
+**Status: FIXED in F16** · found F16 · introduced by F16's own first draft
+
+The importer built a new vehicle by handing the bundle's `[[vehicle]]` table
+straight to the vehicle reader. That table carries `slug` and the three entry
+arrays as well as the vehicle's own fields — and the reader carries **every key it
+does not recognise** into `rest`, which the writer renders with `inlineValue`.
+
+So `vehicle.toml` came out holding this:
+
+```
+slug = "sportage"
+fuel = [{ date = 2026-08-16, odometer_km = 19764, litres = 29.99, … }]
+```
+
+An entire fill-up history, inline, in the vehicle record. It would have grown with
+every import, in a file the maker is invited to open in Neovim.
+
+The unknown-key mechanism was not at fault — it did exactly what F2 built it to
+do. `slug`, `fuel`, `costs` and `service` simply are not unknown keys: they are the
+bundle's **structure**, already consumed by the time the vehicle is read.
+
+**Fix:** the four structural keys are stripped before the table reaches the
+reader. Everything else a phone might carry still survives untouched, which is the
+point of carrying unknown keys at all.
+
+**Found by** an agent that had been asked to design this milestone and reported
+after it was already built. It predicted the defect from the code alone, and it
+was right.
+
+**Why the tests did not catch it, which is the part worth keeping.** There were
+twelve of them and they all passed. Every one asserted what `vehicle.toml`
+**should** contain — the name, the fields — and not one asserted what it should
+**not**. A positive assertion cannot see a stowaway. The regression test added
+with the fix checks for absence, and was confirmed to bite by putting the defect
+back.
+
+---
+
 ## Final position
 
-Thirty-two issues. Thirty fixed, two accepted with reasons, **none open**.
+Thirty-five issues. Thirty-three fixed, two accepted with reasons, **none open**.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 · I-30 · I-31 · I-32 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 · I-30 · I-31 · I-32 · I-33 · I-34 · I-35 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
 | **OPEN** | — |
 
@@ -936,7 +1034,7 @@ argued with.
 
 ## Notes on method
 
-Seven of the thirty fixed issues (I-03, I-08, I-15, I-16, I-20, I-29, I-30) were
+Seven of the thirty-three fixed issues (I-03, I-08, I-15, I-16, I-20, I-29, I-30) were
 found by **measuring something that had only been reasoned about**, and not one
 of them would have been caught by the suite as it stood. The miles rounding
 (I-15) is the clearest case: it was correct by argument and wrong on 37.9% of the
@@ -948,7 +1046,7 @@ was written down as a decision rather than only implemented: the second one was
 inherited rather than rediscovered. I-05 and I-13 are the same pair again — a
 prop named `title` — which is why the convention now has a name.
 
-Three (I-07, I-18, I-19) were defects in **documents**, not code: a promise the
+Five (I-07, I-18, I-19, I-33, I-34) were defects in **documents**, not code: a promise the
 storage layer never made, two acceptance criteria nobody was checking, and
 comments still describing work as pending after it had been done. I-10 is the
 fourth and the largest of them, and it sat in the constitution itself.

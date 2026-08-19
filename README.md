@@ -5,7 +5,7 @@
 <h1 align="center">TRITIUM</h1>
 
 <p align="center">
-  <img alt="Version"      src="https://img.shields.io/badge/version-v0.2.5-3A6B9C?style=for-the-badge">
+  <img alt="Version"      src="https://img.shields.io/badge/version-v0.2.6-3A6B9C?style=for-the-badge">
   <img alt="Release date" src="https://img.shields.io/badge/released-19--08--2026-3A6B9C?style=for-the-badge">
   <img alt="Licence"      src="https://img.shields.io/badge/licence-GPL--3.0--or--later-6E7B8B?style=for-the-badge">
 </p>
@@ -133,13 +133,18 @@ Language (English or Turkish), eleven palettes, and units — km or miles, litre
 l/100km, km/l or mpg — each chosen independently of the others. The files always hold kilometres
 and litres whatever you pick: a unit is a way of looking, not a way of writing.
 
+**Import** is here too. Point it at a file the phone wrote and it brings the month across:
+records you already have are skipped, so importing the same file twice changes nothing, and
+whatever it is about to overwrite is copied into `backups/` first.
+
 ### ABOUT
 
 The mark, the maker, the version and release date, the source address, and the full licence
 text. Addresses here are selectable text and never links — TRITIUM opens no browser.
 
 > **Your data is yours.** It lives in `~/.local/share/tritium/`, one directory per vehicle, in
-> TOML. Back it up by copying that directory. There is no export feature because none is needed.
+> TOML. Back it up by copying that directory. TRITIUM imports but does not export — the phone
+> is what writes a file, and this is what reads it.
 
 
 
