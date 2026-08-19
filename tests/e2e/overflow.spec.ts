@@ -156,6 +156,30 @@ for (const tab of ['fuel', 'costs', 'service']) {
   })
 }
 
+for (const tab of ['summary', 'charts']) {
+  test(`the ${tab} tab does not scroll sideways at 1280 x 720`, async () => {
+    // Added when those tabs were built (F9, F8) rather than after they broke:
+    // I-08 was found by measuring a claim that had only been reasoned about,
+    // and every tab that holds figures gets the same measurement from now on.
+    app = await launchApp(dataDir)
+    const shell = await windowWith(app, `tab-${tab}`)
+    await shell.getByTestId(`tab-${tab}`).click()
+    await shell.waitForTimeout(300)
+
+    const measured = await shell.evaluate(() => ({
+      body: document.body.scrollWidth - document.body.clientWidth,
+      panes: Array.from(document.querySelectorAll('.pane')).map(
+        (pane) => pane.scrollWidth - pane.clientWidth
+      )
+    }))
+
+    expect(measured.body).toBeLessThanOrEqual(0)
+    for (const overflow of measured.panes) {
+      expect(overflow).toBeLessThanOrEqual(0)
+    }
+  })
+}
+
 test('a selected record does not widen the detail pane either', async () => {
   // The vendor address is the longest single string TRITIUM stores, and the
   // detail pane is where it is shown whole (§4.4, §3.5). `.detail__value`
