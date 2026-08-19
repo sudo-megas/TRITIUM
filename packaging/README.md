@@ -80,13 +80,17 @@ someone reads when they are about to build.
   passing looks like.
 - `makepkg --printsrcinfo` parses the PKGBUILD and resolves every variable.
 - Every name in `depends` exists in the Arch repositories (`pacman -Si`).
+- **The packaged binary launches.** `release/linux-unpacked/tritium`, run against
+  a throwaway `XDG_DATA_HOME`: a GPU process on Wayland and two renderers — the
+  main window and the first-launch currency question — with nothing on stderr.
 - The whole suite: seven audits, both tsconfigs under `strict`, the units, the
   bundle, and the end-to-end run.
 
 **NOT run, and yours to run:**
 
-- **`extra-x86_64-build`.** It is `devtools`, needs root, and fetches the tag.
-  That is §9.3's own procedure and it belongs on your machine.
+- **`extra-x86_64-build`.** It is `devtools`, needs root, and **fetches the tag
+  from the remote** — so it cannot work until the tag has been pushed. That is
+  §9.3's own procedure and it belongs on your machine, after `PUTAGREL`.
 - **`namcap`.** Not installed where F13 was built. It is the tool that will tell
   you whether `depends` is over- or under-specified, and it is worth reading
   before the first release rather than after it.
