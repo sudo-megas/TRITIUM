@@ -1,54 +1,155 @@
-// The fuel pane — PROVISIONAL.
+// The fuel list (F7): the dense table XTRITIUM §7 settles, the §7.2 chips, and
+// the detail region F4 reserved the right-hand pane for.
 //
-// F7 replaces this with the dense table and the time-range chips XTRITIUM §7
-// settles; what is here is the least furniture that lets a fill-up be entered
-// and the consumption figure be looked at. Provisional in what it shows, not in
-// how it looks: the row height, the alignment and the single rule under each row
-// are the treatment F7 inherits.
+// THE THING TO BE CAREFUL ABOUT IS THE FILTER.
 //
-// Every figure is derived where it is shown and none of them is stored (§4.4):
-// the total is litres × price, and the l/100km comes out of the engine each
-// time this renders.
+// §5.2's consumption figure exists only between consecutive full tanks, and it
+// counts every partial fill in between. Hand the engine a filtered list and all
+// of that quietly stops being true: the first full tank inside the window loses
+// the earlier one it is measured against, a partial fill just outside the
+// boundary stops being counted into the tank that burnt it, and what comes out
+// is not consumption for the period — it is a wrong number shaped exactly like
+// a right one.
+//
+// So the engine is fed `bundle.fuel.entries` ENTIRE, always, and the range is
+// applied afterwards, to the rows. A fill-up whose figure was computed against
+// an entry the chip hides keeps the figure it had.
 
-import type { JSX } from 'react'
+import { useMemo, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consumptionAt, consumptionById, entryTotal, sortByOdometer } from '../../shared/consumption.js'
+import type { ColumnDef } from '@tanstack/react-table'
+import {
+  consumptionAt,
+  consumptionById,
+  entryTotal,
+  sortByOdometer
+} from '../../shared/consumption.js'
 import { formatDate, formatFigure, formatMoneyText } from '../../shared/format.js'
+import { compareDate } from '../../shared/entries.js'
+import { filterByBounds } from '../../shared/range.js'
+import type { FuelEntry } from '../../shared/records.js'
 import { PUMP_DECIMALS } from '../../shared/scaled.js'
 import { useSettings } from '../state/settings.js'
 import { useVehicles } from '../state/vehicles.js'
+import { EntryTable } from './EntryTable.js'
+import { RangeChips, useRangeFilter } from './RangeChips.js'
+import { RecordDetail, type DetailRow } from './RecordDetail.js'
 
 export function FuelPane(): JSX.Element {
   const { t } = useTranslation()
   const active = useVehicles((s) => s.active)
   const bundle = useVehicles((s) => s.bundle)
+  const refresh = useVehicles((s) => s.refresh)
   const currency = useSettings((s) => s.currency)
   const decimals = useSettings((s) => s.decimals_consumption)
 
-  const entries = bundle?.fuel.entries ?? []
-  const points = consumptionById(entries)
+  const filter = useRangeFilter()
+  const [selected, setSelected] = useState<string | null>(null)
 
-  // Newest reading first — the fill-up just entered is the one being looked at.
-  const rows = sortByOdometer(entries).reverse()
+  const entries = bundle?.fuel.entries ?? []
+
+  // The WHOLE history, every time. See the note at the top of this file.
+  const points = useMemo(() => consumptionById(entries), [entries])
+
+  const rows = useMemo(
+    () => filterByBounds(sortByOdometer(entries), filter.bounds),
+    [entries, filter.bounds]
+  )
+
+  const consumptionText = (entry: FuelEntry): string => {
+    const point = points[entry.id]
+    return point === undefined ? '' : formatFigure(consumptionAt(point.l100km, decimals), decimals)
+  }
+
+  const columns = useMemo<ColumnDef<FuelEntry, string>[]>(
+    () => [
+      {
+        id: 'date',
+        header: t('fuel.fields.date'),
+        accessorFn: (entry) => formatDate(entry.date),
+        sortingFn: (a, b) => compareDate(a.original.date, b.original.date)
+      },
+      {
+        id: 'odometer_km',
+        header: t('fuel.fields.odometer_km'),
+        accessorFn: (entry) => formatFigure(entry.odometer_km, 0),
+        sortingFn: (a, b) => a.original.odometer_km - b.original.odometer_km
+      },
+      {
+        id: 'litres',
+        header: t('fuel.fields.litres'),
+        accessorFn: (entry) => formatFigure(entry.litres, PUMP_DECIMALS),
+        sortingFn: (a, b) => a.original.litres - b.original.litres
+      },
+      {
+        id: 'total',
+        header: t('fuel.total'),
+        accessorFn: (entry) => formatMoneyText(entryTotal(entry), currency ?? ''),
+        sortingFn: (a, b) => entryTotal(a.original) - entryTotal(b.original)
+      },
+      {
+        id: 'consumption',
+        header: t('fuel.consumption'),
+        accessorFn: consumptionText,
+        sortingFn: (a, b) =>
+          (points[a.original.id]?.l100km ?? 0) - (points[b.original.id]?.l100km ?? 0)
+      }
+    ],
+    // consumptionText closes over points and decimals; both are in the list.
+    [t, currency, decimals, points]
+  )
+
+  const record = rows.find((entry) => entry.id === selected) ?? null
+
+  const detail: DetailRow[] =
+    record === null
+      ? []
+      : [
+          { id: 'date', key: t('fuel.fields.date'), value: formatDate(record.date) },
+          {
+            id: 'odometer_km',
+            key: t('fuel.fields.odometer_km'),
+            value: formatFigure(record.odometer_km, 0)
+          },
+          {
+            id: 'litres',
+            key: t('fuel.fields.litres'),
+            value: formatFigure(record.litres, PUMP_DECIMALS)
+          },
+          {
+            id: 'price_per_litre',
+            key: t('fuel.fields.price_per_litre'),
+            value: formatFigure(record.price_per_litre, PUMP_DECIMALS)
+          },
+          {
+            id: 'total',
+            key: t('fuel.total'),
+            value: formatMoneyText(entryTotal(record), currency ?? '')
+          },
+          {
+            id: 'full_tank',
+            key: t('fuel.fields.full_tank'),
+            value: record.full_tank ? t('fuel.full') : t('fuel.partial')
+          },
+          { id: 'fuel_type', key: t('fuel.fields.fuel_type'), value: record.fuel_type },
+          { id: 'consumption', key: t('fuel.consumption'), value: consumptionText(record) }
+        ]
 
   function open(kind: 'fuel-quick' | 'fuel', entry?: string): void {
     if (active === null) return
     void window.tritium.openForm(kind, active, entry)
   }
 
+  async function remove(): Promise<void> {
+    if (active === null || record === null) return
+    await window.tritium.removeFuel(active, record.id)
+    setSelected(null)
+    await refresh()
+  }
+
   return (
     <div className="panes">
-      {/*
-       * The table spans both halves. Eight columns of figures do not fit in
-       * 608 pixels at the minimum window width — they overflowed by about
-       * seventy and put a horizontal scrollbar under the pane, which is the one
-       * thing a table of numbers must never do.
-       *
-       * F7 reclaims the right half for the detail region that replaces the
-       * tooltip this app does not have. Until that exists, the half was holding
-       * empty cells, and the table needs the room more than the placeholder did.
-       */}
-      <section className="pane pane--wide">
+      <section className="pane">
         <div className="pane__head">
           <button
             type="button"
@@ -71,64 +172,27 @@ export function FuelPane(): JSX.Element {
           </button>
         </div>
 
-        {/* Present and empty when there is nothing in it — §7 forbids "get
-            started" screens, so an empty app is the same layout holding nothing. */}
-        <table className="entries" data-testid="fuel-list">
-          <thead>
-            <tr>
-              <th>{t('fuel.fields.date')}</th>
-              <th>{t('fuel.fields.odometer_km')}</th>
-              <th>{t('fuel.fields.litres')}</th>
-              <th>{t('fuel.fields.price_per_litre')}</th>
-              <th>{t('fuel.total')}</th>
-              <th>{t('fuel.fields.full_tank')}</th>
-              <th>{t('fuel.consumption')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {/* Emptiness is a sentence inside the table, not a screen instead
-                of it: the headers and the column widths stay exactly where a
-                filled app would put them. */}
-            {rows.length === 0 && (
-              <tr>
-                <td className="entries__empty" colSpan={8} data-testid="fuel-empty">
-                  {t('table.empty')}
-                </td>
-              </tr>
-            )}
-            {rows.map((entry) => {
-              const point = points[entry.id]
-              return (
-                <tr key={entry.id} data-testid={`fuel-row-${entry.id}`}>
-                  <td>{formatDate(entry.date)}</td>
-                  <td>{formatFigure(entry.odometer_km, 0)}</td>
-                  <td>{formatFigure(entry.litres, PUMP_DECIMALS)}</td>
-                  <td>{formatFigure(entry.price_per_litre, PUMP_DECIMALS)}</td>
-                  <td data-testid={`fuel-total-${entry.id}`}>
-                    {formatMoneyText(entryTotal(entry), currency ?? '')}
-                  </td>
-                  <td>{entry.full_tank ? t('fuel.full') : t('fuel.partial')}</td>
-                  <td data-testid={`fuel-consumption-${entry.id}`}>
-                    {point === undefined
-                      ? ''
-                      : formatFigure(consumptionAt(point.l100km, decimals), decimals)}
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="button"
-                      data-testid={`fuel-edit-${entry.id}`}
-                      onClick={() => open('fuel', entry.id)}
-                    >
-                      {t('fuel.edit')}
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <RangeChips filter={filter} />
+
+        <EntryTable
+          rows={rows}
+          columns={columns}
+          defaultSorting={[{ id: 'odometer_km', desc: true }]}
+          selectedId={selected}
+          onSelect={setSelected}
+          name="fuel"
+        />
+      </section>
+
+      <section className="pane">
+        <RecordDetail
+          id={record?.id ?? null}
+          heading={t('fuel.editTitle')}
+          rows={detail}
+          onEdit={() => record !== null && open('fuel', record.id)}
+          onDelete={() => void remove()}
+          testId="fuel-detail"
+        />
       </section>
     </div>
   )

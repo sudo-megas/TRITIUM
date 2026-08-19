@@ -721,3 +721,216 @@ select,
   text-align: left;
   white-space: normal;
 }
+
+/* ── the time-range chips (F7) ───────────────────────────────────────────
+ * XTRITIUM §7.2's five ranges, plus the custom pair. §7 — there is no search,
+ * and these are the whole of what filters a list.
+ *
+ * A pressed chip is marked by its border and its text, never by a fill: the
+ * accent surface belongs to the one primary button in view (see .button--primary
+ * above), and a row of six filled chips would spend that signal six times over.
+ */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-inside);
+  margin-bottom: var(--gap-between);
+}
+
+.chip {
+  appearance: none;
+  height: var(--control-height-sm);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  padding: var(--space-0) var(--space-8);
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.chip:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-inset);
+}
+
+.chips__custom {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-inside);
+}
+
+/* Narrower than a form control: it holds GG/AA/YYYY and nothing longer. */
+.control--date {
+  width: var(--measure-swatch);
+  min-width: var(--measure-swatch);
+  height: var(--control-height-sm);
+  font-size: var(--text-xs);
+  flex: 0 0 auto;
+}
+
+/* ── the dense table (F7) ────────────────────────────────────────────────
+ * The treatment is F4b's, inherited from .entries rather than restated. What
+ * this adds is a sortable header, a selectable row, and the slack column that
+ * keeps the figures packed together now that the Edit button has moved into the
+ * detail pane.
+ */
+.entries--dense tbody tr {
+  cursor: default;
+}
+
+/* The slack column holds nothing and is not read; :last-child above already
+ * gives it the surplus width. */
+.entries__slack {
+  padding: var(--space-0);
+}
+
+/*
+ * A header that sorts is a real button, so it is reachable without a pointer
+ * and announces what it does. It is transparent and inherits the header's own
+ * colour: the cell already looks like a header, and a second treatment inside
+ * it would read as a control sitting in the table rather than as the header.
+ */
+.entries__sort {
+  appearance: none;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  text-transform: inherit;
+  padding: var(--space-0);
+  width: 100%;
+  text-align: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+}
+
+.entries th:first-child .entries__sort {
+  justify-content: flex-start;
+}
+
+.entries__sort:hover {
+  color: var(--accent);
+}
+
+.entries__sort:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-inset);
+}
+
+/*
+ * The caret reserves its space whether or not it is drawn, so turning a column's
+ * sort on does not shove the header text sideways — the same rule the row states
+ * about never changing size on hover.
+ */
+.entries__caret {
+  display: inline-block;
+  min-width: var(--space-8);
+  font-size: var(--text-micro);
+  color: var(--accent);
+}
+
+/*
+ * The selected row. Marked with the palette's own selection token — the same
+ * one a text selection uses — because that is exactly what this is: the row the
+ * detail pane is showing.
+ */
+.entries--dense tbody tr[data-selected='true'] td {
+  background: var(--selection);
+}
+
+.entries--dense tbody tr:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-inset);
+}
+
+/* ── the detail region (F7) ──────────────────────────────────────────────
+ * The right-hand pane, which F4 reserved in a comment for "the detail region
+ * that replaces the tooltip this app does not have". It shows the selected
+ * record whole — every field of §4.4, including the ones the dense table has no
+ * room for — and it is where Edit and Delete live, beside the record they act
+ * on rather than covering it.
+ */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-between);
+  min-height: 0;
+}
+
+.detail__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0);
+  margin: var(--space-0);
+}
+
+.detail__row {
+  display: grid;
+  grid-template-columns: var(--measure-key) minmax(0, 1fr);
+  gap: var(--gap-inside);
+  align-items: baseline;
+  padding: var(--space-6) var(--space-0);
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+.detail__key {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/*
+ * Selectable, wrapping text. A vendor address lives here (§4.4) and it is TEXT:
+ * it is never an anchor, nothing opens it, and the only thing to do with it is
+ * read it or copy it (§3.5).
+ */
+.detail__value {
+  margin: var(--space-0);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.detail__actions {
+  display: flex;
+  gap: var(--gap-inside);
+  flex-wrap: wrap;
+}
+
+/*
+ * Deleting asks twice. The confirming button is the only place --danger becomes
+ * a border in this interface, and it appears for exactly as long as the question
+ * is open — a delete button that looked like this all the time would be shouting
+ * at a maker who has not asked for anything yet.
+ */
+.button--danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.button--danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--surface-raised);
+}

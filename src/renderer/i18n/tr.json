@@ -149,7 +149,22 @@
     "confirm": "Onayla"
   },
   "table": {
-    "empty": "Görüntülenecek kayıt yok."
+    "empty": "Görüntülenecek kayıt yok.",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "deleteConfirm": "Kalıcı olarak sil",
+    "deleteCancel": "Vazgeç",
+    "deleteWarning": "Bu kayıt dosyadan çıkarılır. Dosyadaki başka hiçbir şey değişmez ve kimlik yeniden kullanılmaz."
+  },
+  "range": {
+    "all": "Tüm zamanlar",
+    "ytd": "Yıl başından",
+    "previous-year": "Önceki yıl",
+    "this-month": "Bu ay",
+    "previous-month": "Önceki ay",
+    "custom": "Özel",
+    "from": "Başlangıç",
+    "to": "Bitiş"
   },
   "palettes": {
     "default-light": "Varsayılan Açık",

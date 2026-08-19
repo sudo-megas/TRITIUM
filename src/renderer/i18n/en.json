@@ -149,7 +149,22 @@
     "confirm": "Confirm"
   },
   "table": {
-    "empty": "There are no records to display."
+    "empty": "There are no records to display.",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Delete for good",
+    "deleteCancel": "Keep it",
+    "deleteWarning": "This removes the record from the file. Nothing else in it changes, and the id is not reused."
+  },
+  "range": {
+    "all": "All time",
+    "ytd": "YTD",
+    "previous-year": "Previous year",
+    "this-month": "This month",
+    "previous-month": "Previous month",
+    "custom": "Custom",
+    "from": "From",
+    "to": "To"
   },
   "palettes": {
     "default-light": "Default Light",

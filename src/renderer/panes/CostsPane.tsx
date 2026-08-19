@@ -1,34 +1,37 @@
-// The costs pane — PROVISIONAL.
+// The costs list (F7): the dense table, the §7.2 chips, and the detail region.
 //
-// F7 replaces this with the dense table and the time-range chips XTRITIUM §7
-// settles; what is here is the least furniture that lets a cost be entered and
-// looked at. Provisional in what it shows, not in how it looks — the row
-// height, the alignment and the rule under each row are F4b's treatment, which
-// F7 inherits.
-//
-// Nothing on this pane is stored. The sign on an amount comes from the entry's
-// `income` flag each time this renders (§3.7), and the list order is computed,
-// not remembered.
+// Nothing here is stored. The sign on an amount comes from the entry's `income`
+// flag each time this renders (§3.7), and the order is computed.
 
-import type { JSX } from 'react'
+import { useMemo, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
-import { signedAmount, sortByDateDesc } from '../../shared/costs.js'
+import type { ColumnDef } from '@tanstack/react-table'
+import { signedAmount } from '../../shared/costs.js'
+import { compareDate, sortByDateDesc } from '../../shared/entries.js'
 import { formatDate, formatMoneyText } from '../../shared/format.js'
+import { filterByBounds } from '../../shared/range.js'
+import type { CostEntry } from '../../shared/records.js'
 import { useSettings } from '../state/settings.js'
 import { useVehicles } from '../state/vehicles.js'
+import { EntryTable } from './EntryTable.js'
+import { RangeChips, useRangeFilter } from './RangeChips.js'
+import { RecordDetail, type DetailRow } from './RecordDetail.js'
 
 export function CostsPane(): JSX.Element {
   const { t } = useTranslation()
   const active = useVehicles((s) => s.active)
   const bundle = useVehicles((s) => s.bundle)
+  const refresh = useVehicles((s) => s.refresh)
   const currency = useSettings((s) => s.currency)
 
-  const rows = sortByDateDesc(bundle?.costs.entries ?? [])
+  const filter = useRangeFilter()
+  const [selected, setSelected] = useState<string | null>(null)
 
-  function open(entry?: string): void {
-    if (active === null) return
-    void window.tritium.openForm('cost', active, entry)
-  }
+  const entries = bundle?.costs.entries ?? []
+  const rows = useMemo(
+    () => filterByBounds(sortByDateDesc(entries), filter.bounds),
+    [entries, filter.bounds]
+  )
 
   /**
    * A stored key back into something to read. A category the maker typed under
@@ -38,15 +41,77 @@ export function CostsPane(): JSX.Element {
   const categoryLabel = (category: string): string =>
     category.length === 0 ? '' : t(`costs.categories.${category}`, { defaultValue: category })
 
+  const methodLabel = (method: string): string =>
+    method.length === 0 ? '' : t(`costs.methods.${method}`, { defaultValue: method })
+
+  const columns = useMemo<ColumnDef<CostEntry, string>[]>(
+    () => [
+      {
+        id: 'date',
+        header: t('costs.fields.date'),
+        accessorFn: (entry) => formatDate(entry.date),
+        sortingFn: (a, b) => compareDate(a.original.date, b.original.date)
+      },
+      {
+        id: 'category',
+        header: t('costs.fields.category'),
+        accessorFn: (entry) => categoryLabel(entry.category)
+      },
+      {
+        id: 'title',
+        header: t('costs.fields.title'),
+        accessorFn: (entry) => entry.title
+      },
+      {
+        id: 'amount',
+        header: t('costs.fields.amount'),
+        accessorFn: (entry) => formatMoneyText(signedAmount(entry), currency ?? ''),
+        sortingFn: (a, b) => signedAmount(a.original) - signedAmount(b.original)
+      }
+    ],
+    [t, currency]
+  )
+
+  const record = rows.find((entry) => entry.id === selected) ?? null
+
+  const detail: DetailRow[] =
+    record === null
+      ? []
+      : [
+          { id: 'date', key: t('costs.fields.date'), value: formatDate(record.date) },
+          { id: 'group', key: t('costs.fields.group'), value: t(`costs.groups.${record.group}`) },
+          { id: 'category', key: t('costs.fields.category'), value: categoryLabel(record.category) },
+          { id: 'title', key: t('costs.fields.title'), value: record.title },
+          {
+            id: 'amount',
+            key: t('costs.fields.amount'),
+            value: formatMoneyText(signedAmount(record), currency ?? '')
+          },
+          {
+            id: 'payment_method',
+            key: t('costs.fields.payment_method'),
+            value: methodLabel(record.payment_method)
+          },
+          { id: 'bank', key: t('costs.fields.bank'), value: record.bank },
+          { id: 'instalment', key: t('costs.fields.instalment'), value: record.instalment },
+          { id: 'note', key: t('costs.fields.note'), value: record.note }
+        ]
+
+  function open(entry?: string): void {
+    if (active === null) return
+    void window.tritium.openForm('cost', active, entry)
+  }
+
+  async function remove(): Promise<void> {
+    if (active === null || record === null) return
+    await window.tritium.removeCost(active, record.id)
+    setSelected(null)
+    await refresh()
+  }
+
   return (
     <div className="panes">
-      {/*
-       * The table spans both halves, for the reason the fuel pane's does: nine
-       * columns of figures do not fit in half of 1280, and a horizontal
-       * scrollbar under a table of numbers is the one thing it must never have.
-       * F7 reclaims the right half for the detail region.
-       */}
-      <section className="pane pane--wide">
+      <section className="pane">
         <div className="pane__head">
           <button
             type="button"
@@ -59,62 +124,27 @@ export function CostsPane(): JSX.Element {
           </button>
         </div>
 
-        {/* Present and empty when there is nothing in it — §7 forbids "get
-            started" screens, so an empty app is the same layout holding nothing. */}
-        <table className="entries" data-testid="cost-list">
-          <thead>
-            <tr>
-              <th>{t('costs.fields.date')}</th>
-              <th>{t('costs.fields.group')}</th>
-              <th>{t('costs.fields.category')}</th>
-              <th>{t('costs.fields.title')}</th>
-              <th>{t('costs.fields.amount')}</th>
-              <th>{t('costs.fields.payment_method')}</th>
-              <th>{t('costs.fields.bank')}</th>
-              <th>{t('costs.fields.instalment')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr>
-                <td className="entries__empty" colSpan={9} data-testid="cost-empty">
-                  {t('table.empty')}
-                </td>
-              </tr>
-            )}
-            {rows.map((entry) => (
-              <tr key={entry.id} data-testid={`cost-row-${entry.id}`}>
-                <td>{formatDate(entry.date)}</td>
-                <td>{t(`costs.groups.${entry.group}`)}</td>
-                <td>{categoryLabel(entry.category)}</td>
-                <td>{entry.title}</td>
-                <td data-testid={`cost-amount-${entry.id}`}>
-                  {formatMoneyText(signedAmount(entry), currency ?? '')}
-                </td>
-                <td>
-                  {entry.payment_method.length === 0
-                    ? ''
-                    : t(`costs.methods.${entry.payment_method}`, {
-                        defaultValue: entry.payment_method
-                      })}
-                </td>
-                <td>{entry.bank}</td>
-                <td>{entry.instalment}</td>
-                <td>
-                  <button
-                    type="button"
-                    className="button"
-                    data-testid={`cost-edit-${entry.id}`}
-                    onClick={() => open(entry.id)}
-                  >
-                    {t('costs.edit')}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <RangeChips filter={filter} />
+
+        <EntryTable
+          rows={rows}
+          columns={columns}
+          defaultSorting={[{ id: 'date', desc: true }]}
+          selectedId={selected}
+          onSelect={setSelected}
+          name="cost"
+        />
+      </section>
+
+      <section className="pane">
+        <RecordDetail
+          id={record?.id ?? null}
+          heading={t('costs.editTitle')}
+          rows={detail}
+          onEdit={() => record !== null && open(record.id)}
+          onDelete={() => void remove()}
+          testId="cost-detail"
+        />
       </section>
     </div>
   )
