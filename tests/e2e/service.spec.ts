@@ -125,8 +125,10 @@ test('a stored address is shown as text, and the app still holds no link', async
   app = await launchApp(dataDir)
   const shell = await openServiceTab()
 
-  // The address is there to read and to select.
-  await expect(shell.getByTestId('service-vendor-s-0001')).toHaveText(ADDRESS)
+  // F7 moved the vendor out of the dense table and into the detail region, so
+  // the address is read where the whole record is shown.
+  await shell.getByTestId('service-row-s-0001').click()
+  await expect(shell.getByTestId('service-detail-value-vendor')).toHaveText(ADDRESS)
 
   // XTRITIUM §3.5 — the app opens no browser and follows no link. F1 made this
   // claim of the About page; F6 is the first milestone to store a URL, so it
@@ -134,7 +136,7 @@ test('a stored address is shown as text, and the app still holds no link', async
   expect(await shell.locator('a').count()).toBe(0)
 
   // And it is not a link in the form either.
-  await shell.getByTestId('service-edit-s-0001').click()
+  await shell.getByTestId('service-detail-edit').click()
   const form = await windowWith(app, 'service-save')
   await expect(form.getByTestId('service-vendor')).toHaveValue(ADDRESS)
   expect(await form.locator('a').count()).toBe(0)
@@ -231,7 +233,8 @@ test('the form reopens a service record with every figure identical', async () =
   app = await launchApp(dataDir)
   const shell = await openServiceTab()
 
-  await shell.getByTestId('service-edit-s-0001').click()
+  await shell.getByTestId('service-row-s-0001').click()
+  await shell.getByTestId('service-detail-edit').click()
   const form = await windowWith(app, 'service-save')
 
   await expect(form.getByTestId('service-date')).toHaveValue('14/05/2025')

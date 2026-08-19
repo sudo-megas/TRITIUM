@@ -238,7 +238,8 @@ test('the form reopens a cost with every figure identical', async () => {
   app = await launchApp(dataDir)
   const shell = await openCostsTab()
 
-  await shell.getByTestId('cost-edit-c-0001').click()
+  await shell.getByTestId('cost-row-c-0001').click()
+  await shell.getByTestId('cost-detail-edit').click()
   const form = await windowWith(app, 'cost-save')
 
   await expect(form.getByTestId('cost-date')).toHaveValue('11/04/2026')
@@ -267,7 +268,8 @@ test('a payment method typed into the file by hand survives an edit', async () =
   app = await launchApp(dataDir)
   const shell = await openCostsTab()
 
-  await shell.getByTestId('cost-edit-c-0001').click()
+  await shell.getByTestId('cost-row-c-0001').click()
+  await shell.getByTestId('cost-detail-edit').click()
   const form = await windowWith(app, 'cost-save')
 
   await expect(form.getByTestId('cost-payment_method')).toHaveValue('havale')

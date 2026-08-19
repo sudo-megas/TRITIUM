@@ -177,7 +177,8 @@ test('the full form reopens a fill-up with every figure identical', async () => 
   app = await launchApp(dataDir)
   const shell = await openFuelTab()
 
-  await shell.getByTestId('fuel-edit-f-0001').click()
+  await shell.getByTestId('fuel-row-f-0001').click()
+  await shell.getByTestId('fuel-detail-edit').click()
   const form = await windowWith(app, 'fuel-save')
 
   // The other entry path is a real window too, and anchored to nothing (§5.1).
@@ -223,7 +224,8 @@ test('a total written into the file by hand is dropped on the next save', async 
   app = await launchApp(dataDir)
   const shell = await openFuelTab()
 
-  await shell.getByTestId('fuel-edit-f-0001').click()
+  await shell.getByTestId('fuel-row-f-0001').click()
+  await shell.getByTestId('fuel-detail-edit').click()
   const form = await windowWith(app, 'fuel-save')
   await form.getByTestId('fuel-litres').fill('30,000')
   await form.getByTestId('fuel-save').click()
