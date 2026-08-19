@@ -1038,3 +1038,96 @@ select,
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
 }
+
+/* ── the summary (F9) ────────────────────────────────────────────────────
+ * XTRITIUM §7.1's blocks, in the order §7.1 settled them. The page the
+ * application opens on, and the one place in TRITIUM with no controls at all:
+ * it is a view, and every way of changing a record is on another tab.
+ */
+.summary__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-between);
+  padding-bottom: var(--gap-inside);
+  border-bottom: var(--border-width-strong) solid var(--border-strong);
+  margin-bottom: var(--gap-between);
+}
+
+/* Name and odometer. There is no photo here and no room reserved for one:
+ * §4.4 has no field for it and §7 says vehicles have none anywhere. */
+.summary__name {
+  margin: var(--space-0);
+  font-size: var(--text-lg);
+  font-weight: normal;
+  color: var(--text);
+}
+
+.summary__odometer {
+  margin: var(--space-0);
+  font-size: var(--text-md);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.card {
+  margin-bottom: var(--gap-region);
+}
+
+/* The spans a comparison actually covers. On the third of the month this reads
+ * as three days against thirty-one, which is the point of printing it. */
+.summary__span {
+  margin: var(--space-0) var(--space-0) var(--gap-inside);
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+
+/*
+ * A STATIC grid — §7.1 asks for the trend cards "all visible at once" and rules
+ * out a carousel by name. So they wrap and they scroll with the pane; nothing
+ * here hides one, and there is no control that could.
+ */
+.trends {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--measure-cell), 1fr));
+  gap: var(--gap-inside);
+  margin-bottom: var(--gap-region);
+}
+
+.trend {
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  padding: var(--gap-inside);
+  min-width: 0;
+}
+
+.trend__label {
+  margin: var(--space-0);
+  font-size: var(--text-xs);
+  font-weight: normal;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.trend__value {
+  margin: var(--space-4) var(--space-0) var(--space-0);
+  font-size: var(--text-md);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The previous period, stated rather than implied. No colour is spent on the
+ * direction: up is not good news on a costs card and down is not good news on a
+ * distance one, so the figure says what happened and the reader decides. */
+.trend__previous {
+  margin: var(--space-2) var(--space-0) var(--space-0);
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

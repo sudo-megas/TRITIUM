@@ -156,6 +156,33 @@
     "deleteCancel": "Keep it",
     "deleteWarning": "This removes the record from the file. Nothing else in it changes, and the id is not reused."
   },
+  "summary": {
+    "gas": "Fuel",
+    "costs": "Costs",
+    "lifetime": "Lifetime",
+    "trends": "Trends",
+    "recent": "Last entries",
+    "nothing": "—",
+    "noPrevious": "No previous month",
+    "averageConsumption": "Average consumption",
+    "lastConsumption": "Last consumption",
+    "lastPrice": "Last price",
+    "thisMonth": "This month",
+    "previousMonth": "Previous month",
+    "totalSpend": "Total spend",
+    "totalDistance": "Total distance",
+    "totalLitres": "Total litres",
+    "monthlySpend": "Spend",
+    "monthlyDistance": "Distance",
+    "costPerKm": "Cost per km",
+    "fillups": "Fill-ups",
+    "kind": "Kind",
+    "kinds": {
+      "fuel": "Fuel",
+      "cost": "Cost",
+      "service": "Service"
+    }
+  },
   "charts": {
     "consumption": "Fuel consumption",
     "monthlyCosts": "Monthly costs",

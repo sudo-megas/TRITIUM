@@ -12,6 +12,7 @@ import { EmptyPanes } from './panes/EmptyPanes.js'
 import { FuelPane } from './panes/FuelPane.js'
 import { ServicePane } from './panes/ServicePane.js'
 import { SettingsPane } from './panes/SettingsPane.js'
+import { SummaryPane } from './panes/SummaryPane.js'
 import { AboutPane } from './panes/AboutPane.js'
 import { VehiclePicker } from './VehiclePicker.js'
 import { useVehicles } from './state/vehicles.js'
@@ -45,8 +46,10 @@ const TABS = [
 type Tab = (typeof TABS)[number]
 
 // Settings and About since F1, Fuel since F4, Costs since F5, Service since F6,
-// Charts since F8; every other tab is still the two-pane layout with empty cells.
+// Charts since F8, Summary since F9. STATISTICS is the last tab still holding
+// the two-pane layout with empty cells; F10 fills it.
 const PANES: Partial<Record<Tab, () => JSX.Element>> = {
+  summary: SummaryPane,
   fuel: FuelPane,
   costs: CostsPane,
   service: ServicePane,

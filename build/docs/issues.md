@@ -249,6 +249,34 @@ clientWidth` for the body and both panes, on all three tabs and with a record
 selected, with deliberately wide data. The next milestone to add a column finds
 out from a red test rather than from the maker.
 
+### I-13 · A prop called `title` — again
+**Status: FIXED in F9** · a recurrence of I-05 · severity: layout law
+
+F9's Summary page introduced a `Card` component taking a `title` prop, and
+`audit-overlap` failed on three lines of `SummaryPane.tsx` for exactly the reason
+it failed on `RecordDetail` in F7.
+
+**Fixed the same way** — the prop is `heading` — but the recurrence is the
+interesting part, and it is why this has its own entry rather than being folded
+into I-05. Two milestones apart, two different authors of the same mistake, one
+gate catching both. That is the gate working, not failing.
+
+**The standing convention, now written down:** a React prop that renders a
+heading is called `heading`. `title` is reserved for the DOM attribute TRITIUM
+never uses. Anything else and the third occurrence is only a matter of time.
+
+### I-14 · An apostrophe inside a single-quoted test name
+**Status: FIXED in F9** · severity: the file would not parse
+
+`tests/unit/summary.test.ts` carried `it('is not the sum of §5.2's intervals', …)`.
+The apostrophe closed the string, and vitest reported the whole file as failing
+to collect — which reads at a glance like twenty tests breaking rather than one
+character being wrong.
+
+**Fix:** reworded to avoid the possessive. Recorded because the failure mode is
+misleading: a collection error and an assertion failure look similar in the
+summary line and are nothing alike.
+
 ---
 
 ## Notes on method

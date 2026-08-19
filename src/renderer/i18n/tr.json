@@ -156,6 +156,33 @@
     "deleteCancel": "Vazgeç",
     "deleteWarning": "Bu kayıt dosyadan çıkarılır. Dosyadaki başka hiçbir şey değişmez ve kimlik yeniden kullanılmaz."
   },
+  "summary": {
+    "gas": "Yakıt",
+    "costs": "Giderler",
+    "lifetime": "Tüm zamanlar",
+    "trends": "Eğilimler",
+    "recent": "Son kayıtlar",
+    "nothing": "—",
+    "noPrevious": "Önceki ay yok",
+    "averageConsumption": "Ortalama tüketim",
+    "lastConsumption": "Son tüketim",
+    "lastPrice": "Son fiyat",
+    "thisMonth": "Bu ay",
+    "previousMonth": "Önceki ay",
+    "totalSpend": "Toplam harcama",
+    "totalDistance": "Toplam mesafe",
+    "totalLitres": "Toplam litre",
+    "monthlySpend": "Harcama",
+    "monthlyDistance": "Mesafe",
+    "costPerKm": "Km başına",
+    "fillups": "Dolum",
+    "kind": "Tür",
+    "kinds": {
+      "fuel": "Yakıt",
+      "cost": "Gider",
+      "service": "Bakım"
+    }
+  },
   "charts": {
     "consumption": "Yakıt tüketimi",
     "monthlyCosts": "Aylık giderler",
