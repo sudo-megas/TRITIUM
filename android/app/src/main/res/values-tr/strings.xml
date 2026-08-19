@@ -19,4 +19,29 @@
     <string name="about_source">Kaynak</string>
     <string name="about_licence">Lisans</string>
     <string name="about_licence_title">Lisans metni</string>
+
+    <string name="currency_title">Para birimi</string>
+    <string name="currency_other">Diğer</string>
+    <string name="currency_confirm">Onayla</string>
+
+    <string name="home_no_vehicle">Araç yok</string>
+    <string name="home_add_vehicle">Ekle</string>
+    <string name="home_edit_vehicle">Düzenle</string>
+
+    <string name="vehicle_form_title_add">Yeni araç</string>
+    <string name="vehicle_form_title_edit">Aracı düzenle</string>
+    <string name="vehicle_form_save">Kaydet</string>
+    <string name="vehicle_field_name">Ad</string>
+    <string name="vehicle_field_make">Marka</string>
+    <string name="vehicle_field_model">Model</string>
+    <string name="vehicle_field_year">Yıl</string>
+    <string name="vehicle_field_engine">Motor</string>
+    <string name="vehicle_field_fuel_spec">Yakıt</string>
+    <string name="vehicle_field_plate">Plaka</string>
+    <string name="vehicle_field_vin">Şasi no</string>
+    <string name="vehicle_field_tank_capacity">Depo hacmi</string>
+    <string name="vehicle_field_purchase_date">Alış tarihi</string>
+    <string name="vehicle_field_purchase_price">Alış fiyatı</string>
+    <string name="vehicle_field_registration_date">Tescil tarihi</string>
+    <string name="vehicle_field_inspection_due">Muayene tarihi</string>
 </resources>

@@ -30,6 +30,30 @@ class ConfigStoreTest {
     }
 
     @Test
+    fun `currency and active_vehicle round-trip, matching the desktop's own key names`() {
+        val store = ConfigStore(tmp.root)
+        store.save(AppConfig(language = "en", currency = "TRY", activeVehicleSlug = "kia-sportage"))
+
+        val load = store.load()
+        assertEquals("TRY", load.config.currency)
+        assertEquals("kia-sportage", load.config.activeVehicleSlug)
+
+        val text = java.io.File(tmp.root, "settings.toml").readText()
+        assertTrue("currency = \"TRY\"" in text)
+        assertTrue("active_vehicle = \"kia-sportage\"" in text)
+    }
+
+    @Test
+    fun `currency absent is the signal AF3's first-run question fires on, not a stored default`() {
+        val store = ConfigStore(tmp.root)
+        store.save(AppConfig(language = "en"))
+
+        val text = java.io.File(tmp.root, "settings.toml").readText()
+        assertTrue("currency" !in text)
+        assertEquals(null, store.load().config.currency)
+    }
+
+    @Test
     fun `the written file carries schema_version and the desktop's own key shape`() {
         val store = ConfigStore(tmp.root)
         store.save(AppConfig(language = "en"))

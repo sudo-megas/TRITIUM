@@ -72,11 +72,13 @@ jobs:
 
       # `check` never touches androidTest — those are instrumented tests that
       # need a real device or emulator, which this workflow does not provision
-      # (AF1.md §3: no CI-run device tests, verified on the maker's own phone
-      # or an emulator instead). Assembling the test APK anyway at least
-      # compiles ShellLanguageSwitchTest.kt on every push, so a broken test
-      # file is a red build rather than a silent gap discovered only when
-      # someone finally runs it by hand.
+      # (AF1.md §3: no CI-run device tests). Assembling the test APK anyway at
+      # least compiles every instrumented test on every push, so a broken test
+      # file is a red build rather than a silent gap. Uploaded alongside the
+      # debug APK (below) so both can be installed on the maker's own
+      # connected device with `adb install` and actually run there —
+      # `am instrument -w io.github.sudomegas.tritium.test/androidx.test.runner.AndroidJUnitRunner`
+      # — closing the gap this workflow deliberately leaves open.
       - name: Compile instrumented test sources
         run: ./gradlew --no-daemon assembleDebugAndroidTest
 
@@ -87,6 +89,13 @@ jobs:
         with:
           name: tritium-debug-apk-${{ github.sha }}
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload instrumented test APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: tritium-debug-androidTest-apk-${{ github.sha }}
+          path: android/app/build/outputs/apk/androidTest/debug/*.apk
           if-no-files-found: error
 
       - name: Upload test reports on failure

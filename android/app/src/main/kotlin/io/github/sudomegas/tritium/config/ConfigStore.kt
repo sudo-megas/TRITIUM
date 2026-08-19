@@ -49,8 +49,15 @@ class ConfigStore(root: File) {
         explicitNulls = false
     }
 
+    // currency and active_vehicle match the desktop's own settings-file.ts
+    // key names exactly (AF3.md §2.1) — both optional, matching
+    // src/shared/settings.ts's own "declared optional on purpose."
     @Serializable
-    private data class GeneralSection(val language: String? = null)
+    private data class GeneralSection(
+        val language: String? = null,
+        val currency: String? = null,
+        val active_vehicle: String? = null,
+    )
 
     @Serializable
     private data class SettingsDto(
@@ -74,7 +81,13 @@ class ConfigStore(root: File) {
     fun save(config: AppConfig) {
         setAsideIfUnreadable()
 
-        val dto = SettingsDto(general = GeneralSection(language = config.language))
+        val dto = SettingsDto(
+            general = GeneralSection(
+                language = config.language,
+                currency = config.currency,
+                active_vehicle = config.activeVehicleSlug,
+            ),
+        )
         writeAtomically(file, toml.encodeToString(dto))
     }
 
@@ -86,6 +99,12 @@ class ConfigStore(root: File) {
         val dto = toml.decodeFromString<SettingsDto>(text.removePrefix(BOM))
         return AppConfig(
             language = dto.general?.language ?: AppConfig.DEFAULT_LANGUAGE,
+            // No fallback for either — an absent currency is the signal
+            // the first-run question fires on (AF3.md §2.1), and a
+            // stray active_vehicle from a deleted vehicle is simply not
+            // there for the picker to find.
+            currency = dto.general?.currency,
+            activeVehicleSlug = dto.general?.active_vehicle,
         )
     }
 

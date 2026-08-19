@@ -6,19 +6,29 @@ import kotlinx.serialization.Serializable
 
 /**
  * The two bottom-navigation destinations AF1 ships, and both their count and
- * their names are provisional (AF1.md §2.1 decision 7) — TRITIUM's actual
- * Android information architecture is deliberately undecided until the design
- * phase before AF7 (AF1.md §1.2), the same deferral XTRITIUM §11 made for the
- * desktop before F3.
+ * their names are provisional (AF1.md §2.1 decision 7). AF3.md §1 corrects
+ * an assumption AF1 made here: the desktop's own design phase did not gate
+ * F3 either — it shipped its own narrow, local UI decisions first, on
+ * placeholder styling, and the real design pass (F4b) came two milestones
+ * later. AF3 follows that shape rather than waiting.
  *
- * Type-safe navigation routes: each is a @Serializable object rather than a
- * string, so a typo is a compile error instead of a silent no-op at runtime.
+ * Type-safe navigation routes: each is a @Serializable object (or data
+ * class, where an argument travels with it) rather than a string, so a typo
+ * is a compile error instead of a silent no-op at runtime.
  */
 @Serializable
 object HomeRoute
 
 @Serializable
 object SettingsRoute
+
+/**
+ * The add/edit vehicle screen — AF3.md decision 2. `slug == null` is add,
+ * mirroring the family's sibling Android port's own `FormRoute` shape
+ * (`slug` there, `null` meaning the same thing).
+ */
+@Serializable
+data class VehicleFormRoute(val slug: String? = null)
 
 enum class TopLevelDestination(
     val route: Any,

@@ -29,4 +29,34 @@
     <string name="about_source">Source</string>
     <string name="about_licence">Licence</string>
     <string name="about_licence_title">Licence text</string>
+
+    <!-- The first-run currency question — XTRITIUM §8, asked once. -->
+    <string name="currency_title">Currency</string>
+    <string name="currency_other">Other</string>
+    <string name="currency_confirm">Confirm</string>
+
+    <!-- Home's top app bar picker — AF3, "decided with you." Wording matches
+         the desktop's own src/renderer/i18n/en.json vehicles.* keys exactly. -->
+    <string name="home_no_vehicle">No vehicle</string>
+    <string name="home_add_vehicle">Add</string>
+    <string name="home_edit_vehicle">Edit</string>
+
+    <!-- The vehicle form — every XTRITIUM §4.4 field, no photo field, ever.
+         Wording matches the desktop's vehicles.* keys exactly. -->
+    <string name="vehicle_form_title_add">New vehicle</string>
+    <string name="vehicle_form_title_edit">Edit vehicle</string>
+    <string name="vehicle_form_save">Save</string>
+    <string name="vehicle_field_name">Name</string>
+    <string name="vehicle_field_make">Make</string>
+    <string name="vehicle_field_model">Model</string>
+    <string name="vehicle_field_year">Year</string>
+    <string name="vehicle_field_engine">Engine</string>
+    <string name="vehicle_field_fuel_spec">Fuel</string>
+    <string name="vehicle_field_plate">Plate</string>
+    <string name="vehicle_field_vin">VIN</string>
+    <string name="vehicle_field_tank_capacity">Tank capacity</string>
+    <string name="vehicle_field_purchase_date">Purchase date</string>
+    <string name="vehicle_field_purchase_price">Purchase price</string>
+    <string name="vehicle_field_registration_date">Registration date</string>
+    <string name="vehicle_field_inspection_due">Inspection due</string>
 </resources>

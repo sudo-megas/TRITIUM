@@ -5,11 +5,14 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import io.github.sudomegas.tritium.config.ConfigState
 import io.github.sudomegas.tritium.config.ConfigStore
+import io.github.sudomegas.tritium.storage.TritiumPaths
+import io.github.sudomegas.tritium.storage.VehicleRepository
 
 /**
  * Holds the one [ConfigState] for the process, so the Activity and any future
  * ViewModel read the same `settings.toml`-backed flow rather than each
- * re-reading the file (AF1.md §2.1 decision 5).
+ * re-reading the file (AF1.md §2.1 decision 5). Holds the one
+ * [VehicleRepository] for the same reason, from AF3.
  *
  * The stored language is applied to [AppCompatDelegate] here, in [onCreate],
  * rather than left for `MainActivity` — XTRITIUM §3 principle 6 forbids
@@ -27,12 +30,16 @@ class TritiumApplication : Application() {
     lateinit var configState: ConfigState
         private set
 
+    lateinit var vehicleRepository: VehicleRepository
+        private set
+
     override fun onCreate() {
         super.onCreate()
 
         configStore = ConfigStore(filesDir)
         val load = configStore.load()
         configState = ConfigState(configStore, load)
+        vehicleRepository = VehicleRepository(TritiumPaths(filesDir))
 
         applyLocale(load.config.language)
     }

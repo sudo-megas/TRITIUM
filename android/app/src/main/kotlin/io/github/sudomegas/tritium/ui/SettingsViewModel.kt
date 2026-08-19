@@ -25,6 +25,18 @@ class SettingsViewModel(private val app: TritiumApplication) : ViewModel() {
         app.applyLocale(languageTag)
     }
 
+    /**
+     * XTRITIUM §8: asked once, at first launch, fixed forever. `code`
+     * absent-to-present is the only transition this ever makes — nothing
+     * calls this a second time, because nothing offers to (AF3.md §2, item
+     * 2 — no settings screen changes it either).
+     */
+    fun setCurrency(code: String) {
+        viewModelScope.launch {
+            app.configState.update { it.copy(currency = code) }
+        }
+    }
+
     fun clearError() = app.configState.clearError()
 
     companion object {
