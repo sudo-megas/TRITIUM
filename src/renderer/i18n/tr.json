@@ -156,6 +156,29 @@
     "deleteCancel": "Vazgeç",
     "deleteWarning": "Bu kayıt dosyadan çıkarılır. Dosyadaki başka hiçbir şey değişmez ve kimlik yeniden kullanılmaz."
   },
+  "statistics": {
+    "tanks": "Depolar",
+    "use": "Kullanım",
+    "money": "Para",
+    "bestTank": "En iyi depo",
+    "worstTank": "En kötü depo",
+    "kmPerDay": "Günlük kilometre",
+    "projectedAnnual": "Öngörülen yıllık maliyet",
+    "runningCostPerKm": "Km başına işletme maliyeti",
+    "trueCostPerKm": "Km başına gerçek maliyet",
+    "projectionNote": "Bugüne kadarki harcama hızıyla. Hiçbir şey planlanmaz, hiçbir kayıt oluşturulmaz.",
+    "includesPurchase": "Araç bedelini içerir, {{value}}.",
+    "singleInterval": "Şimdilik tek bir dolu depo aralığı var, bu yüzden en iyi ile en kötü aynı aralık.",
+    "days": "{{days}} gün",
+    "tooShort": "Henüz yeterli veri yok — {{days}} gün kayıtlı, {{minimum}} gün gerekli.",
+    "missing": {
+      "no-intervals": "Henüz yeterli veri yok — iki dolu depo gerekli.",
+      "no-readings": "Henüz yeterli veri yok — iki kilometre kaydı gerekli.",
+      "no-distance": "Henüz yeterli veri yok — ölçülmüş bir mesafe yok.",
+      "too-short": "Henüz yeterli veri yok.",
+      "no-purchase-price": "Araç kaydında bir alış bedeli yok."
+    }
+  },
   "summary": {
     "gas": "Yakıt",
     "costs": "Giderler",

@@ -1131,3 +1131,45 @@ select,
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── the statistics (F10) ────────────────────────────────────────────────
+ * XTRITIUM §7.3's four figures, in "a dedicated section of its own".
+ *
+ * No controls anywhere on this tab: a statistic filtered to "this month" is a
+ * different statistic wearing the same label, so F7's chips are not here.
+ */
+.stat {
+  padding: var(--gap-inside) var(--space-0);
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+.stat__value {
+  margin: var(--space-4) var(--space-0) var(--space-0);
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+
+/* A figure that cannot be computed says WHY, in the same slot the figure would
+ * have used. Never a zero: zero kilometres and no record of driving are
+ * different claims (§3.3), and on this page confusing them costs the most. */
+.stat__missing {
+  margin: var(--space-4) var(--space-0) var(--space-0);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+}
+
+.stat__detail {
+  margin: var(--space-2) var(--space-0) var(--space-0);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+}
+
+/* The window the figure was taken over. A statistic without its span is a
+ * number without units, so this line is not decoration. */
+.stat__window {
+  margin: var(--space-2) var(--space-0) var(--space-0);
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}

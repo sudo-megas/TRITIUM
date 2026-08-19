@@ -53,11 +53,17 @@ F4b recorded the consequence rather than editing the constitution, and F5, F6 an
 F7 have each ridden the correction without amending §9.1 either — XTRITIUM §0
 says amendments are the maker's, with a dated note, never silent drift.
 
-**One further consequence, worth settling before F10 rather than during it:** the
-version is a decimal roll (§9.1 — `F10 → v0.1.9`, `F11 → v0.2.0`). Carrying the
-+1 shift through gives F8 → v0.1.8, F9 → v0.1.9, and then **F10 → v0.2.0**, not
-v0.1.10. Each of those documents states its own version and the reasoning; the
-table itself still wants amending.
+**The consequence has now arrived.** The version is a decimal roll (§9.1 —
+`F10 → v0.1.9`, `F11 → v0.2.0`). Carrying the +1 shift through gives F8 →
+v0.1.8, F9 → v0.1.9, and then **F10 → v0.2.0**, not v0.1.10 — which is not a
+version this project uses, and asserting it would break the roll for every
+milestone after.
+
+**F10 has been tagged `v0.2.0` on that reasoning**, stated in F10.md §1.1. So
+the remaining milestones read F11 → v0.2.1, F12 → v0.2.2, F13 → v0.2.3,
+F14 → v0.2.4 — which is what §9.1's table already prints for them, one row
+higher. From F11 onward the table and the tags agree again by accident; the rows
+for F5 through F10 are the ones still wrong, and amending them is the maker's.
 
 ---
 

@@ -156,6 +156,29 @@
     "deleteCancel": "Keep it",
     "deleteWarning": "This removes the record from the file. Nothing else in it changes, and the id is not reused."
   },
+  "statistics": {
+    "tanks": "Tanks",
+    "use": "Use",
+    "money": "Money",
+    "bestTank": "Best tank",
+    "worstTank": "Worst tank",
+    "kmPerDay": "Kilometres per day",
+    "projectedAnnual": "Projected annual cost",
+    "runningCostPerKm": "Running cost per km",
+    "trueCostPerKm": "True cost per km",
+    "projectionNote": "At the rate spent so far. Nothing is scheduled and no entry is created.",
+    "includesPurchase": "Includes the purchase price, {{value}}.",
+    "singleInterval": "There is one full-tank interval so far, so the best and the worst are the same one.",
+    "days": "{{days}} days",
+    "tooShort": "Not enough data yet — {{days}} days recorded, {{minimum}} needed.",
+    "missing": {
+      "no-intervals": "Not enough data yet — two full tanks are needed.",
+      "no-readings": "Not enough data yet — two odometer readings are needed.",
+      "no-distance": "Not enough data yet — no distance has been measured.",
+      "too-short": "Not enough data yet.",
+      "no-purchase-price": "The vehicle record carries no purchase price."
+    }
+  },
   "summary": {
     "gas": "Fuel",
     "costs": "Costs",

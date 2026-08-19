@@ -2,16 +2,19 @@
 // Deliberately not the JADEITE/INDIUM sidebar.
 //
 // The tab names and count are design-phase property (XTRITIUM §11); the *bar*
-// is F1's. Every tab except SETTINGS and ABOUT shows the empty two-pane layout.
+// is F1's, and F4b settled the list. As of F10 every one of the eight has a
+// pane behind it — the sentence that used to stand here, about most tabs
+// showing an empty two-pane layout, described F1 through F9 and stopped being
+// true when Statistics was filled.
 
 import { useEffect, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChartsPane } from './panes/ChartsPane.js'
 import { CostsPane } from './panes/CostsPane.js'
-import { EmptyPanes } from './panes/EmptyPanes.js'
 import { FuelPane } from './panes/FuelPane.js'
 import { ServicePane } from './panes/ServicePane.js'
 import { SettingsPane } from './panes/SettingsPane.js'
+import { StatisticsPane } from './panes/StatisticsPane.js'
 import { SummaryPane } from './panes/SummaryPane.js'
 import { AboutPane } from './panes/AboutPane.js'
 import { VehiclePicker } from './VehiclePicker.js'
@@ -45,15 +48,17 @@ const TABS = [
 
 type Tab = (typeof TABS)[number]
 
-// Settings and About since F1, Fuel since F4, Costs since F5, Service since F6,
-// Charts since F8, Summary since F9. STATISTICS is the last tab still holding
-// the two-pane layout with empty cells; F10 fills it.
-const PANES: Partial<Record<Tab, () => JSX.Element>> = {
+// Every tab in the bar now has a pane behind it: Settings and About since F1,
+// Fuel since F4, Costs since F5, Service since F6, Charts since F8, Summary
+// since F9, Statistics since F10. `EmptyPanes` survives as what a pane shows
+// when it has nothing to show, which is a different job (§7).
+const PANES: Record<Tab, () => JSX.Element> = {
   summary: SummaryPane,
   fuel: FuelPane,
   costs: CostsPane,
   service: ServicePane,
   charts: ChartsPane,
+  statistics: StatisticsPane,
   settings: SettingsPane,
   about: AboutPane
 }
@@ -61,7 +66,7 @@ const PANES: Partial<Record<Tab, () => JSX.Element>> = {
 export function App(): JSX.Element {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('summary')
-  const Pane = PANES[tab] ?? EmptyPanes
+  const Pane = PANES[tab]
   const refresh = useVehicles((s) => s.refresh)
 
   // The list is read once at start and again whenever a form window writes.
