@@ -11,6 +11,7 @@ import { createMainWindow, openFormWindow } from './windows.js'
 import {
   addCostEntry,
   addFuelEntry,
+  addServiceEntry,
   listVehicleSlugs,
   loadVehicle,
   saveCosts,
@@ -20,6 +21,7 @@ import {
   uniqueSlug,
   updateCostEntry,
   updateFuelEntry,
+  updateServiceEntry,
   vehicleNames
 } from './storage/repository.js'
 import {
@@ -27,7 +29,8 @@ import {
   isCostGroup,
   isDateString,
   type CostEntry,
-  type FuelEntry
+  type FuelEntry,
+  type ServiceEntry
 } from '../shared/records.js'
 import type { CostDocument } from './storage/cost-file.js'
 import type { FuelDocument } from './storage/fuel-file.js'
@@ -123,6 +126,25 @@ function readCostInput(value: unknown): Omit<CostEntry, 'id'> {
     bank: stringOr(raw.bank),
     instalment: stringOr(raw.instalment),
     note: stringOr(raw.note)
+  }
+}
+
+/**
+ * A service record as a form window sends it, coerced to §4.4's shape.
+ *
+ * `vendor` crosses as the plain string it is. It holds an address, a bare
+ * domain, a shop's name or nothing — the maker's own sheet has one of each — so
+ * there is nothing here to validate, and nothing anywhere that would open it
+ * (§3.5).
+ */
+function readServiceInput(value: unknown): Omit<ServiceEntry, 'id'> {
+  const raw = (value ?? {}) as Partial<ServiceEntry>
+  return {
+    date: isDateString(raw.date) ? raw.date : '',
+    part: stringOr(raw.part),
+    odometer_km: integerOr(raw.odometer_km, 0),
+    amount: Math.abs(integerOr(raw.amount, 0)),
+    vendor: stringOr(raw.vendor)
   }
 }
 
@@ -284,8 +306,33 @@ function registerIpc(): void {
     return changed
   })
 
+  /*
+   * The last write path in the process to gain a broadcast. F4 gave fuel one,
+   * F5 gave costs one and recorded that this was still missing; with F6 every
+   * write in TRITIUM tells the other windows, and no window can go on showing
+   * a file as it was when it last rendered.
+   */
   ipcMain.handle('service:save', (_event, slug: unknown, document: unknown) => {
     saveService(String(slug), document as ServiceDocument)
+    broadcast('vehicles:changed')
+  })
+
+  /** Append a service record (F6). The id is allocated in the repository. */
+  ipcMain.handle('service:add', (_event, slug: unknown, entry: unknown) => {
+    const added = addServiceEntry(String(slug), readServiceInput(entry))
+    broadcast('vehicles:changed')
+    return added
+  })
+
+  /** Edit one service record in place (XTRITIUM §3.8). */
+  ipcMain.handle('service:update', (_event, slug: unknown, entry: unknown) => {
+    const raw = (entry ?? {}) as Partial<ServiceEntry>
+    const id = typeof raw.id === 'string' ? raw.id : ''
+    if (id.length === 0) return false
+
+    const changed = updateServiceEntry(String(slug), { ...readServiceInput(entry), id })
+    if (changed) broadcast('vehicles:changed')
+    return changed
   })
 
   // Form windows (XTRITIUM §5.1). The renderer asks; this process decides.

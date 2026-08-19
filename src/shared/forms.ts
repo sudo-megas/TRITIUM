@@ -9,7 +9,14 @@
 
 export const FORM_ARG = '--tritium-form='
 
-export const FORM_KINDS = ['vehicle', 'currency', 'fuel-quick', 'fuel', 'cost'] as const
+export const FORM_KINDS = [
+  'vehicle',
+  'currency',
+  'fuel-quick',
+  'fuel',
+  'cost',
+  'service'
+] as const
 export type FormKind = (typeof FORM_KINDS)[number]
 
 export interface FormRequest {

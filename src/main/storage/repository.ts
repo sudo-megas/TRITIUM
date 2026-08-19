@@ -202,6 +202,35 @@ export function saveService(slug: string, document: ServiceDocument): void {
   writeService(vehicleFiles(slug).service, document)
 }
 
+/**
+ * Append a service record, allocating its id here (F6). `addCostEntry`'s shape,
+ * for `addCostEntry`'s reason: read-modify-write in this process, against the
+ * file as it is right now.
+ */
+export function addServiceEntry(slug: string, entry: Omit<ServiceEntry, 'id'>): ServiceEntry {
+  const files = vehicleFiles(slug)
+  const document = readService(files.service)
+  const added: ServiceEntry = { ...entry, id: allocateId('service', document.entries) }
+
+  document.entries.push(added)
+  writeService(files.service, document)
+
+  return added
+}
+
+/** Replace one service record in place, by id (XTRITIUM §3.8). */
+export function updateServiceEntry(slug: string, entry: ServiceEntry): boolean {
+  const files = vehicleFiles(slug)
+  const document = readService(files.service)
+  const index = document.entries.findIndex((existing) => existing.id === entry.id)
+  if (index < 0) return false
+
+  document.entries[index] = entry
+  writeService(files.service, document)
+
+  return true
+}
+
 export function emptyBundle(slug: string): VehicleBundle {
   return { slug, vehicle: null, fuel: emptyFuel(), costs: emptyCosts(), service: emptyService() }
 }

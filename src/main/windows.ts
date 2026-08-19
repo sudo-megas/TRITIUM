@@ -28,7 +28,11 @@ const FORM_SIZES: Record<FormRequest['kind'], { width: number; height: number }>
   // The tallest of the entry forms: §6.2 gives the money categories three
   // fields the others do not have, and the window is sized for the shape it
   // wears most often rather than resizing as the group changes under it.
-  cost: { width: 680, height: 780 }
+  cost: { width: 680, height: 780 },
+  // Five fields, one of which — the vendor address — is long. Wider than it is
+  // tall for that reason, and shorter than the cost form because §4.4's
+  // service.toml holds half as many keys.
+  service: { width: 680, height: 560 }
 }
 
 /**

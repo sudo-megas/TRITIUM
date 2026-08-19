@@ -106,6 +106,12 @@ const api = {
     ipcRenderer.invoke('cost:update', slug, entry),
   saveService: (slug: string, document: unknown): Promise<void> =>
     ipcRenderer.invoke('service:save', slug, document),
+  // F6 — Periyodik Bakım, one entry at a time, the id allocated in the main
+  // process exactly as a fill-up's and a cost's are.
+  addService: (slug: string, entry: unknown): Promise<unknown> =>
+    ipcRenderer.invoke('service:add', slug, entry),
+  updateService: (slug: string, entry: unknown): Promise<boolean> =>
+    ipcRenderer.invoke('service:update', slug, entry),
 
   // Form windows. The renderer asks the main process to open one; window.open
   // is still refused, which is the point of asking.
