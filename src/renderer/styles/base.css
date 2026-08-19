@@ -183,7 +183,17 @@ select,
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
-  gap: var(--space-0);
+  /*
+   * The tabs are separated now, and the gap is what separates them. They used to
+   * abut, told apart only by a rule between neighbours; each is its own object
+   * with its own edge, so the divider has gone and the space does that job.
+   *
+   * The gap is deliberately small. Every pixel here comes out of the width
+   * budget I-30 was about, and eight gaps plus eight new borders is real money
+   * in a bar that has to stay one row at 1280.
+   */
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-6);
   min-height: var(--tab-height);
   background: var(--surface-raised);
   /* The boundary between the chrome and the application. F15 gave it the strong
@@ -204,11 +214,12 @@ select,
    * Together with --mark-size it is what sets the bar's height, since this is
    * the tallest item in the row and the tabs beside it stretch to match.
    */
-  padding: var(--mark-air) var(--space-16);
+  padding: var(--mark-air) var(--space-12);
   font-weight: 700;
   letter-spacing: var(--tracking-label);
   color: var(--accent);
-  border-right: var(--border-width-strong) solid var(--border-strong);
+  /* No divider. Nothing in this bar abuts anything any more, so the gap is the
+   * separation and a rule beside it would be a second answer to one question. */
 }
 
 .tabbar__icon {
@@ -225,61 +236,57 @@ select,
   height: var(--mark-size);
 }
 
-/* The tab dividers the maker named first, and they were the weakest lines in the
- * application: one pixel of --border, immediately under a bar whose bottom rule
- * F15 had already given the strong tier. A separator that is thinner than the
- * edge it meets does not read as a separator (issues.md I-22's sibling
- * complaint). Every vertical rule in this bar now matches the horizontal one. */
+/*
+ * A tab is a BUTTON, and it looks like one: its own heavy outline, its own
+ * radius, its own space. It used to be a strip of text divided from its
+ * neighbour by a rule, which is a different idea about what a tab is.
+ *
+ * This is where D11's "0 on the tab bar" stops applying, and it is worth being
+ * exact about why rather than simply overruling it. D11 takes that from Fluent
+ * together with the reason Fluent gives: "corners are not rounded where two
+ * elements abut or meet a screen edge." Both halves are conditions. The tabs no
+ * longer abut — the bar has a gap between them now — and a tab does not meet a
+ * screen edge; the BAR does, and the bar is still square (--radius-none, above).
+ * So the condition the rule is built on is gone, and rounding these breaks
+ * nothing D11 was protecting.
+ *
+ * The width budget from I-30 is still real. Eight gaps and eight new outlines
+ * cost about 90px, so the horizontal padding comes down to pay for it, and
+ * geometry.spec.ts holds the bar to one row at 1280 either way.
+ */
 .tab {
   appearance: none;
-  border: 0;
-  border-right: var(--border-width-strong) solid var(--border-strong);
-  border-radius: var(--radius-none);
-  background: transparent;
+  border: var(--border-width-strong) solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
   color: var(--text-muted);
   font: inherit;
-  /*
-   * The bar is a fixed budget and F15 nearly spent it. Body type went 13px to
-   * 16px and every tab widened with it; eight labels, the mark and the vehicle
-   * picker then wanted about 1370px in a bar 1280px wide, so the picker wrapped
-   * onto a second row and sat under the tabs (issues.md I-30).
-   *
-   * A tab label is chrome, not body text, and it is the one place in this
-   * interface where the width of the container is the binding constraint rather
-   * than legibility. So the tabs take --text-sm and a narrower gutter, which
-   * brings the row to roughly 1160px and leaves real room to spare.
-   */
   font-size: var(--text-sm);
   /* Tracking is allowed here: no column of figures aligns beneath a tab. */
   letter-spacing: var(--tracking-label);
-  padding: var(--space-0) var(--space-12);
-}
-
-/*
- * The last tab drops its divider. The picker is pushed to the far right by
- * margin-left: auto and carries a border-left of its own, so keeping this one
- * left two rules with empty bar between them — which read as a ninth, blank
- * tab. One boundary is enough to separate two things.
- */
-.tab:last-of-type {
-  border-right: 0;
+  padding: var(--space-0) var(--space-8);
 }
 
 .tab:hover {
   color: var(--text);
-  background: var(--surface-sunken);
+  border-color: var(--accent);
 }
 
 /*
- * The selected tab is marked three ways at once — colour, fill, and a rule
- * along its lower edge — so it still reads with the palette taken away. The
- * rule is an inset shadow rather than a border, because a border would make
- * this tab one pixel taller than its neighbours and shift the whole bar.
+ * The selected tab is still marked three ways at once — colour, fill, and its
+ * edge — so it reads with the palette taken away. The edge is now the tab's own
+ * border rather than an inset rule along the bottom: it has a border to change,
+ * which it did not when it was a strip of text.
+ *
+ * The border WIDTH does not change with state. D12's rule that nothing changes
+ * size on a state change is why: a thicker edge on the selected tab would make
+ * it a different size from its neighbours and shuffle the whole bar every time
+ * the maker changed tabs.
  */
 .tab[aria-selected='true'] {
   color: var(--accent);
-  background: var(--surface);
-  box-shadow: inset 0 calc(-1 * var(--border-width-strong)) 0 0 var(--accent);
+  background: var(--surface-sunken);
+  border-color: var(--accent);
 }
 
 .tab:focus-visible {
@@ -318,7 +325,10 @@ select,
 
 .pane {
   background: var(--surface);
-  border: var(--border-width-strong) solid var(--border-strong);
+  /* Twice the strong width, same strong colour: a pane is a separate object
+   * from the one beside it, and at 2px it still read as a rule around a region
+   * rather than as the region's own edge. */
+  border: var(--border-width-heavy) solid var(--border-strong);
   border-radius: var(--radius-lg);
   box-shadow: inset 0 var(--border-width-strong) 0 var(--surface-raised);
   padding: var(--gap-between);
@@ -667,9 +677,10 @@ select,
   align-items: center;
   gap: var(--gap-inside);
   margin-left: auto;
-  padding: var(--space-0) var(--space-12);
-  /* The third separator in the tab bar, and it matches the other two. */
-  border-left: var(--border-width-strong) solid var(--border-strong);
+  padding: var(--space-0);
+  /* No divider here either. margin-left: auto already puts a stretch of empty
+   * bar between the tabs and the picker, which is more separation than a rule
+   * gives; drawing one as well would say the same thing twice. */
 }
 
 /*

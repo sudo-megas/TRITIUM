@@ -210,6 +210,21 @@
   --border-width: 1px;
   --border-width-strong: 2px;
 
+  /*
+   * A third tier, for the edge of a whole region rather than a row inside one.
+   *
+   * D4 gives borders the assertive work and puts "strong" at a 3.0-3.3 : 1
+   * contrast against its surface — that is a tier of COLOUR, and it is already
+   * spent by the time a pane wants to look like a separate object from the two
+   * beside it. Width is the axis left, so a pane takes twice the strong width
+   * while keeping the same strong colour. Nothing new is asked of the palettes.
+   *
+   * Deliberately only for the panes and the tabs: an edge this heavy on a row
+   * inside a pane would compete with the pane's own boundary, which is the thing
+   * it exists to declare.
+   */
+  --border-width-heavy: 4px;
+
   /* ---- Focus --------------------------------------------------------------
    * The ring is an outline, never a shadow: an outer shadow paints across
    * whatever sits beside the control, and nothing here may do that.

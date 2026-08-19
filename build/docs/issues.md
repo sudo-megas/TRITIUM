@@ -834,13 +834,58 @@ number that lies.
   inspection is still open.
 -->
 
+### I-32 · The panes still did not read as separate objects
+**Status: FIXED in F15** · found F15 · F15's second pass was insufficient, again
+
+I-31 gave each pane a 2px strong border, a radius and an inset highlight, and the
+maker's answer was to ask for the outline **twice as thick** so the panes would
+look "more floating and independent". He is right for the same reason he was
+right about I-31: 2px is the width used for a *row inside* a pane, so the edge of
+the region and the edge of a row within it were saying the same thing at the same
+strength, and the boundary that matters most was not the loudest one.
+
+**Fix:** a third width tier, `--border-width-heavy: 4px`, for the edge of a whole
+region and nothing smaller. The colour tier does not change — D4 already spends
+`--border-strong` at 3.0–3.3 : 1 and there is nothing above it — so **width is
+the axis left**, and no palette is asked for anything new.
+
+**The tabs became buttons in the same pass, and that is a reversal rather than a
+repair.** F15's first pass read the maker's "all selectable buttons in the pages
+can be rounded" as excluding the tab bar, on D11's authority that the bar is
+square, and said so explicitly as a call he might want to reverse. He reversed
+it.
+
+It is worth recording that D11 did not have to be overruled to do it. D11 takes
+radius-0 from Fluent **together with Fluent's reason**: *"corners are not rounded
+where two elements abut or meet a screen edge."* Both halves are conditions, not
+conclusions. Separating the tabs removes the abutting, and a tab does not meet a
+screen edge — the **bar** does, and the bar is still square. The rule's premise
+is simply no longer present, so nothing it was protecting is lost.
+
+Each tab now carries its own strong outline, its own radius and its own space;
+the dividers between them are gone, along with the mark's and the picker's,
+because a gap and a rule are two answers to one question. Selected state moved
+from an inset bottom rule to the tab's own border colour — it has a border to
+change now, which it did not when it was a strip of text — and the border
+*width* deliberately does not change with state, because D12 forbids a size
+change on a state change and a thicker edge would reshuffle the bar on every
+click.
+
+**Cost:** eight gaps and eight new outlines are about 90px of a bar that must
+stay one row at 1280 (I-30). The tabs' horizontal padding paid for it, and
+`geometry.spec.ts` holds the line either way — which is the first time in this
+milestone that a width change was made with a gate already watching instead of
+being discovered afterwards.
+
+---
+
 ## Final position
 
-Thirty-one issues. Twenty-nine fixed, two accepted with reasons, **none open**.
+Thirty-two issues. Thirty fixed, two accepted with reasons, **none open**.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 · I-30 · I-31 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 · I-30 · I-31 · I-32 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
 | **OPEN** | — |
 
@@ -874,7 +919,7 @@ argued with.
 
 ## Notes on method
 
-Seven of the twenty-nine fixed issues (I-03, I-08, I-15, I-16, I-20, I-29, I-30) were
+Seven of the thirty fixed issues (I-03, I-08, I-15, I-16, I-20, I-29, I-30) were
 found by **measuring something that had only been reasoned about**, and not one
 of them would have been caught by the suite as it stood. The miles rounding
 (I-15) is the clearest case: it was correct by argument and wrong on 37.9% of the
