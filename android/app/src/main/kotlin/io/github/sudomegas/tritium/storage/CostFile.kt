@@ -34,8 +34,7 @@ object CostSpec : EntrySpec<CostEntry> {
         note = readString(table, "note"),
     )
 
-    override fun emitEntry(entry: CostEntry): List<String> = buildList {
-        add(line("id", basicString(entry.id)))
+    override fun emitEntryFields(entry: CostEntry): List<String> = buildList {
         addAll(dateLines("date", entry.date))
         add(line("group", basicString(entry.group.token)))
         add(line("category", basicString(entry.category)))

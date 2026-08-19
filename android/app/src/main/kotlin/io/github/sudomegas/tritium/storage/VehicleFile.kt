@@ -64,24 +64,31 @@ fun parseVehicle(text: String, file: File): VehicleDocument {
     return readVehicleTable(table)
 }
 
+/**
+ * A vehicle's own lines, without `schema_version` — what a bundle's
+ * `[[vehicle]]` table carries (AF8.md §1.1). [serialiseVehicle] is
+ * `vehicle.toml`'s own use of this, with the schema stamp prepended;
+ * `Bundle.kt` uses this directly, with `slug` prepended instead.
+ */
+fun emitVehicleFields(vehicle: Vehicle): List<String> = buildList {
+    add(line("name", basicString(vehicle.name)))
+    add(line("make", basicString(vehicle.make)))
+    add(line("model", basicString(vehicle.model)))
+    add(line("year", vehicle.year.toString()))
+    add(line("engine", basicString(vehicle.engine)))
+    add(line("fuel_spec", basicString(vehicle.fuelSpec)))
+    add(line("plate", basicString(vehicle.plate)))
+    add(line("vin", basicString(vehicle.vin)))
+    add(line("tank_capacity_l", Scaled.formatTank(vehicle.tankCapacityL)))
+    addAll(dateLines("purchase_date", vehicle.purchaseDate))
+    add(line("purchase_price", Scaled.formatMoney(vehicle.purchasePrice)))
+    addAll(dateLines("registration_date", vehicle.registrationDate))
+    addAll(dateLines("inspection_due", vehicle.inspectionDue))
+}
+
 fun serialiseVehicle(document: VehicleDocument): String {
-    val vehicle = document.vehicle
-    val parts = mutableListOf(
-        line("schema_version", RECORD_SCHEMA_VERSION.toString()),
-        line("name", basicString(vehicle.name)),
-        line("make", basicString(vehicle.make)),
-        line("model", basicString(vehicle.model)),
-        line("year", vehicle.year.toString()),
-        line("engine", basicString(vehicle.engine)),
-        line("fuel_spec", basicString(vehicle.fuelSpec)),
-        line("plate", basicString(vehicle.plate)),
-        line("vin", basicString(vehicle.vin)),
-        line("tank_capacity_l", Scaled.formatTank(vehicle.tankCapacityL)),
-    )
-    parts += dateLines("purchase_date", vehicle.purchaseDate)
-    parts += line("purchase_price", Scaled.formatMoney(vehicle.purchasePrice))
-    parts += dateLines("registration_date", vehicle.registrationDate)
-    parts += dateLines("inspection_due", vehicle.inspectionDue)
+    val parts = mutableListOf(line("schema_version", RECORD_SCHEMA_VERSION.toString()))
+    parts += emitVehicleFields(document.vehicle)
     parts += carriedLines(document.rest)
 
     return parts.joinToString("\n") + "\n"

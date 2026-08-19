@@ -51,6 +51,14 @@
     <string name="list_delete_cancel">Keep it</string>
     <string name="list_delete_warning">This removes the record from the file. Nothing else in it changes, and the id is not reused.</string>
 
+    <!-- Export — AF8. The phone exports, the desktop imports; no wording ported
+         from the desktop's own settings.import* keys since AF8 is the export
+         direction they have no counterpart for, but the tone matches. -->
+    <string name="export_title">Export</string>
+    <string name="export_action">Bring your vehicles to the desktop…</string>
+    <string name="export_success">Exported. Bring the file to the desktop and import it there.</string>
+    <string name="export_failure">Not exported. Nothing was written.</string>
+
     <!-- Settings — AF1 ships the language switch only. -->
     <string name="settings_title">Settings</string>
     <string name="settings_language">Language</string>

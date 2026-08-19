@@ -33,8 +33,19 @@ interface EntrySpec<T : HasId> {
     val knownKeys: Set<String>
     fun readEntry(table: TomlTable, id: String): T
 
-    /** The entry's lines, in the order XTRITIUM §4.4 draws them. */
-    fun emitEntry(entry: T): List<String>
+    /**
+     * The entry's lines in XTRITIUM §4.4's order, without `id` — what a
+     * bundle carries (AF8.md §1.1: identity never crosses the export
+     * boundary, F16 decision 2). [emitEntry] is a record file's own use of
+     * this, with `id` prepended; a bundle uses this directly.
+     */
+    fun emitEntryFields(entry: T): List<String>
+
+    /** The full line list a record file's own `[[entry]]` table uses. */
+    fun emitEntry(entry: T): List<String> = buildList {
+        add(line("id", basicString(entry.id)))
+        addAll(emitEntryFields(entry))
+    }
 }
 
 fun <T : HasId> emptyDocument(): EntryDocument<T> =

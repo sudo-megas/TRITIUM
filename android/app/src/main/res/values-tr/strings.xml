@@ -39,6 +39,11 @@
     <string name="list_delete_cancel">Vazgeç</string>
     <string name="list_delete_warning">Bu kayıt dosyadan çıkarılır. Dosyadaki başka hiçbir şey değişmez ve kimlik yeniden kullanılmaz.</string>
 
+    <string name="export_title">Dışa aktar</string>
+    <string name="export_action">Araçlarınızı masaüstüne taşıyın…</string>
+    <string name="export_success">Dışa aktarıldı. Dosyayı masaüstüne getirip orada içe aktarın.</string>
+    <string name="export_failure">Dışa aktarılamadı. Hiçbir şey yazılmadı.</string>
+
     <string name="settings_title">Ayarlar</string>
     <string name="settings_language">Dil</string>
     <string name="settings_language_en">English</string>

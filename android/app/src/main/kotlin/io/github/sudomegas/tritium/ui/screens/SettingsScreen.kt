@@ -1,5 +1,7 @@
 package io.github.sudomegas.tritium.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -26,13 +29,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.sudomegas.tritium.BuildConfig
 import io.github.sudomegas.tritium.R
+import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.ui.SettingsViewModel
 
 /**
- * AF1's one working screen (AF1.md §2.1 decision 8): the language switch, and
- * About beneath it — the mark, the maker, the version, the source address and
- * the full licence text, XTRITIUM §10 unchanged by platform. Every address is
- * a [SelectionContainer], never a clickable link (XTRITIUM §5).
+ * AF1's language switch, AF8's Export, and About beneath both — the mark,
+ * the maker, the version, the source address and the full licence text,
+ * XTRITIUM §10 unchanged by platform. Every address is a
+ * [SelectionContainer], never a clickable link (XTRITIUM §5).
  */
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
@@ -59,7 +63,54 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
 
+        ExportSection(viewModel)
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
+
         AboutSection()
+    }
+}
+
+/**
+ * The phone exports, the desktop imports — one direction (AF8.md, F16's own
+ * decision, unchanged). Always every vehicle, one file (AF8.md §1.2): no
+ * per-vehicle picker. `ACTION_CREATE_DOCUMENT`, Android's own native save
+ * picker, is the AF8.md §1.2 answer to F16 decision 6's reasoning for the
+ * desktop's own native dialog — drawn outside this app's own surface, not
+ * a Compose modal.
+ */
+@Composable
+private fun ExportSection(viewModel: SettingsViewModel) {
+    val context = LocalContext.current
+    var status by remember { mutableStateOf<String?>(null) }
+    val successText = stringResource(id = R.string.export_success)
+    val failureText = stringResource(id = R.string.export_failure)
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        status = runCatching {
+            context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.exportBundle().toByteArray()) }
+        }.fold(
+            onSuccess = { successText },
+            onFailure = { failureText },
+        )
+    }
+
+    Text(
+        text = stringResource(id = R.string.export_title),
+        style = MaterialTheme.typography.titleMedium,
+    )
+    Button(
+        modifier = Modifier.padding(top = 8.dp).testTag("exportButton"),
+        onClick = {
+            status = null
+            launcher.launch("tritium-export-${Format.todayIso()}.toml")
+        },
+    ) {
+        Text(stringResource(id = R.string.export_action))
+    }
+    status?.let {
+        Text(text = it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
     }
 }
 

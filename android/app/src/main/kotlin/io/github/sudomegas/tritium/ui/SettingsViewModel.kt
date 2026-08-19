@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.sudomegas.tritium.TritiumApplication
 import io.github.sudomegas.tritium.config.AppConfig
+import io.github.sudomegas.tritium.storage.Bundle
+import io.github.sudomegas.tritium.storage.Format
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -38,6 +40,17 @@ class SettingsViewModel(private val app: TritiumApplication) : ViewModel() {
     }
 
     fun clearError() = app.configState.clearError()
+
+    /**
+     * Every vehicle the phone has, one bundle (AF8.md §1.2) — F16's own
+     * format, unchanged, so the desktop's real `importBundle` reads it with
+     * no Android-specific handling at all.
+     */
+    fun exportBundle(): String {
+        val slugs = app.vehicleRepository.listVehicleSlugs()
+        val vehicles = slugs.map { app.vehicleRepository.loadVehicle(it) }
+        return Bundle.build(vehicles, Format.todayIso())
+    }
 
     companion object {
         fun factory(app: TritiumApplication) = object : ViewModelProvider.Factory {

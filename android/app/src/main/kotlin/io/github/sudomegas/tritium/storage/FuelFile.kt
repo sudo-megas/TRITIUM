@@ -28,8 +28,7 @@ object FuelSpec : EntrySpec<FuelEntry> {
         fuelType = readString(table, "fuel_type"),
     )
 
-    override fun emitEntry(entry: FuelEntry): List<String> = buildList {
-        add(line("id", basicString(entry.id)))
+    override fun emitEntryFields(entry: FuelEntry): List<String> = buildList {
         addAll(dateLines("date", entry.date))
         add(line("odometer_km", entry.odometerKm.toString()))
         add(line("litres", Scaled.formatPump(entry.litres)))

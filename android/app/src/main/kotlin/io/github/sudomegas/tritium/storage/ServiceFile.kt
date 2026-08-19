@@ -23,8 +23,7 @@ object ServiceSpec : EntrySpec<ServiceEntry> {
         vendor = readString(table, "vendor"),
     )
 
-    override fun emitEntry(entry: ServiceEntry): List<String> = buildList {
-        add(line("id", basicString(entry.id)))
+    override fun emitEntryFields(entry: ServiceEntry): List<String> = buildList {
         addAll(dateLines("date", entry.date))
         add(line("part", basicString(entry.part)))
         add(line("odometer_km", entry.odometerKm.toString()))
