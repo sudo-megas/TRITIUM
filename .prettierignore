@@ -8,6 +8,15 @@ release/
 test-results/
 playwright-report/
 
+# Working copies of this same repository.
+#
+# A git worktree under here holds a COMPLETE second copy of the tree, so a bare
+# `prettier --check .` walks the project twice and reports every file in the
+# other copy as unformatted — including files from a milestone that predates the
+# formatter. It passed inside a worktree and failed in the checkout beside it,
+# which is the wrong way round for a gate to behave (issues.md I-20).
+.claude/
+
 # npm writes it; npm's shape is the right shape.
 package-lock.json
 

@@ -409,15 +409,47 @@ version of that drift.
 
 Both now read in the tense the work is in.
 
+### I-20 · The formatter gate passed in one copy of the tree and failed in another
+**Status: FIXED in F14** · introduced F12 · severity: a gate that lied about where it was
+
+F12 added `prettier --check .` to `npm run audit`. It passed everywhere it was
+run during F12 and F13, and then failed the moment the suite was run from the
+maker's own checkout rather than from a worktree:
+
+```
+[warn] .claude/worktrees/f1-scaffold/scripts/audit-locale.mjs
+[warn] Code style issues found in 20 files.
+```
+
+**Cause.** A git worktree under `.claude/worktrees/` holds a **complete second
+copy of the repository**. `prettier --check .` walks the whole directory, so from
+the outer checkout it formatted-checked the project twice — the second time
+including a worktree left over from F1, whose files predate the formatter by
+twelve milestones and could not possibly pass.
+
+Prettier does not read `.gitignore`; only `.prettierignore`. So the directory
+being untracked bought nothing.
+
+**Why it is worth an entry.** The gate's verdict depended on **which copy of the
+tree you ran it from**, which is the one thing a gate must never do. It would
+have met the maker on his first `npm test` after the merge, on files no milestone
+had touched.
+
+**Fix:** `.prettierignore` excludes `.claude/`, with the reason written in.
+
+**Found by** running the full suite in the outer checkout after merging rather
+than trusting the worktree it was built in — which is now the last step before a
+milestone is called done.
+
 ---
 
 ## Final position
 
-Nineteen issues. Sixteen fixed, two accepted with reasons, one open.
+Twenty issues. Seventeen fixed, two accepted with reasons, one open.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
 | **OPEN** | **I-10 — XTRITIUM §9.1's version table.** The maker's pen, by §0's own rule that amendments are his, with a dated note, never silent drift. |
 
