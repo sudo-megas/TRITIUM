@@ -12,7 +12,7 @@
 
 pkgname=tritium
 pkgver=0.2.6
-pkgrel=2
+pkgrel=3
 pkgdesc='Fuel logging and maintenance tracking for any ICE vehicle'
 arch=('x86_64')
 url='https://github.com/sudo-megas/TRITIUM'
@@ -55,6 +55,21 @@ depends=(
 
 # Node and npm BUILD the thing; they are not needed to run it.
 makedepends=('git' 'nodejs' 'npm')
+
+# No debug package (pkgrel=3). The chroot build produced a tritium-debug and
+# namcap said what was wrong with it: "Directory (usr/src/debug/tritium) is
+# empty".
+#
+# It is empty because there is nothing to put in it. Everything this package
+# ships as a binary is Electron's own prebuilt, already-stripped build — TRITIUM's
+# own code is JavaScript inside the asar, and no C++ of the maker's is compiled
+# here at all. So makepkg had no sources to file and produced a debug package of
+# stubs: `tritium.debug` came out at FOUR KILOBYTES for a 221 MB binary, and only
+# libvulkan carried anything real, which is Khronos's symbols rather than ours.
+#
+# A debug package that cannot debug this application is clutter in the maker's
+# repository, so it is not built.
+options=('!debug')
 
 # From the tag, so a package can always be traced back to a commit (§9.3).
 source=("git+$url.git#tag=v$pkgver")

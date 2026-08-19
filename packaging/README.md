@@ -88,9 +88,8 @@ someone reads when they are about to build.
 
 **NOT run, and yours to run:**
 
-- **`extra-x86_64-build`.** It is `devtools`, needs root, and **fetches the tag
-  from the remote** — so it cannot work until the tag has been pushed. That is
-  §9.3's own procedure and it belongs on your machine, after `PUTAGREL`.
+- ~~**`extra-x86_64-build`.**~~ **Run, at v0.2.6-2 — see §5.2.** The tag is on the
+  remote, so it finally could be.
 - ~~**`namcap`.** Not installed where F13 was built.~~ **Run, at v0.2.6-2, and
   it earned its place — see §5.**
 - **Installing the package and launching it from a desktop.** TRITIUM has been
@@ -103,8 +102,8 @@ someone reads when they are about to build.
 
 ## 5. WHAT v0.2.6 ACTUALLY BUILT, AND HOW
 
-Recorded because §4 above was written at F13 and two of its three "not run" items
-have moved, while the first one has not.
+Recorded because §4 above was written at F13, and all three of its "not run"
+items have since moved.
 
 **A real `tritium-0.2.6-1-x86_64.pkg.tar.zst` exists.** Built on 19/08/2026 from
 the pushed tag `v0.2.6`, 117.6 MiB compressed, 396.5 MiB installed. Verified:
@@ -121,12 +120,11 @@ the pushed tag `v0.2.6`, 117.6 MiB compressed, 396.5 MiB installed. Verified:
   `XDG_DATA_HOME`. It stayed up, wrote a valid `settings.toml`, and put nothing on
   stderr. That is the closest anything has come to F13's third item.
 
-**It was built with `makepkg`, NOT with `extra-x86_64-build`,** and that
-difference is the whole of §9.3's caution rather than a formality. `devtools` is
-not installed on this machine and installing it needs root, so the build resolved
-against the host's own packages instead of a clean chroot. Every dependency the
-PKGBUILD names happened to be present — which is exactly the condition under which
-a missing `depends` entry stays invisible.
+**That first round was built with `makepkg`, not `extra-x86_64-build`** —
+`devtools` needs root and was not installed — so it resolved against the host's
+own packages. Every dependency the PKGBUILD named happened to be present, which is
+exactly the condition under which a missing `depends` entry stays invisible. §5.2
+is where that stopped being true.
 
 So the package is real and it runs.
 
@@ -172,30 +170,45 @@ tritium W: File (usr/lib/tritium/chrome-sandbox) is setuid or setgid.
 The rebuilt package was extracted and run again: still up, still writing a valid
 `settings.toml`, still silent on stderr.
 
-### 5.2 What is STILL not proved
+### 5.2 The clean chroot, finally
 
-**The clean chroot has not run.** `extra-x86_64-build` needs a password on a real
-terminal and refused a non-interactive one:
+**`extra-x86_64-build` has run.** The maker ran it in his own terminal — it wants
+a password and refuses a non-interactive one — and it built `0.2.6-2` from the
+tag inside a chroot holding nothing but the declared `depends` and `makedepends`.
 
-```
-sudo: a terminal is required to read the password
-```
+That is the sentence §4 has been carrying since F13, and it is the one that
+mattered most. It proves two things this machine could never prove:
 
-That matters, and trimming the dependency list has just made it matter more: the
-list is now shorter, so the margin for a missing entry is thinner, and this
-machine has every library installed regardless of what the package declares. **A
-build here cannot detect an under-specified `depends` — only a chroot can**, which
-is precisely why §9.3 asks for one.
+- **The `makedepends` are complete.** `git`, `nodejs` and `npm` were the whole of
+  what the build needed. Nothing was quietly borrowed from a developer's host.
+- **The trimmed `depends` survived.** Removing `libnotify`, `libxss` and `libxtst`
+  at `pkgrel=2` did not break a build that has no other libraries to fall back on,
+  and namcap inside the chroot reported the remaining dependencies as *detected
+  and implicitly satisfied* — satisfied, not missing.
 
-Run it in your own terminal:
+`checkpkg` was skipped with `error: target not found: tritium`, which is simply
+what it says when the package is not yet in any configured repository. It has
+nothing to compare against because nothing has been published. Expected on a
+first build, and not a finding.
+
+### 5.3 What is STILL not proved
+
+**Installing the package and launching it from a desktop.** The binary has been
+run from an extracted tree and from a checkout; running it from `/usr/bin` after
+`pacman -U`, with the compositor drawing the decorations and the launcher matching
+`StartupWMClass=tritium`, is a different claim and nothing has made it yet.
+
+**And `0.2.6-3` has not been through the chroot.** The `!debug` change above is
+newer than the chroot build, so the round that proved the dependency list was
+`-2`. One more pass closes it:
 
 ```sh
 cd packaging && extra-x86_64-build
-namcap tritium-0.2.6-2-x86_64.pkg.tar.zst
+namcap tritium-0.2.6-3-x86_64.pkg.tar.zst
 ```
 
-Installing it and launching from the desktop, rather than from an extracted tree,
-also remains unproved.
+There should be no `tritium-debug` package this time, and namcap should report the
+setuid warning and nothing else that is actionable.
 
 ---
 
