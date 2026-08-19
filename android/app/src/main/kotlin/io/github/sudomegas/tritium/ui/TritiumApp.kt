@@ -126,6 +126,7 @@ fun TritiumApp(app: TritiumApplication) {
             composable<HomeRoute> {
                 HomeScreen(
                     viewModel = homeViewModel,
+                    currency = config.currency,
                     onAddVehicle = { navController.navigate(VehicleFormRoute()) },
                     onEditVehicle = { slug -> navController.navigate(VehicleFormRoute(slug)) },
                 )

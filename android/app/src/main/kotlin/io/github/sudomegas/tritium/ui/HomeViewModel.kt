@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.sudomegas.tritium.TritiumApplication
+import io.github.sudomegas.tritium.storage.Summary
 import io.github.sudomegas.tritium.storage.Vehicle
 import io.github.sudomegas.tritium.storage.VehicleDocument
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+/**
+ * The active vehicle's whole summary block (AF7.md §2.1 decision 5-6) — one
+ * state object rather than eight separate flows, since every figure in it
+ * is read from the same bundle at the same moment.
+ */
+data class HomeSummary(
+    val latestOdometer: Int?,
+    val averageConsumption: Long?,
+    val lastConsumption: Long?,
+    val lastPrice: Summary.LastPrice?,
+    val lifetimeDistance: Int,
+    val lifetimeLitres: Long,
+    val lifetimeSpend: Long,
+    val recentEntries: List<Summary.RecentEntry>,
+)
+
+private const val RECENT_LIMIT = 8
 
 /**
  * Owns the vehicle listing and the active-vehicle switch that live in Home's
@@ -38,11 +57,32 @@ class HomeViewModel(private val app: TritiumApplication) : ViewModel() {
     private val _activeVehicle = MutableStateFlow<Vehicle?>(null)
     val activeVehicle: StateFlow<Vehicle?> = _activeVehicle.asStateFlow()
 
-    /** Re-read the vehicle listing and the active vehicle's own record from disk. */
+    private val _summary = MutableStateFlow<HomeSummary?>(null)
+    val summary: StateFlow<HomeSummary?> = _summary.asStateFlow()
+
+    /** Re-read the vehicle listing, the active vehicle's own record, and its summary from disk. */
     fun refresh() {
         _vehicleNames.value = app.vehicleRepository.vehicleNames()
         _activeVehicle.value = activeVehicleSlug.value?.let { loadVehicle(it)?.vehicle }
+        _summary.value = activeVehicleSlug.value?.let(::loadSummary)
     }
+
+    private fun loadSummary(slug: String): HomeSummary? = runCatching {
+        val bundle = app.vehicleRepository.loadVehicle(slug)
+        val fuel = bundle.fuel.entries
+        val costs = bundle.costs.entries
+        val service = bundle.service.entries
+        HomeSummary(
+            latestOdometer = Summary.latestOdometer(fuel, service),
+            averageConsumption = Summary.averageConsumption(fuel),
+            lastConsumption = Summary.lastConsumption(fuel),
+            lastPrice = Summary.lastPrice(fuel),
+            lifetimeDistance = Summary.lifetimeDistance(fuel, service),
+            lifetimeLitres = Summary.lifetimeLitres(fuel),
+            lifetimeSpend = Summary.lifetimeSpend(fuel, costs, service),
+            recentEntries = Summary.recentEntries(fuel, costs, service, RECENT_LIMIT),
+        )
+    }.getOrNull()
 
     /** Switching is instant and persisted — no confirmation, matching the desktop's own picker. */
     fun switchVehicle(slug: String) {

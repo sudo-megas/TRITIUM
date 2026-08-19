@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,7 +30,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.sudomegas.tritium.R
+import io.github.sudomegas.tritium.storage.Consumption
+import io.github.sudomegas.tritium.storage.Format
+import io.github.sudomegas.tritium.storage.Scaled
+import io.github.sudomegas.tritium.storage.Summary
 import io.github.sudomegas.tritium.storage.Vehicle
+import io.github.sudomegas.tritium.ui.HomeSummary
 import io.github.sudomegas.tritium.ui.HomeViewModel
 
 /**
@@ -41,7 +48,12 @@ import io.github.sudomegas.tritium.ui.HomeViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, onAddVehicle: () -> Unit, onEditVehicle: (String) -> Unit) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    currency: String?,
+    onAddVehicle: () -> Unit,
+    onEditVehicle: (String) -> Unit,
+) {
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     val vehicleNames by viewModel.vehicleNames.collectAsStateWithLifecycle()
@@ -89,10 +101,14 @@ fun HomeScreen(viewModel: HomeViewModel, onAddVehicle: () -> Unit, onEditVehicle
         )
 
         val vehicle by viewModel.activeVehicle.collectAsStateWithLifecycle()
+        val summary by viewModel.summary.collectAsStateWithLifecycle()
         val slug = activeSlug
 
         if (vehicle != null && slug != null) {
-            VehicleSummary(vehicle = vehicle!!, onEdit = { onEditVehicle(slug) })
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                VehicleSummary(vehicle = vehicle!!, onEdit = { onEditVehicle(slug) })
+                if (summary != null) SummaryBlock(summary = summary!!, currency = currency)
+            }
         } else {
             EmptyHome()
         }
@@ -116,6 +132,83 @@ private fun SummaryRow(label: String, value: String) {
         Text(label, style = MaterialTheme.typography.labelMedium)
         Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 8.dp))
     }
+}
+
+/**
+ * Every fuel/cost/service figure Home has never shown before AF7 (AF7.md
+ * §2.1 decision 6). A null figure — no fuel yet, no previous fill-up —
+ * renders as [R.string.home_summary_nothing], never a zero standing in for
+ * an absence, the same reasoning `Summary.compare` itself would give for a
+ * missing period.
+ */
+@Composable
+private fun SummaryBlock(summary: HomeSummary, currency: String?) {
+    val nothing = stringResource(R.string.home_summary_nothing)
+    val suffix = stringResource(R.string.fuel_consumption)
+
+    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+        Text(stringResource(R.string.home_summary_lifetime), style = MaterialTheme.typography.titleMedium)
+        SummaryRow(
+            stringResource(R.string.home_summary_average_consumption),
+            summary.averageConsumption?.let { "${Format.formatFigure(it, Consumption.CONSUMPTION_DECIMALS)} $suffix" }
+                ?: nothing,
+        )
+        SummaryRow(
+            stringResource(R.string.home_summary_last_consumption),
+            summary.lastConsumption?.let { "${Format.formatFigure(it, Consumption.CONSUMPTION_DECIMALS)} $suffix" }
+                ?: nothing,
+        )
+        SummaryRow(
+            stringResource(R.string.home_summary_last_price),
+            summary.lastPrice?.let {
+                "${Format.formatMoneyText(it.price, currency ?: "")} · ${Format.formatDate(it.date)}"
+            } ?: nothing,
+        )
+        SummaryRow(stringResource(R.string.home_summary_total_distance), "${summary.lifetimeDistance} km")
+        SummaryRow(
+            stringResource(R.string.home_summary_total_litres),
+            "${Format.formatFigure(summary.lifetimeLitres, Scaled.PUMP_DECIMALS)} l",
+        )
+        SummaryRow(
+            stringResource(R.string.home_summary_total_spend),
+            Format.formatMoneyText(summary.lifetimeSpend, currency ?: ""),
+        )
+
+        if (summary.recentEntries.isNotEmpty()) {
+            Text(
+                stringResource(R.string.home_summary_recent),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+            summary.recentEntries.forEach { entry ->
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Text(Format.formatDate(entry.date), style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        entryKindLabel(entry.kind),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                    Text(
+                        entry.label,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                    Text(
+                        Format.formatMoneyText(entry.amount, currency ?: ""),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun entryKindLabel(kind: Summary.EntryKind): String = when (kind) {
+    Summary.EntryKind.FUEL -> stringResource(R.string.home_summary_kind_fuel)
+    Summary.EntryKind.COST -> stringResource(R.string.home_summary_kind_cost)
+    Summary.EntryKind.SERVICE -> stringResource(R.string.home_summary_kind_service)
 }
 
 /**

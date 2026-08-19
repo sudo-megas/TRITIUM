@@ -14,6 +14,20 @@
     <string name="home_placeholder_title">TRITIUM</string>
     <string name="home_placeholder_body">Scaffold only — no data yet.</string>
 
+    <!-- Home's summary block — AF7. Wording matches the desktop's own summary.* keys. -->
+    <string name="home_summary_lifetime">Lifetime</string>
+    <string name="home_summary_recent">Last entries</string>
+    <string name="home_summary_nothing">—</string>
+    <string name="home_summary_average_consumption">Average consumption</string>
+    <string name="home_summary_last_consumption">Last consumption</string>
+    <string name="home_summary_last_price">Last price</string>
+    <string name="home_summary_total_spend">Total spend</string>
+    <string name="home_summary_total_distance">Total distance</string>
+    <string name="home_summary_total_litres">Total volume</string>
+    <string name="home_summary_kind_fuel">Fuel</string>
+    <string name="home_summary_kind_cost">Cost</string>
+    <string name="home_summary_kind_service">Service</string>
+
     <!-- Settings — AF1 ships the language switch only. -->
     <string name="settings_title">Settings</string>
     <string name="settings_language">Language</string>

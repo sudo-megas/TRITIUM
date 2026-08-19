@@ -8,6 +8,19 @@
     <string name="home_placeholder_title">TRITIUM</string>
     <string name="home_placeholder_body">Sadece iskelet — henüz veri yok.</string>
 
+    <string name="home_summary_lifetime">Tüm zamanlar</string>
+    <string name="home_summary_recent">Son kayıtlar</string>
+    <string name="home_summary_nothing">—</string>
+    <string name="home_summary_average_consumption">Ortalama tüketim</string>
+    <string name="home_summary_last_consumption">Son tüketim</string>
+    <string name="home_summary_last_price">Son fiyat</string>
+    <string name="home_summary_total_spend">Toplam harcama</string>
+    <string name="home_summary_total_distance">Toplam mesafe</string>
+    <string name="home_summary_total_litres">Toplam hacim</string>
+    <string name="home_summary_kind_fuel">Yakıt</string>
+    <string name="home_summary_kind_cost">Gider</string>
+    <string name="home_summary_kind_service">Bakım</string>
+
     <string name="settings_title">Ayarlar</string>
     <string name="settings_language">Dil</string>
     <string name="settings_language_en">English</string>
