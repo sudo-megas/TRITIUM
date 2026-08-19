@@ -16,19 +16,28 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.sudomegas.tritium.R
+import io.github.sudomegas.tritium.storage.CustomRange
 import io.github.sudomegas.tritium.storage.Format
+import io.github.sudomegas.tritium.storage.RangeKey
 import io.github.sudomegas.tritium.storage.ServiceEntry
+import io.github.sudomegas.tritium.storage.boundsFor
+import io.github.sudomegas.tritium.storage.filterByBounds
 import io.github.sudomegas.tritium.ui.ServiceViewModel
 
 /**
  * The Service tab (AF6.md §1.1 — Periyodik Bakım's entry path, "not a
- * branch of the cost form"). One button and a provisional list, mirroring
- * [CostScreen]'s own shape — placeholder furniture AF7 replaces.
+ * branch of the cost form"). A button, range chips, a sort toggle, and the
+ * list itself — AF7 replacing the placeholder furniture that has stood
+ * since AF6.
  *
  * `vendor` is rendered with a plain [Text], never a clickable/link
  * composable — XTRITIUM §3.5, with no exception. The row itself is
@@ -49,9 +58,42 @@ fun ServiceScreen(
     val entries by viewModel.serviceEntries.collectAsStateWithLifecycle()
     val hasVehicle = activeSlug != null
 
+    var rangeKey by rememberSaveable { mutableStateOf(RangeKey.ALL) }
+    var customFrom by rememberSaveable { mutableStateOf("") }
+    var customTo by rememberSaveable { mutableStateOf("") }
+    var sortState by rememberSaveable { mutableStateOf(SortState.DEFAULT) }
+    var confirmingId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val today = remember { Format.todayIso() }
+    val bounds = remember(rangeKey, customFrom, customTo, today) {
+        boundsFor(rangeKey, today, CustomRange(Format.parseDate(customFrom), Format.parseDate(customTo)))
+    }
+    val filtered = remember(entries, bounds) { filterByBounds(entries, bounds) { it.date } }
+    val rows = remember(filtered, sortState) {
+        when (sortState) {
+            // serviceEntries already arrives date-desc (ServiceViewModel.refresh).
+            SortState.DEFAULT -> filtered
+            SortState.ASCENDING -> filtered.sortedBy { it.date }
+            SortState.DESCENDING -> filtered.sortedByDescending { it.date }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Button(onClick = onAddService, enabled = hasVehicle) {
+        Button(onClick = { confirmingId = null; onAddService() }, enabled = hasVehicle) {
             Text(stringResource(R.string.service_add))
+        }
+
+        RangeChips(
+            selected = rangeKey,
+            customFrom = customFrom,
+            customTo = customTo,
+            onSelect = { confirmingId = null; rangeKey = it },
+            onCustomFromChange = { customFrom = it },
+            onCustomToChange = { customTo = it },
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+            SortToggleButton(state = sortState, onClick = { confirmingId = null; sortState = sortState.next() })
         }
 
         when {
@@ -60,14 +102,25 @@ fun ServiceScreen(
                 modifier = Modifier.padding(top = 24.dp),
             )
 
-            entries.isEmpty() -> Text(
+            rows.isEmpty() -> Text(
                 text = stringResource(R.string.service_empty),
                 modifier = Modifier.padding(top = 24.dp),
             )
 
             else -> LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-                items(entries, key = { it.id }) { entry ->
-                    ServiceRow(entry = entry, currency = currency, onClick = { onEditEntry(entry.id) })
+                items(rows, key = { it.id }) { entry ->
+                    ServiceRow(
+                        entry = entry,
+                        currency = currency,
+                        confirming = confirmingId == entry.id,
+                        onClick = { confirmingId = null; onEditEntry(entry.id) },
+                        onDeleteTap = { confirmingId = entry.id },
+                        onConfirmDelete = {
+                            confirmingId = null
+                            viewModel.removeServiceEntry(entry.id)
+                        },
+                        onCancelDelete = { confirmingId = null },
+                    )
                     HorizontalDivider()
                 }
             }
@@ -76,7 +129,15 @@ fun ServiceScreen(
 }
 
 @Composable
-private fun ServiceRow(entry: ServiceEntry, currency: String?, onClick: () -> Unit) {
+private fun ServiceRow(
+    entry: ServiceEntry,
+    currency: String?,
+    confirming: Boolean,
+    onClick: () -> Unit,
+    onDeleteTap: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onCancelDelete: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,5 +157,6 @@ private fun ServiceRow(entry: ServiceEntry, currency: String?, onClick: () -> Un
                 Text(entry.vendor, style = MaterialTheme.typography.bodySmall)
             }
         }
+        DeleteControl(confirming = confirming, onTap = onDeleteTap, onConfirm = onConfirmDelete, onCancel = onCancelDelete)
     }
 }

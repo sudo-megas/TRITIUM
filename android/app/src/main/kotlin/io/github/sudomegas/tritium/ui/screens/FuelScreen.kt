@@ -16,27 +16,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.sudomegas.tritium.R
 import io.github.sudomegas.tritium.storage.Consumption
+import io.github.sudomegas.tritium.storage.CustomRange
 import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.storage.FuelEntry
+import io.github.sudomegas.tritium.storage.RangeKey
 import io.github.sudomegas.tritium.storage.Scaled
+import io.github.sudomegas.tritium.storage.boundsFor
+import io.github.sudomegas.tritium.storage.filterByBounds
 import io.github.sudomegas.tritium.ui.FuelViewModel
 
 /**
- * The Fuel tab (AF4.md §1.1 — "decided with you"): two buttons and a
- * provisional list, mirroring the desktop's own `FuelPane.tsx` at F4 —
- * placeholder furniture AF7 replaces, matching F7's own replacement of it.
+ * The Fuel tab (AF4.md §1.1 — "decided with you"): two buttons, range chips,
+ * a sort toggle, and the list itself — AF7 replacing the placeholder
+ * furniture that has stood since AF4.
  *
- * The list's one correctness rule (AF4.md §1.2): [Consumption.consumptionById]
- * is fed [FuelViewModel.fuelEntries] whole, every time — there is nothing to
- * filter it by yet, but the rule is stated here so AF7's range chips inherit
- * it rather than rediscover it.
+ * The list's one correctness rule (AF4.md §1.2, restated AF7.md §1.2):
+ * [Consumption.consumptionById] is fed [FuelViewModel.fuelEntries] whole,
+ * before any range or sort is applied — never the filtered/sorted rows.
  */
 @Composable
 fun FuelScreen(
@@ -51,17 +57,51 @@ fun FuelScreen(
     val activeSlug by viewModel.activeVehicleSlug.collectAsStateWithLifecycle()
     val entries by viewModel.fuelEntries.collectAsStateWithLifecycle()
     val hasVehicle = activeSlug != null
+
+    var rangeKey by rememberSaveable { mutableStateOf(RangeKey.ALL) }
+    var customFrom by rememberSaveable { mutableStateOf("") }
+    var customTo by rememberSaveable { mutableStateOf("") }
+    var sortState by rememberSaveable { mutableStateOf(SortState.DEFAULT) }
+    var confirmingId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Fed the whole, unfiltered entry list — the rule above, not the rows below.
     val consumption = remember(entries) { Consumption.consumptionById(entries) }
-    val sorted = remember(entries) { entries.sortedByDescending { it.odometerKm } }
+
+    val today = remember { Format.todayIso() }
+    val bounds = remember(rangeKey, customFrom, customTo, today) {
+        boundsFor(rangeKey, today, CustomRange(Format.parseDate(customFrom), Format.parseDate(customTo)))
+    }
+    val filtered = remember(entries, bounds) { filterByBounds(entries, bounds) { it.date } }
+    val rows = remember(filtered, sortState) {
+        when (sortState) {
+            // fuelEntries already arrives odometer-desc (FuelViewModel.refresh).
+            SortState.DEFAULT -> filtered
+            SortState.ASCENDING -> filtered.sortedBy { it.odometerKm }
+            SortState.DESCENDING -> filtered.sortedByDescending { it.odometerKm }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onQuickAdd, enabled = hasVehicle) {
+            Button(onClick = { confirmingId = null; onQuickAdd() }, enabled = hasVehicle) {
                 Text(stringResource(R.string.fuel_quick_add))
             }
-            Button(onClick = onFullAdd, enabled = hasVehicle) {
+            Button(onClick = { confirmingId = null; onFullAdd() }, enabled = hasVehicle) {
                 Text(stringResource(R.string.fuel_full_add))
             }
+        }
+
+        RangeChips(
+            selected = rangeKey,
+            customFrom = customFrom,
+            customTo = customTo,
+            onSelect = { confirmingId = null; rangeKey = it },
+            onCustomFromChange = { customFrom = it },
+            onCustomToChange = { customTo = it },
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+            SortToggleButton(state = sortState, onClick = { confirmingId = null; sortState = sortState.next() })
         }
 
         when {
@@ -70,18 +110,25 @@ fun FuelScreen(
                 modifier = Modifier.padding(top = 24.dp),
             )
 
-            sorted.isEmpty() -> Text(
+            rows.isEmpty() -> Text(
                 text = stringResource(R.string.fuel_empty),
                 modifier = Modifier.padding(top = 24.dp),
             )
 
             else -> LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-                items(sorted, key = { it.id }) { entry ->
+                items(rows, key = { it.id }) { entry ->
                     FuelRow(
                         entry = entry,
                         consumption = consumption[entry.id],
                         currency = currency,
-                        onClick = { onEditEntry(entry.id) },
+                        confirming = confirmingId == entry.id,
+                        onClick = { confirmingId = null; onEditEntry(entry.id) },
+                        onDeleteTap = { confirmingId = entry.id },
+                        onConfirmDelete = {
+                            confirmingId = null
+                            viewModel.removeFuelEntry(entry.id)
+                        },
+                        onCancelDelete = { confirmingId = null },
                     )
                     HorizontalDivider()
                 }
@@ -91,7 +138,16 @@ fun FuelScreen(
 }
 
 @Composable
-private fun FuelRow(entry: FuelEntry, consumption: Consumption.ConsumptionPoint?, currency: String?, onClick: () -> Unit) {
+private fun FuelRow(
+    entry: FuelEntry,
+    consumption: Consumption.ConsumptionPoint?,
+    currency: String?,
+    confirming: Boolean,
+    onClick: () -> Unit,
+    onDeleteTap: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onCancelDelete: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,5 +183,6 @@ private fun FuelRow(entry: FuelEntry, consumption: Consumption.ConsumptionPoint?
                 )
             }
         }
+        DeleteControl(confirming = confirming, onTap = onDeleteTap, onConfirm = onConfirmDelete, onCancel = onCancelDelete)
     }
 }

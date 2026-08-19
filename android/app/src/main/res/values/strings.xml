@@ -28,6 +28,29 @@
     <string name="home_summary_kind_cost">Cost</string>
     <string name="home_summary_kind_service">Service</string>
 
+    <!-- Range chips — AF7, shared by Fuel/Costs/Service. Wording matches the desktop's own range.* keys exactly. -->
+    <string name="range_all">All time</string>
+    <string name="range_ytd">YTD</string>
+    <string name="range_previous_year">Previous year</string>
+    <string name="range_this_month">This month</string>
+    <string name="range_previous_month">Previous month</string>
+    <string name="range_custom">Custom</string>
+    <string name="range_from">From</string>
+    <string name="range_to">To</string>
+
+    <!-- Sort toggle — AF7, no desktop key to port (F7.md's own sortable column header has no
+         mobile equivalent worth naming the same). -->
+    <string name="sort_default">Default order</string>
+    <string name="sort_ascending">Ascending</string>
+    <string name="sort_descending">Descending</string>
+
+    <!-- Delete, asks twice, in the flow — AF7, shared by Fuel/Costs/Service.
+         Wording matches the desktop's own table.* keys exactly. -->
+    <string name="list_delete">Delete</string>
+    <string name="list_delete_confirm">Delete for good</string>
+    <string name="list_delete_cancel">Keep it</string>
+    <string name="list_delete_warning">This removes the record from the file. Nothing else in it changes, and the id is not reused.</string>
+
     <!-- Settings — AF1 ships the language switch only. -->
     <string name="settings_title">Settings</string>
     <string name="settings_language">Language</string>

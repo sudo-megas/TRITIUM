@@ -73,6 +73,14 @@ class ServiceViewModel(private val app: TritiumApplication) : ViewModel() {
         return updated
     }
 
+    /** One record at a time (AF7.md §3) — the list's own delete-with-confirm. */
+    fun removeServiceEntry(id: String): Boolean {
+        val slug = activeVehicleSlug.value ?: return false
+        val removed = app.vehicleRepository.removeServiceEntry(slug, id)
+        refresh()
+        return removed
+    }
+
     companion object {
         fun factory(app: TritiumApplication) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

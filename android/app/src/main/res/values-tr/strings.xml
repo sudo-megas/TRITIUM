@@ -21,6 +21,24 @@
     <string name="home_summary_kind_cost">Gider</string>
     <string name="home_summary_kind_service">Bakım</string>
 
+    <string name="range_all">Tüm zamanlar</string>
+    <string name="range_ytd">Yıl başından</string>
+    <string name="range_previous_year">Önceki yıl</string>
+    <string name="range_this_month">Bu ay</string>
+    <string name="range_previous_month">Önceki ay</string>
+    <string name="range_custom">Özel</string>
+    <string name="range_from">Başlangıç</string>
+    <string name="range_to">Bitiş</string>
+
+    <string name="sort_default">Varsayılan sıra</string>
+    <string name="sort_ascending">Artan</string>
+    <string name="sort_descending">Azalan</string>
+
+    <string name="list_delete">Sil</string>
+    <string name="list_delete_confirm">Kalıcı olarak sil</string>
+    <string name="list_delete_cancel">Vazgeç</string>
+    <string name="list_delete_warning">Bu kayıt dosyadan çıkarılır. Dosyadaki başka hiçbir şey değişmez ve kimlik yeniden kullanılmaz.</string>
+
     <string name="settings_title">Ayarlar</string>
     <string name="settings_language">Dil</string>
     <string name="settings_language_en">English</string>

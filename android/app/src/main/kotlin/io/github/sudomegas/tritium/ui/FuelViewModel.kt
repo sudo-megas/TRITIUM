@@ -34,13 +34,15 @@ class FuelViewModel(private val app: TritiumApplication) : ViewModel() {
     private val _fuelEntries = MutableStateFlow<List<FuelEntry>>(emptyList())
     val fuelEntries: StateFlow<List<FuelEntry>> = _fuelEntries.asStateFlow()
 
-    /** Re-read the active vehicle's fuel entries from disk. */
+    /** Re-read the active vehicle's fuel entries from disk, highest odometer first. */
     fun refresh() {
         val slug = activeVehicleSlug.value
         _fuelEntries.value = if (slug == null) {
             emptyList()
         } else {
-            runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }.getOrDefault(emptyList())
+            runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }
+                .getOrDefault(emptyList())
+                .sortedWith(compareByDescending<FuelEntry> { it.odometerKm }.thenByDescending { it.id })
         }
     }
 
@@ -82,6 +84,14 @@ class FuelViewModel(private val app: TritiumApplication) : ViewModel() {
         val updated = app.vehicleRepository.updateFuelEntry(slug, entry)
         refresh()
         return updated
+    }
+
+    /** One record at a time (AF7.md §3) — the list's own delete-with-confirm. */
+    fun removeFuelEntry(id: String): Boolean {
+        val slug = activeVehicleSlug.value ?: return false
+        val removed = app.vehicleRepository.removeFuelEntry(slug, id)
+        refresh()
+        return removed
     }
 
     companion object {
