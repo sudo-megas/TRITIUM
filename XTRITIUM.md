@@ -101,8 +101,36 @@ These are not preferences. Violating one is a bug.
   `rename` over the target. Power loss yields the old file intact or the new file
   complete — never a torn one.
 - Backups are the user's business: copy the directory, or point RESONANCE at it.
-  The app ships no backup feature, no export feature, no import feature, no MIME
-  type.
+  The app takes one of its own only where it is about to overwrite — see the
+  amendment below.
+- **The app ships no export feature and no MIME type.**
+- **The app imports**, on the maker's explicit action, from a file he chooses.
+  One TOML bundle, entries merged by what they are rather than by what they are
+  numbered, already-present records skipped rather than overwritten, and the files
+  it is about to touch copied into `backups/` first.
+
+**Amendment — 19/08/2026.** This bullet used to read, in one breath: *"The app
+ships no backup feature, no export feature, no import feature, no MIME type."*
+
+**That sentence was not the maker's.** Asked about it directly, he said he never
+put it there; it was improvised into this document when it was drafted. That is
+worth recording rather than quietly deleting, because §0 above opens by claiming
+*"Every decision below was made deliberately, one at a time, before a line of code
+was written"* — and for this clause that claim was false. A constitution that
+misreports its own provenance is worse than one that is corrected in daylight.
+
+The correction is **narrow on purpose**. Import is permitted because the maker
+logs fuel on a phone at the pump and brings it here monthly, and the Android phase
+(§1, §9.1) cannot begin without a format to write. Backups are permitted because
+an import overwrites, and nothing in this project should overwrite quietly.
+
+**Export and the MIME type stay banned** — not on this clause's authority, which
+it turns out never had any, but because they are still true: the phone exports and
+the desktop has no reason to, and nothing has asked for a file association.
+
+F2, F3, F7, F8 and F11 each quote the struck sentence as scope. They are **left as
+they are.** They recorded what was true when they were written, and editing them
+to agree with today is the silent drift §0 forbids.
 
 ### 4.2 Schema versioning
 
@@ -333,8 +361,8 @@ The desktop phase is finished, so the rows below are no longer an illustration.
 Every one of them is a tag in this repository:
 
 ```
-F1  → v0.1.0      F5  → v0.1.5      F10 → v0.2.0
-F2  → v0.1.1      F6  → v0.1.6      F11 → v0.2.1
+F1  → v0.1.0      F5  → v0.1.5      F10 → v0.2.0      F15 → v0.2.5
+F2  → v0.1.1      F6  → v0.1.6      F11 → v0.2.1      F16 → v0.2.6
 F3  → v0.1.2      F7  → v0.1.7      F12 → v0.2.2
 F4  → v0.1.3      F8  → v0.1.8      F13 → v0.2.3
 F4b → v0.1.4      F9  → v0.1.9      F14 → v0.2.4
@@ -353,6 +381,17 @@ this project uses, so F10 took **v0.2.0** — precisely what the roll is for.
 `build/docs/issues.md` I-10 carried this from F4b to today, deferred each time as
 an amendment rather than a correction. It was a correction: the tags were already
 the fact, and the table was only failing to print them.
+
+**Addendum — same day, later.** The amendment above was written before F15 was,
+and was never revisited, so the table it corrected went straight back out of date:
+`v0.2.5` sat in the tags and in `app-meta.ts` while §9.1 still stopped at F14. The
+row is added now, with F16's beside it. A table that is corrected once and then
+left to drift again has learned nothing from being corrected.
+
+The desktop phase was called finished at F14 and then twice was not — F15 fixed
+what running the application showed, and F16 gives the Android phase a format to
+write. "Finished" describes the milestone that was planned, not the last one that
+will exist.
 
 The Android phase (separate rewrite, branch **`android-port`**, milestones
 AF1, AF2, …) ends at **v1.0**.
