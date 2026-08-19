@@ -17,7 +17,12 @@ import { CorruptFileError } from '../../src/main/storage/errors.js'
 import { FUEL_SPEC, readFuel, writeFuel } from '../../src/main/storage/fuel-file.js'
 import { COST_SPEC, readCosts, writeCosts } from '../../src/main/storage/cost-file.js'
 import { SERVICE_SPEC, readService, writeService } from '../../src/main/storage/service-file.js'
-import { parseVehicle, readVehicle, serialiseVehicle, writeVehicle } from '../../src/main/storage/vehicle-file.js'
+import {
+  parseVehicle,
+  readVehicle,
+  serialiseVehicle,
+  writeVehicle
+} from '../../src/main/storage/vehicle-file.js'
 import { parseEntryDocument, serialiseEntryDocument } from '../../src/main/storage/entry-file.js'
 import { COSTS_SAMPLE, FUEL_SAMPLE, SERVICE_SAMPLE, VEHICLE_SAMPLE } from './samples.js'
 

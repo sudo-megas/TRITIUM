@@ -57,7 +57,8 @@ function draftOf(vehicle: Vehicle, units: UnitPrefs = METRIC): Draft {
         ? toInput(showVolume(vehicle.tank_capacity_l, units.volume), TANK_DECIMALS)
         : '',
     purchase_date: formatDate(vehicle.purchase_date),
-    purchase_price: vehicle.purchase_price > 0 ? toInput(vehicle.purchase_price, MONEY_DECIMALS) : '',
+    purchase_price:
+      vehicle.purchase_price > 0 ? toInput(vehicle.purchase_price, MONEY_DECIMALS) : '',
     registration_date: formatDate(vehicle.registration_date),
     inspection_due: formatDate(vehicle.inspection_due)
   }
@@ -78,7 +79,10 @@ function vehicleOf(draft: Draft, units: UnitPrefs = METRIC): Vehicle {
     fuel_spec: draft.fuel_spec,
     plate: draft.plate.trim(),
     vin: draft.vin.trim(),
-    tank_capacity_l: readVolume(parseInput(draft.tank_capacity_l, TANK_DECIMALS) ?? 0, units.volume),
+    tank_capacity_l: readVolume(
+      parseInput(draft.tank_capacity_l, TANK_DECIMALS) ?? 0,
+      units.volume
+    ),
     purchase_date: parseDate(draft.purchase_date) ?? '',
     purchase_price: parseInput(draft.purchase_price, MONEY_DECIMALS) ?? 0,
     registration_date: parseDate(draft.registration_date) ?? '',

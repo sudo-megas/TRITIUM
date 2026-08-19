@@ -30,11 +30,7 @@ export const MINIMUM_PROJECTION_DAYS = 60
 
 /** Why a figure could not be computed. The page prints the reason, not a zero. */
 export type Missing =
-  | 'no-intervals'
-  | 'no-readings'
-  | 'no-distance'
-  | 'too-short'
-  | 'no-purchase-price'
+  'no-intervals' | 'no-readings' | 'no-distance' | 'too-short' | 'no-purchase-price'
 
 export interface Figure<T> {
   value: T | null

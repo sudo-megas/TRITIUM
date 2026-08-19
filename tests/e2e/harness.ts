@@ -11,7 +11,12 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, _electron as electron, type ElectronApplication, type Page } from '@playwright/test'
+import {
+  expect,
+  _electron as electron,
+  type ElectronApplication,
+  type Page
+} from '@playwright/test'
 
 export const REPO = fileURLToPath(new URL('../..', import.meta.url))
 

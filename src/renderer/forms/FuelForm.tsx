@@ -77,7 +77,8 @@ export function FuelForm({ slug, entry }: { slug: string; entry?: string }): JSX
   const total = draftTotal(draft)
   const odometer = parseInput(draft.odometer_km, 0)
   const litres = parseInput(draft.litres, PUMP_DECIMALS)
-  const ready = slug.length > 0 && odometer !== null && odometer > 0 && litres !== null && litres > 0
+  const ready =
+    slug.length > 0 && odometer !== null && odometer > 0 && litres !== null && litres > 0
 
   // Both sides of the comparison in the SAME units: the field holds what the
   // maker typed and `lastOdometer` returns kilometres, so the reading is

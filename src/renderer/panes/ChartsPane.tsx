@@ -129,10 +129,7 @@ function ChartCard({
   const bar = BARS.includes(id)
   const monthly = MONTHLY.includes(id)
 
-  const points = useMemo(
-    () => plot(id, bundle, filter.bounds),
-    [id, bundle, filter.bounds]
-  )
+  const points = useMemo(() => plot(id, bundle, filter.bounds), [id, bundle, filter.bounds])
 
   /**
    * How a figure on this chart is read — through the unit boundary, so a chart

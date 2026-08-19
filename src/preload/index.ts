@@ -135,8 +135,7 @@ const api = {
 
   onVehiclesChanged: (listener: () => void): (() => void) =>
     subscribe('vehicles:changed', listener),
-  onSettingsChanged: (listener: () => void): (() => void) =>
-    subscribe('settings:changed', listener)
+  onSettingsChanged: (listener: () => void): (() => void) => subscribe('settings:changed', listener)
 }
 
 export type TritiumApi = typeof api

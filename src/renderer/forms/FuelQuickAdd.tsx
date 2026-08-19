@@ -65,7 +65,8 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
   const total = draftTotal(draft)
   const odometer = parseInput(draft.odometer_km, 0)
   const litres = parseInput(draft.litres, PUMP_DECIMALS)
-  const ready = slug.length > 0 && odometer !== null && odometer > 0 && litres !== null && litres > 0
+  const ready =
+    slug.length > 0 && odometer !== null && odometer > 0 && litres !== null && litres > 0
 
   // A warning, not a refusal (§5.1, §3.8) — typos in old entries must be fixable.
   const backwards = goesBackwards(

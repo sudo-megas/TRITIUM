@@ -316,16 +316,17 @@ test('all eleven palettes resolve a complete token set, and none repeats another
     await page.getByTestId('palette-select').selectOption(id)
 
     await expect(async () => {
-      const attribute = await page.evaluate(
-        () => document.documentElement.dataset['palette'] ?? ''
-      )
+      const attribute = await page.evaluate(() => document.documentElement.dataset['palette'] ?? '')
       expect(attribute).toBe(id)
     }).toPass({ timeout: 5_000 })
 
-    const resolved = await page.evaluate((names: string[]) => {
-      const style = getComputedStyle(document.documentElement)
-      return names.map((name) => style.getPropertyValue(name).trim())
-    }, [...TOKENS])
+    const resolved = await page.evaluate(
+      (names: string[]) => {
+        const style = getComputedStyle(document.documentElement)
+        return names.map((name) => style.getPropertyValue(name).trim())
+      },
+      [...TOKENS]
+    )
 
     TOKENS.forEach((name, index) => {
       expect(resolved[index], `${id} must define ${name}`).not.toBe('')

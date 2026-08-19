@@ -83,8 +83,7 @@ export function useUnits(): Units {
 
   const distanceValue = (km: number): number => showDistance(km, distanceUnit)
   const volumeValue = (scaled: number): number => showVolume(scaled, volumeUnit)
-  const pricePerVolumeValue = (perLitre: number): number =>
-    showPricePerVolume(perLitre, volumeUnit)
+  const pricePerVolumeValue = (perLitre: number): number => showPricePerVolume(perLitre, volumeUnit)
 
   const consumptionValue = (l100km: number): number | null => {
     const converted = showConsumption(l100km, consumptionUnit)

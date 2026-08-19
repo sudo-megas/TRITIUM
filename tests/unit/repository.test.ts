@@ -129,9 +129,9 @@ describe('a vehicle that is renamed', () => {
 
       expect(listVehicleSlugs()).toEqual([slug])
       expect(readdirSync(join(home, 'tritium', 'vehicles'))).toEqual([slug])
-      expect(readFileSync(join(home, 'tritium', 'vehicles', slug, 'vehicle.toml'), 'utf8')).toContain(
-        'name = "Kia Sportage, the blue one"'
-      )
+      expect(
+        readFileSync(join(home, 'tritium', 'vehicles', slug, 'vehicle.toml'), 'utf8')
+      ).toContain('name = "Kia Sportage, the blue one"')
       // And the picker still finds the new name under the old directory.
       expect(vehicleNames()[slug]).toBe('Kia Sportage, the blue one')
     } finally {

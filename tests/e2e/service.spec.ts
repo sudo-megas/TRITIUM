@@ -265,9 +265,10 @@ test('the cost form now says where Periyodik Bakım is entered', async () => {
   await expect(form.getByTestId('cost-service-elsewhere')).toBeVisible()
 
   // It still is not offered here — the cost form writes costs.toml.
-  const values = await form.getByTestId('cost-category').locator('option').evaluateAll((options) =>
-    options.map((option) => (option as HTMLOptionElement).value)
-  )
+  const values = await form
+    .getByTestId('cost-category')
+    .locator('option')
+    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))
   expect(values).not.toContain('periyodik-bakim')
 })
 

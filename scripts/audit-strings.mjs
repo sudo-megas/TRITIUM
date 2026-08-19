@@ -6,7 +6,8 @@ import { readFileSync } from 'node:fs'
 import { relative } from 'node:path'
 import { walk, report, ROOT, SRC } from './lib/scan.mjs'
 
-const READABLE_ATTRS = /\b(title|placeholder|alt|aria-label|aria-description|label)\s*=\s*"([^"]+)"/g
+const READABLE_ATTRS =
+  /\b(title|placeholder|alt|aria-label|aria-description|label)\s*=\s*"([^"]+)"/g
 const JSX_TEXT = />([^<>{}]+)</g
 
 // A run of two or more letters is prose; punctuation, digits and glyphs are not.

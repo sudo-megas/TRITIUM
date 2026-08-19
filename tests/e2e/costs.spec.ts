@@ -151,9 +151,10 @@ test('Periyodik Bakım is not among the categories a cost may take', async () =>
   const form = await windowWith(app, 'cost-save')
 
   await form.getByTestId('cost-group').selectOption('tekrar-eden')
-  const values = await form.getByTestId('cost-category').locator('option').evaluateAll((options) =>
-    options.map((option) => (option as HTMLOptionElement).value)
-  )
+  const values = await form
+    .getByTestId('cost-category')
+    .locator('option')
+    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))
 
   expect(values).toContain('kasko')
   expect(values).toContain('mtv-1')

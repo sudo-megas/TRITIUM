@@ -48,9 +48,7 @@ export function lastConsumption(fuel: readonly FuelEntry[]): number | null {
 }
 
 /** The price and date of the most recent fill-up that carries a price. */
-export function lastPrice(
-  fuel: readonly FuelEntry[]
-): { price: number; date: string } | null {
+export function lastPrice(fuel: readonly FuelEntry[]): { price: number; date: string } | null {
   const priced = fuel
     .filter((entry) => entry.price_per_litre > 0 && entry.date.length > 0)
     .sort((left, right) => compareDate(left.date, right.date))

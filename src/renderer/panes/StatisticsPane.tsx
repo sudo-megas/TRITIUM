@@ -66,7 +66,9 @@ export function StatisticsPane(): JSX.Element {
   const window = (figure: Figure<unknown>): string => {
     if (figure.from === undefined || figure.to === undefined) return ''
     const span = `${formatDate(figure.from)} – ${formatDate(figure.to)}`
-    return figure.days === undefined ? span : `${span} · ${t('statistics.days', { days: figure.days })}`
+    return figure.days === undefined
+      ? span
+      : `${span} · ${t('statistics.days', { days: figure.days })}`
   }
 
   return (
@@ -118,9 +120,9 @@ export function StatisticsPane(): JSX.Element {
           value={
             perDay.value === null
               ? null
-              // The figure is km/day ×100; the distance conversion applies to
-              // the whole of it, and the ×100 rides through unchanged.
-              : formatFigure(units.distanceValue(perDay.value), 2 + units.distanceDecimals)
+              : // The figure is km/day ×100; the distance conversion applies to
+                // the whole of it, and the ×100 rides through unchanged.
+                formatFigure(units.distanceValue(perDay.value), 2 + units.distanceDecimals)
           }
           detail=""
           window={window(perDay)}

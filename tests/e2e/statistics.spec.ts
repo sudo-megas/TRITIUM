@@ -54,9 +54,12 @@ function seedHistory(days: 'ninety' | 'short'): void {
 
   writeFileSync(
     join(dir, 'fuel.toml'),
-    ['schema_version = 1', fill('f-0001', '2026-01-01', 10_000), fill('f-0002', second, 19_000), ''].join(
-      '\n'
-    )
+    [
+      'schema_version = 1',
+      fill('f-0001', '2026-01-01', 10_000),
+      fill('f-0002', second, 19_000),
+      ''
+    ].join('\n')
   )
 }
 

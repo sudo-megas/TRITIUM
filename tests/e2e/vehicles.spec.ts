@@ -8,13 +8,7 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'nod
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
 import { test, expect, type ElectronApplication } from '@playwright/test'
-import {
-  launchApp,
-  makeDataDir,
-  seedSettings,
-  settingsPathIn,
-  windowWith
-} from './harness.js'
+import { launchApp, makeDataDir, seedSettings, settingsPathIn, windowWith } from './harness.js'
 
 let app: ElectronApplication
 let dataDir = ''

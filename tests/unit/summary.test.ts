@@ -207,7 +207,12 @@ describe('the last entries block', () => {
   const bundle = (): VehicleBundle => ({
     slug: 'sportage',
     vehicle: null,
-    fuel: { schemaVersion: 1, entries: [fuel('f-0001', '2026-01-10', 19_000, 30, true)], entryRest: {}, rest: {} },
+    fuel: {
+      schemaVersion: 1,
+      entries: [fuel('f-0001', '2026-01-10', 19_000, 30, true)],
+      entryRest: {},
+      rest: {}
+    },
     costs: {
       schemaVersion: 1,
       entries: [

@@ -134,7 +134,13 @@ describe('what a window admits', () => {
  * red test with the explanation attached.
  */
 describe('a filter applied BEFORE the consumption engine', () => {
-  const fuel = (id: string, date: string, odometer: number, litres: number, full: boolean): FuelEntry => ({
+  const fuel = (
+    id: string,
+    date: string,
+    odometer: number,
+    litres: number,
+    full: boolean
+  ): FuelEntry => ({
     id,
     date,
     odometer_km: odometer,

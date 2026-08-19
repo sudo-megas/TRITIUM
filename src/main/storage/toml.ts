@@ -89,7 +89,8 @@ export function basicString(value: string): string {
 export function inlineValue(value: unknown): string {
   if (typeof value === 'string') return basicString(value)
   if (typeof value === 'boolean') return value ? 'true' : 'false'
-  if (typeof value === 'number') return Number.isInteger(value) ? value.toString() : value.toString()
+  if (typeof value === 'number')
+    return Number.isInteger(value) ? value.toString() : value.toString()
   if (typeof value === 'bigint') return value.toString()
   if (value instanceof TomlDate || value instanceof Date) return readDate(value)
   if (Array.isArray(value)) return `[${value.map(inlineValue).join(', ')}]`

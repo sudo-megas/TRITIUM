@@ -80,7 +80,8 @@ export function CostForm({ slug, entry }: { slug: string; entry?: string }): JSX
    */
   const offered = useSettings((s) => s.payment_methods)
   const stored = draft.payment_method
-  const methods = stored.length > 0 && !offered.includes(stored) ? [...offered, stored] : [...offered]
+  const methods =
+    stored.length > 0 && !offered.includes(stored) ? [...offered, stored] : [...offered]
 
   const amount = parseInput(draft.amount, MONEY_DECIMALS)
   const ready =

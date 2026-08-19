@@ -18,11 +18,7 @@
 import { useEffect, useRef, type JSX } from 'react'
 import * as echarts from 'echarts/core'
 import { BarChart, LineChart } from 'echarts/charts'
-import {
-  DataZoomComponent,
-  GridComponent,
-  TooltipComponent
-} from 'echarts/components'
+import { DataZoomComponent, GridComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useSettings } from '../state/settings.js'
 

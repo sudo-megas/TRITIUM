@@ -73,7 +73,11 @@ export function SummaryPane(): JSX.Element {
   const has = (series: readonly MonthPoint[], month: string): boolean =>
     series.some((point) => point.month === month)
 
-  const spend = compare(at(spendSeries, thisMonth), at(spendSeries, prevMonth), has(spendSeries, prevMonth))
+  const spend = compare(
+    at(spendSeries, thisMonth),
+    at(spendSeries, prevMonth),
+    has(spendSeries, prevMonth)
+  )
   const distance = compare(
     at(distanceSeries, thisMonth),
     at(distanceSeries, prevMonth),

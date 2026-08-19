@@ -10,13 +10,7 @@
 import { formatDate, parseDate, parseInput, toInput, todayIso } from './format.js'
 import type { ServiceEntry } from './records.js'
 import { MONEY_DECIMALS } from './scaled.js'
-import {
-  DISTANCE_DECIMALS,
-  METRIC,
-  readDistance,
-  showDistance,
-  type UnitPrefs
-} from './units.js'
+import { DISTANCE_DECIMALS, METRIC, readDistance, showDistance, type UnitPrefs } from './units.js'
 
 export interface ServiceDraft {
   date: string
@@ -42,7 +36,10 @@ export function serviceDraftOf(entry: ServiceEntry, units: UnitPrefs = METRIC): 
     part: entry.part,
     odometer_km:
       entry.odometer_km > 0
-        ? toInput(showDistance(entry.odometer_km, units.distance), DISTANCE_DECIMALS[units.distance])
+        ? toInput(
+            showDistance(entry.odometer_km, units.distance),
+            DISTANCE_DECIMALS[units.distance]
+          )
         : '',
     amount: entry.amount > 0 ? toInput(entry.amount, MONEY_DECIMALS) : '',
     vendor: entry.vendor

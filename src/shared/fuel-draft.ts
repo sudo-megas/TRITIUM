@@ -60,8 +60,7 @@ export function draftOf(entry: FuelEntry, units: UnitPrefs = METRIC): FuelDraft 
 
   return {
     date: formatDate(entry.date),
-    odometer_km:
-      entry.odometer_km > 0 ? toInput(odometer, DISTANCE_DECIMALS[units.distance]) : '',
+    odometer_km: entry.odometer_km > 0 ? toInput(odometer, DISTANCE_DECIMALS[units.distance]) : '',
     litres: entry.litres > 0 ? toInput(litres, PUMP_DECIMALS) : '',
     price_per_litre: entry.price_per_litre > 0 ? toInput(price, PUMP_DECIMALS) : '',
     full_tank: entry.full_tank,

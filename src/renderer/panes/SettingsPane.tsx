@@ -222,12 +222,7 @@ export function SettingsPane(): JSX.Element {
             value={method}
             onChange={(event) => setMethod(event.target.value)}
           />
-          <button
-            type="button"
-            className="button"
-            data-testid="method-add"
-            onClick={addMethod}
-          >
+          <button type="button" className="button" data-testid="method-add" onClick={addMethod}>
             {t('settings.addMethod')}
           </button>
         </div>

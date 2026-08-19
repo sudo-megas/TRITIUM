@@ -124,7 +124,10 @@ describe('kilometres per day', () => {
   it('spans the readings, not the calendar', () => {
     // A vehicle bought in April and first recorded in August is measured from
     // August: the app knows what it was told (§3.3).
-    const late = [fill('f-0001', '2026-08-01', 10_000, 50), fill('f-0002', '2026-08-31', 10_300, 50)]
+    const late = [
+      fill('f-0001', '2026-08-01', 10_000, 50),
+      fill('f-0002', '2026-08-31', 10_300, 50)
+    ]
     expect(kmPerDay(late, []).from).toBe('2026-08-01')
     expect(kmPerDay(late, []).days).toBe(30)
   })

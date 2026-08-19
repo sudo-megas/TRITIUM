@@ -14,7 +14,15 @@ import {
   type EntryDocument,
   type EntrySpec
 } from './entry-file.js'
-import { basicString, dateLines, line, readDate, readInteger, readNumber, readString } from './toml.js'
+import {
+  basicString,
+  dateLines,
+  line,
+  readDate,
+  readInteger,
+  readNumber,
+  readString
+} from './toml.js'
 
 const KNOWN_KEYS = ['id', 'date', 'part', 'odometer_km', 'amount', 'vendor'] as const
 

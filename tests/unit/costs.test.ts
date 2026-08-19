@@ -42,7 +42,12 @@ describe('the tree a cost form may offer (§6.1)', () => {
   })
 
   it('leaves the rest of TEKRAR EDEN alone', () => {
-    expect(pickableCategories('tekrar-eden')).toEqual(['mtv-1', 'mtv-2', 'trafik-sigortasi', 'kasko'])
+    expect(pickableCategories('tekrar-eden')).toEqual([
+      'mtv-1',
+      'mtv-2',
+      'trafik-sigortasi',
+      'kasko'
+    ])
   })
 
   it('keeps Periyodik Bakım in the tree itself, so a stored one still reads back', () => {

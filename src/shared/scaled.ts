@@ -50,7 +50,9 @@ export function fromScaled(scaled: number, decimals: number): number {
 export function formatScaled(scaled: number, decimals: number): string {
   const rounded = Math.round(scaled)
   const sign = rounded < 0 ? '-' : ''
-  const digits = Math.abs(rounded).toString().padStart(decimals + 1, '0')
+  const digits = Math.abs(rounded)
+    .toString()
+    .padStart(decimals + 1, '0')
   if (decimals === 0) return `${sign}${digits}`
   const whole = digits.slice(0, digits.length - decimals)
   const fraction = digits.slice(digits.length - decimals)

@@ -80,7 +80,11 @@ export function CostsPane(): JSX.Element {
       : [
           { id: 'date', key: t('costs.fields.date'), value: formatDate(record.date) },
           { id: 'group', key: t('costs.fields.group'), value: t(`costs.groups.${record.group}`) },
-          { id: 'category', key: t('costs.fields.category'), value: categoryLabel(record.category) },
+          {
+            id: 'category',
+            key: t('costs.fields.category'),
+            value: categoryLabel(record.category)
+          },
           { id: 'title', key: t('costs.fields.title'), value: record.title },
           {
             id: 'amount',

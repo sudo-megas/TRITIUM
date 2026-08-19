@@ -224,9 +224,10 @@ test('the payment-method list can be added to and removed from', async () => {
   await shell.getByTestId('tab-costs').click()
   await shell.getByTestId('cost-add').click()
   const form = await windowWith(app, 'cost-save')
-  const values = await form.getByTestId('cost-payment_method').locator('option').evaluateAll((options) =>
-    options.map((option) => (option as HTMLOptionElement).value)
-  )
+  const values = await form
+    .getByTestId('cost-payment_method')
+    .locator('option')
+    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))
   expect(values).toContain('havale')
   await form.getByTestId('cost-cancel').click()
 

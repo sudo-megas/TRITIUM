@@ -7,7 +7,15 @@
 //
 // This is the ONLY write path in TRITIUM. Every later milestone goes through it.
 
-import { closeSync, fsyncSync, mkdirSync, openSync, renameSync, unlinkSync, writeSync } from 'node:fs'
+import {
+  closeSync,
+  fsyncSync,
+  mkdirSync,
+  openSync,
+  renameSync,
+  unlinkSync,
+  writeSync
+} from 'node:fs'
 import { dirname, join } from 'node:path'
 
 let counter = 0

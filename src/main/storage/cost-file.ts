@@ -10,7 +10,15 @@ import {
   type EntryDocument,
   type EntrySpec
 } from './entry-file.js'
-import { basicString, dateLines, line, readBoolean, readDate, readNumber, readString } from './toml.js'
+import {
+  basicString,
+  dateLines,
+  line,
+  readBoolean,
+  readDate,
+  readNumber,
+  readString
+} from './toml.js'
 
 const KNOWN_KEYS = [
   'id',
