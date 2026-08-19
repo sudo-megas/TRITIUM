@@ -1,0 +1,73 @@
+# Builds the Arch package and attaches it to the tag's release.
+#
+# XTRITIUM §9.3 asks for a clean chroot so that libraries lying around on a
+# developer's machine cannot silently satisfy a dependency the PKGBUILD forgot to
+# declare. A fresh container is that, given every time rather than whenever
+# someone remembers: nothing is installed in here but base-devel, the PKGBUILD's
+# own makedepends, and its depends.
+#
+# The package is NOT signed here. §9.3 keeps signing with the maker, and no key
+# is stored on any server; the signature is made on his machine and uploaded
+# beside the package.
+
+name: package
+
+on:
+  push:
+    tags: ['v*']
+  # So a tag that already exists can be built without moving it.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build, e.g. v0.2.6'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+
+    steps:
+      - name: Resolve the tag
+        id: tag
+        run: echo "ref=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Install what makepkg needs
+        run: |
+          pacman -Syu --noconfirm --needed git github-cli
+          # makepkg refuses to run as root, so the build gets its own user.
+          useradd -m builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          install -d -o builder /tmp/build
+          cp packaging/PKGBUILD /tmp/build/
+          chown builder /tmp/build/PKGBUILD
+          # -s installs depends and makedepends into this container and nothing
+          # else is here, which is the whole point.
+          sudo -u builder bash -c 'cd /tmp/build && makepkg -s --noconfirm'
+          cp /tmp/build/*.pkg.tar.zst .
+
+      - name: Check what came out
+        run: |
+          pacman -Syu --noconfirm --needed namcap
+          pacman -Qip ./*.pkg.tar.zst
+          # namcap reports; it does not gate. The setuid chrome-sandbox is
+          # deliberate and would fail a build that treated warnings as errors.
+          sudo -u builder namcap ./*.pkg.tar.zst || true
+
+      - name: Attach it to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${{ steps.tag.outputs.ref }}" --repo "$GITHUB_REPOSITORY" \
+            || gh release create "${{ steps.tag.outputs.ref }}" --repo "$GITHUB_REPOSITORY" \
+                 --title "TRITIUM ${{ steps.tag.outputs.ref }}" --generate-notes
+          gh release upload "${{ steps.tag.outputs.ref }}" ./*.pkg.tar.zst \
+            --repo "$GITHUB_REPOSITORY" --clobber

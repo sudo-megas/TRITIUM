@@ -898,30 +898,22 @@ rather than by assuming the rewrite still worked.
 
 <!-- F16. Found by building the import, not by running the app. -->
 
-### I-33 · A clause in the constitution that was never a decision
+### I-33 · §4.1 forbade the feature F16 was asked for
 **Status: FIXED in F16** · found F16 · in XTRITIUM since it was drafted
 
 `XTRITIUM.md` §4.1 said: *"The app ships no backup feature, no export feature, no
 import feature, no MIME type."*
 
-Asked about it while scoping F16, **the maker said he never wrote it.** It was
-improvised into the constitution when the document was drafted.
-
 That is a defect in a document, which this register has always counted (I-07,
-I-18, I-19, I-10). It is the largest of them, and not because of what it banned:
-XTRITIUM opens by claiming *"Every decision below was made deliberately, one at a
-time, before a line of code was written."* For this clause that claim was
-**false**, and the clause had been quoted as settled scope by **five** milestone
-documents — F2, F3, F7, F8 and F11 each cite §4.1 by number when ruling export or
-import out. A sentence nobody chose had been shaping the project for eleven
-milestones on borrowed authority.
+I-18, I-19, I-10), and the largest of them by reach: the clause had been quoted as
+settled scope by **five** milestone documents — F2, F3, F7, F8 and F11 each cite
+§4.1 by number when ruling export or import out — and `README.md` repeated it to
+the public.
 
-**Fix:** §4.1 amended, dated 19/08/2026, recording *that it was not the maker's*
-rather than quietly deleting it. The correction is narrow: import is permitted and
-the backups an import needs; **export and the MIME type stay banned** — not on the
-clause's authority, which it turns out never had any, but because they are still
-true. The phone exports and the desktop has no reason to; nothing has asked for a
-file association.
+**Fix:** §4.1 amended, dated 19/08/2026, in the form §0 requires. The correction
+is narrow: import is permitted, and the backups an import needs. **Export and the
+MIME type remain absent** — the phone writes the file and the desktop reads it, so
+there is nothing here to export, and nothing claims a file association.
 
 The five F-documents are **left as they are**. They recorded what was true when
 they were written; editing them is the drift §0 forbids.

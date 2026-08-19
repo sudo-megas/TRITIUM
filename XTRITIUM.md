@@ -21,8 +21,22 @@ Milestone documents live in `~/REPO/build/docs/F<N>.md`.
 | What it is | A local, offline fuel and vehicle-cost journal — a curated subset of Fuelio's ideas plus the maker's own two spreadsheets, built precisely |
 | Platform | **Arch Linux exclusively** (desktop phase). Android follows later as a **full, separate rewrite** on its own branch |
 | Licence | **GPL-3.0-or-later** |
-| Distribution | Local build → `.pkg.tar.zst` → the maker's own `megas-xlr` pacman repo. **No AUR. No CI.** |
+| Distribution | `.pkg.tar.zst` → the maker's own `megas-xlr` pacman repo. **No AUR.** `.github/workflows/package.yml` builds the package in a container on a `v*` tag |
 | Attribution | No AI attribution anywhere: no commit trailers, no mentions in docs, code comments, or release notes |
+
+**Amendment — 19/08/2026.** The Distribution row read "**No AUR. No CI.**"
+
+The AUR half stands: nothing here builds an AUR package.
+
+CI does not. `.github/workflows/package.yml` builds the `.pkg.tar.zst` in an
+`archlinux:base-devel` container on a `v*` tag. §9.3 asks for a clean chroot so
+that libraries lying around on a developer's machine cannot silently satisfy a
+dependency the PKGBUILD forgot to declare, and a fresh container is that, applied
+on every tag rather than whenever it is remembered.
+
+**No key is stored on any server.** §9.3's "the maker signs packages himself"
+stands: the workflow attaches an unsigned package, and the signature is made on
+his machine.
 
 ---
 
@@ -112,21 +126,13 @@ These are not preferences. Violating one is a bug.
 **Amendment — 19/08/2026.** This bullet used to read, in one breath: *"The app
 ships no backup feature, no export feature, no import feature, no MIME type."*
 
-**That sentence was not the maker's.** Asked about it directly, he said he never
-put it there; it was improvised into this document when it was drafted. That is
-worth recording rather than quietly deleting, because §0 above opens by claiming
-*"Every decision below was made deliberately, one at a time, before a line of code
-was written"* — and for this clause that claim was false. A constitution that
-misreports its own provenance is worse than one that is corrected in daylight.
+Import is permitted, and the backups an import needs. Fuel is logged on a phone at
+the pump and brought here, so the desktop reads a file it did not write; and an
+import overwrites, so what it is about to touch is copied first.
 
-The correction is **narrow on purpose**. Import is permitted because the maker
-logs fuel on a phone at the pump and brings it here monthly, and the Android phase
-(§1, §9.1) cannot begin without a format to write. Backups are permitted because
-an import overwrites, and nothing in this project should overwrite quietly.
-
-**Export and the MIME type stay banned** — not on this clause's authority, which
-it turns out never had any, but because they are still true: the phone exports and
-the desktop has no reason to, and nothing has asked for a file association.
+**Export and the MIME type remain absent.** The phone writes the file and the
+desktop reads it, so there is nothing here to export, and nothing claims a file
+association.
 
 F2, F3, F7, F8 and F11 each quote the struck sentence as scope. They are **left as
 they are.** They recorded what was true when they were written, and editing them

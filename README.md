@@ -12,7 +12,6 @@
 
 <p align="center">
   <img alt="Arch Linux"    src="https://img.shields.io/badge/Arch%20Linux-~118%20MiB-1793D1?style=for-the-badge&logo=archlinux&logoColor=white">
-  <img alt="Android"       src="https://img.shields.io/badge/Android-planned-3DDC84?style=for-the-badge&logo=android&logoColor=white">
 </p>
 
 <p align="center"><strong>Fuel Logging / Maintenance Tracking for any ICE Vehicle</strong></p>
@@ -40,7 +39,7 @@ Electron ships inside the package; the list above is the desktop stack it links 
 
 **To build** — additionally `git`, `nodejs` and `npm`.
 
-TRITIUM targets **Arch Linux** in this phase. Android is planned as a separate rewrite.
+TRITIUM runs on **Arch Linux**.
 
 
 
@@ -86,8 +85,7 @@ cd TRITIUM/packaging
 extra-x86_64-build
 ```
 
-**There is no AUR package.** Packages are signed and published by hand.
-`packaging/README.md` carries the full procedure.
+**There is no AUR package.**
 
 
 

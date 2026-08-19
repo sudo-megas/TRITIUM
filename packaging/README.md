@@ -24,6 +24,12 @@ The version lives in four places and a unit test holds them in agreement:
 `package.json`, `package-lock.json` (twice), and `src/shared/app-meta.ts`. The
 PKGBUILD's `pkgver` is the fifth, and it is the only one in this directory.
 
+`.github/workflows/package.yml` builds the package in an `archlinux:base-devel`
+container when a `v*` tag is pushed, and attaches it to that tag's release. It can
+also be run by hand against a tag that already exists. It does not sign anything.
+
+To build one locally instead:
+
 ```sh
 # 1. In the repository root, with the version already rolled and tagged.
 git tag v0.2.3
@@ -214,8 +220,7 @@ setuid warning and nothing else that is actionable.
 
 ## 5. THINGS DELIBERATELY ABSENT
 
-- **No AUR**, and no `.SRCINFO` committed. §1 — "No AUR. No CI."
-- **No CI**, no workflow file, no runner.
+- **No AUR**, and no `.SRCINFO` committed (§1).
 - **No signing key, no upload, and no tooling that reaches `megas-xlr`.** §9.3.
   The name appears twice in this repository, both times in a comment saying that
   nothing here touches it.
