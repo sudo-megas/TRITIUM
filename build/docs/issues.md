@@ -1,0 +1,222 @@
+# TRITIUM — ISSUES
+
+Repo path of this file: `~/REPO/build/docs/issues.md`
+Governing document: `~/REPO/XTRITIUM.md`.
+
+Every defect found in TRITIUM, and what became of it. One entry per issue, newest
+milestone last. A defect is recorded here whether it was introduced by the
+milestone that found it, inherited from an earlier one, or was never a defect in
+the code at all but a claim in a document that turned out to be false.
+
+Three things are deliberately in scope and might not be expected:
+
+- **Defects in the tests themselves.** A test that passes for the wrong reason is
+  worse than no test, because it is counted as cover.
+- **Defects in the documents.** XTRITIUM and the F-documents govern the code, so
+  a wrong sentence in one is a live defect until it is corrected.
+- **Things found by measuring something that had only been reasoned about.**
+
+Status is one of **FIXED** (with the milestone that fixed it), **OPEN**, or
+**ACCEPTED** (understood, deliberately not changed, with the reason).
+
+---
+
+## Open
+
+### I-09 · `prettier --check` fails across the repository
+**Status: OPEN** · found F7 · pre-existing, not introduced
+
+`npx prettier --check .` reports style differences in **40 files**, including
+many never touched by F5–F7 — `XTRITIUM.md`, `src/shared/scaled.ts`,
+`tests/e2e/harness.ts`, `src/renderer/state/settings.ts` among them.
+
+Prettier is **not a gate**: `package.json` wires it only as `format`
+(`prettier --write .`), and neither `npm run build` nor `npm test` invokes it.
+The codebase is hand-formatted in a style close to, but not identical with, what
+`.prettierrc.json` would produce.
+
+Left alone deliberately. Running `prettier --write .` would rewrite forty files
+in a single commit, most of them for reasons unrelated to any milestone, and
+would reflow hand-set prose in the documents. **This wants the maker's decision:**
+either adopt Prettier properly (one formatting commit, then add `--check` to the
+`test` script so it stays true), or drop the `format` script and say the
+codebase is hand-formatted.
+
+### I-10 · XTRITIUM §9.1's version table is stale
+**Status: OPEN** · found F4b · needs the maker's pen
+
+§9.1 prints `F5 → v0.1.4`. F4b was ruled a regular milestone and took v0.1.4, so
+from F5 onward every printed row is one off. The real map is `F(n) → v0.1.(n−1)`
+up to F4 and `F(n) → v0.1.(n)` from F5.
+
+F4b recorded the consequence rather than editing the constitution, and F5, F6 and
+F7 have each ridden the correction without amending §9.1 either — XTRITIUM §0
+says amendments are the maker's, with a dated note, never silent drift.
+
+**One further consequence, worth settling before F10 rather than during it:** the
+version is a decimal roll (§9.1 — `F10 → v0.1.9`, `F11 → v0.2.0`). Carrying the
++1 shift through gives F8 → v0.1.8, F9 → v0.1.9, and then **F10 → v0.2.0**, not
+v0.1.10. Each of those documents states its own version and the reasoning; the
+table itself still wants amending.
+
+---
+
+## Fixed
+
+### I-01 · `costs:save` told no one it had written
+**Status: FIXED in F5** · introduced F2 · severity: data appears lost
+
+`ipcMain.handle('costs:save')` in `src/main/index.ts` called `saveCosts` and
+returned. Every other write path broadcast `vehicles:changed` so that the shell
+and any open form window could not hold different ideas of the same file — F4's
+fourth decision added exactly that for fuel, and did not reach costs.
+
+**Effect:** a cost saved in a form window never reached the shell. The shell went
+on showing `costs.toml` as it was when it last rendered, so to the maker the
+save had silently failed. Restarting the app revealed the record had been on
+disk the whole time.
+
+**Fix:** `broadcast('vehicles:changed')` after the write, and the same after the
+new `cost:add` and `cost:update`. Covered by *"a cost typed into the form lands
+on disk and in the shell"* in `tests/e2e/costs.spec.ts`, which asserts the row
+appears **without a restart**.
+
+### I-02 · `service:save` had the same gap
+**Status: FIXED in F6** · introduced F2 · severity: data appears lost
+
+Identical to I-01, in the last write path in the process that still lacked a
+broadcast. F5 found it while fixing I-01, could not fix it there — nothing wrote
+`service.toml` until F6 — and **recorded it in F5.md decision 9 so it would be
+inherited rather than rediscovered.**
+
+**Fix:** the broadcast, plus `service:add` and `service:update`. After F6, every
+write in TRITIUM tells the other windows.
+
+### I-03 · A test that could only pass by winning a race
+**Status: FIXED in F5** · introduced F1 · severity: a guarantee going unchecked
+
+`tests/e2e/shell.spec.ts` › *the window refuses to shrink below 1280 x 720*
+failed reproducibly — alone and in the suite — with `Error: no window`.
+
+**Cause:** a race in the test, not a defect in the app. `launchApp` resolves when
+the Electron **process** is up, which is before `app.whenReady` has fired and
+`createWindow` has run. Every other test in that file happens to `await
+app.firstWindow()` on its first line and so waits without meaning to; this one
+went straight to `BrowserWindow.getAllWindows()` and found the list empty.
+
+**Why it matters more than one red line:** it would have passed on a faster
+machine, which is the worst property a test can have. The guarantee it exists to
+defend — XTRITIUM §7's minimum window size — was going unchecked, and the red was
+being read as environmental noise.
+
+**Fix:** `await app.firstWindow()` before evaluating. Recorded in F5.md §2.6.
+
+### I-04 · `audit-strings` read a comparison as user-visible text
+**Status: FIXED in F7** · tooling interaction · severity: false positive
+
+Three panes failed the strings audit on lines like:
+
+```ts
+sortingFn: (a, b) => (a.original.date < b.original.date ? -1 : 1)
+```
+
+`audit-strings` looks for JSX text with `/>([^<>{}]+)</` — the `>` of the arrow
+and the `<` of the comparison bracket a run of characters, and the audit reports
+prose that is not in the catalogue.
+
+**Fix: the code changed, not the gate.** The comparison moved into a named
+`compareDate` in `src/shared/entries.ts`, which the three panes share — a helper
+they wanted anyway, since all three sort by date. Teaching the audit to look away
+would have cost a real gate to save one line.
+
+### I-05 · A prop called `title` is a native tooltip
+**Status: FIXED in F7** · caught by `audit-overlap` · severity: layout law
+
+`RecordDetail` took a prop named `title`, and `<RecordDetail title={…} />` is
+indistinguishable from `<div title="…">` to `audit-overlap`'s rule against the
+title attribute — which renders a native tooltip over whatever is beneath it.
+
+The audit was **right to be crude here**: the cost of a false positive is a
+rename, and the cost of a false negative is an overlay in an application whose
+standing layout law is that nothing overlaps anything.
+
+**Fix:** the prop is `heading`, which is also what it means.
+
+### I-06 · An `eslint-disable` for a rule that does not exist
+**Status: FIXED in F7** · severity: lint red
+
+Two `// eslint-disable-line react-hooks/exhaustive-deps` comments produced
+`Definition for rule 'react-hooks/exhaustive-deps' was not found` — the
+react-hooks plugin is not in `eslint.config.js`.
+
+**Fix:** removed. Both dependency arrays were already complete, so the
+suppressions were suppressing nothing. `npm run lint` is clean.
+
+### I-07 · F7.md claimed something the storage layer never promised
+**Status: FIXED in F7** · a defect in a document · severity: a false guarantee
+
+F7.md's first draft said a deleted entry's id is **not** reused, and made it an
+acceptance criterion.
+
+**It is not true.** `nextId` allocates from the highest id present, so deleting a
+**middle** entry changes nothing, but deleting the **highest** entry frees its
+number for the next one.
+
+**Fix — the document, not the code.** The behaviour is correct and matches what
+already happens when the maker deletes the last entry in Neovim; nothing outside
+the file refers to an id. What the storage layer guarantees is **uniqueness
+within the file**, not a number that only ever climbs. F7.md decision 8,
+acceptance criterion 5, and the comment on `removeFuelEntry` now say that.
+
+Recorded because a document that overpromises is a live defect: the next
+milestone would have built on the guarantee.
+
+### I-08 · The dense tables scrolled sideways at the minimum window size
+**Status: FIXED in F7** · introduced F7 · severity: against the project's written law
+
+F7 moved all three lists out of `pane--wide` (the full 1280) into the left half,
+because the right half became the detail region. The reasoning — four or five
+columns fit where F4's eight did not — was sound and **the conclusion was wrong.**
+
+Measured at 1280 × 720 with the widest data the maker's own sheets contain:
+
+| List | Pane | Table | Overflow |
+|---|---|---|---|
+| Fuel | 628 | 596 | — |
+| Costs | 628 | 684 | **88px** |
+| Service | 628 | 612 | **16px** |
+
+`Trafik Sigortası 26/27 Sonradan Taksitlendirme` took 339 pixels of a 628-pixel
+pane by itself. Every cell is `white-space: nowrap` (F4b), so a long string
+cannot wrap — it widens the column until `.pane` scrolls. F4's own fuel-pane
+comment calls a horizontal scrollbar under a table of figures "the one thing it
+must never do", so this was a defect against a written rule, not a matter of
+taste.
+
+**Nothing in the suite would have caught it.** Every existing test used short
+fixture data.
+
+**Fix:** prose columns (title, category, part) are capped at `--measure-prose`
+and elide; the detail region beside the table already shows each of them whole,
+which is what makes eliding a display choice rather than a loss. Wrapping was
+rejected — it gives every row a different height and the density goes with it. A
+`title` attribute would be the conventional remedy and is forbidden (see I-05).
+
+**Regression cover:** `tests/e2e/overflow.spec.ts` measures `scrollWidth −
+clientWidth` for the body and both panes, on all three tabs and with a record
+selected, with deliberately wide data. The next milestone to add a column finds
+out from a red test rather than from the maker.
+
+---
+
+## Notes on method
+
+Two of the eight fixed issues (I-03, I-08) were found by **measuring something
+that had only been reasoned about** — and neither would have been caught by the
+suite as it stood. Both now have tests that fail if the property is lost again.
+
+Two more (I-01, I-02) were the same defect in two places, found because F4's
+decision was written down as a decision rather than only implemented: the second
+one was inherited rather than rediscovered.
+
+One (I-07) was a defect in a document that the code did not have.
