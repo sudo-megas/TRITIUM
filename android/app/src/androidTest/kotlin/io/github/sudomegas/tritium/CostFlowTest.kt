@@ -84,6 +84,7 @@ class CostFlowTest {
         composeRule.onNodeWithTag("costAmount").performTextClearance()
         composeRule.onNodeWithTag("costAmount").performTextInput("1000")
         closeSoftKeyboard()
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("costSave").performClick()
         // "Add cost" exists only on CostScreen, never on CostFormScreen — a
         // definitive signal the pop-back-stack navigation has actually
@@ -103,10 +104,13 @@ class CostFlowTest {
         composeRule.onNodeWithText("Add cost").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("costCategoryTyped").performTextInput("Lastik")
+        closeSoftKeyboard()
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("costAmount").performTextClearance()
         composeRule.onNodeWithTag("costAmount").performTextInput("500")
         composeRule.onNodeWithTag("costIncomeCheckbox").performClick()
         closeSoftKeyboard()
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("costSave").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("Add cost").fetchSemanticsNodes().size == 1
