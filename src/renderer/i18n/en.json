@@ -120,6 +120,24 @@
       "eft": "EFT",
       "kredi-karti": "Kredi Kartı",
       "banka-karti": "Banka Kartı"
+    },
+    "serviceElsewhere": "Periyodik Bakım is entered on the SERVICE tab — its records live in service.toml."
+  },
+  "service": {
+    "add": "Add service record",
+    "addTitle": "New service record",
+    "editTitle": "Edit service record",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "vendorHint": "Where it came from: an address, a shop, or nothing. Stored as text — TRITIUM never opens it.",
+    "saveFailed": "That service record could not be read or written. The file has been left exactly as it was.",
+    "fields": {
+      "date": "Date",
+      "part": "Part or work",
+      "odometer_km": "Odometer (km)",
+      "amount": "Amount",
+      "vendor": "Bought from"
     }
   },
   "currency": {

@@ -9,6 +9,7 @@ import { CostForm } from './forms/CostForm.js'
 import { CurrencyAsk } from './forms/CurrencyAsk.js'
 import { FuelForm } from './forms/FuelForm.js'
 import { FuelQuickAdd } from './forms/FuelQuickAdd.js'
+import { ServiceForm } from './forms/ServiceForm.js'
 import { VehicleForm } from './forms/VehicleForm.js'
 import { applyToDocument, initialSettings } from './state/settings.js'
 
@@ -35,6 +36,14 @@ function view(): JSX.Element {
   if (request.kind === 'cost') {
     return (
       <CostForm
+        slug={request.slug ?? ''}
+        {...(request.entry !== undefined ? { entry: request.entry } : {})}
+      />
+    )
+  }
+  if (request.kind === 'service') {
+    return (
+      <ServiceForm
         slug={request.slug ?? ''}
         {...(request.entry !== undefined ? { entry: request.entry } : {})}
       />

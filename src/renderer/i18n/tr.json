@@ -120,6 +120,24 @@
       "eft": "EFT",
       "kredi-karti": "Kredi Kartı",
       "banka-karti": "Banka Kartı"
+    },
+    "serviceElsewhere": "Periyodik Bakım SERVICE sekmesinden girilir — kayıtları service.toml dosyasında durur."
+  },
+  "service": {
+    "add": "Bakım kaydı ekle",
+    "addTitle": "Yeni bakım kaydı",
+    "editTitle": "Bakım kaydını düzenle",
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "edit": "Düzenle",
+    "vendorHint": "Alındığı link veya yer: bir adres, bir dükkân ya da hiçbir şey. Metin olarak saklanır — TRITIUM hiçbir zaman açmaz.",
+    "saveFailed": "Bu bakım kaydı okunamadı veya yazılamadı. Dosya olduğu gibi bırakıldı.",
+    "fields": {
+      "date": "Tarih",
+      "part": "Parça veya işlem",
+      "odometer_km": "Kilometre",
+      "amount": "Tutar",
+      "vendor": "Alındığı link / yer"
     }
   },
   "currency": {

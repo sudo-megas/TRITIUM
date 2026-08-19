@@ -180,6 +180,16 @@ export function CostForm({ slug, entry }: { slug: string; entry?: string }): JSX
             </select>
           )}
           {typed && <span className="field__hint">{t('costs.typedCategoryHint')}</span>}
+          {/*
+           * F5 withheld Periyodik Bakım from this list and could say nothing
+           * about where it had gone, because the SERVICE tab was empty and
+           * pointing at an empty tab is worse than silence. F6 filled it.
+           */}
+          {draft.group === 'tekrar-eden' && (
+            <span className="field__hint" data-testid="cost-service-elsewhere">
+              {t('costs.serviceElsewhere')}
+            </span>
+          )}
         </label>
 
         <label className="field">

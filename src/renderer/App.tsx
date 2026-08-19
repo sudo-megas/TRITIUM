@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { CostsPane } from './panes/CostsPane.js'
 import { EmptyPanes } from './panes/EmptyPanes.js'
 import { FuelPane } from './panes/FuelPane.js'
+import { ServicePane } from './panes/ServicePane.js'
 import { SettingsPane } from './panes/SettingsPane.js'
 import { AboutPane } from './panes/AboutPane.js'
 import { VehiclePicker } from './VehiclePicker.js'
@@ -42,11 +43,12 @@ const TABS = [
 
 type Tab = (typeof TABS)[number]
 
-// Settings and About since F1, Fuel since F4, Costs since F5; every other tab
-// is still the real two-pane layout with empty cells.
+// Settings and About since F1, Fuel since F4, Costs since F5, Service since F6;
+// every other tab is still the real two-pane layout with empty cells.
 const PANES: Partial<Record<Tab, () => JSX.Element>> = {
   fuel: FuelPane,
   costs: CostsPane,
+  service: ServicePane,
   settings: SettingsPane,
   about: AboutPane
 }
