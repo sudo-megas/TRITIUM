@@ -11,6 +11,21 @@ dist/
 release/
 *.pkg.tar.zst
 
+# makepkg's leavings, which land in packaging/ beside the PKGBUILD.
+#
+# The finished .pkg.tar.zst was already ignored above; everything else it drops
+# was not, so the first real package build left seven untracked paths in the repo
+# — build logs, namcap logs, and a 27 MB bare clone of this very repository that
+# makepkg keeps as its source cache.
+#
+# This is I-21 again in a new place: a tool that walks into the working tree and
+# leaves things behind, and a `git add -A` that would have swept them up. Named
+# here rather than discovered later.
+packaging/src/
+packaging/pkg/
+packaging/TRITIUM/
+packaging/*.log
+
 # test artefacts
 coverage/
 test-results/
