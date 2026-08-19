@@ -22,86 +22,52 @@
 
 ## 1. DESCRIPTION
 
-TRITIUM is a **local, offline** fuel and vehicle-cost journal for any
-internal-combustion vehicle. It records what you actually spent and how far you
-actually went, and it computes the figures that follow from those two things —
-nothing else.
-
-It is built on a small number of decisions that do not bend:
-
-- **Zero network. Ever.** No lookup, no update check, no telemetry, no crash
-  reporting. A build-time audit fails if a network primitive so much as appears
-  in the source, and the end-to-end suite runs once more with the network
-  severed to prove the application behaves identically.
-- **Plaintext storage you can repair by hand.** Everything lives in TOML under
-  `~/.local/share/tritium/`. Open it in Neovim, fix a digit, close it. Writes are
-  atomic — a power cut leaves the old file whole or the new one complete, never a
-  torn one.
-- **Only realised data.** No estimates of entries you did not make, no
-  recurrence engine, no reminders, no guessing at the level in your tank.
-  Averages and statistics over what is already recorded are fine; inventing a
-  record is not.
-- **Derived values are never stored.** A fill-up's total, l/100km, cost per
-  kilometre, monthly sums — all computed at read time from the figures you
-  entered. One source of truth.
-- **Everything is editable, always.** The application warns about a suspicious
-  entry — a backwards odometer, a date that is not a date — and then accepts your
-  word.
-- **No encryption, no password, no lock.** A fuel log is not a secret. It opens
-  straight into the data.
-- **It opens no browser and follows no link.** Every address in it — the source
-  address on the About page, a vendor you pasted onto a service record — is
-  selectable text and never a link.
-
-### What is in it
-
-**Fuel** — quick-add for the three figures you have at the pump, and a full form
-for everything else. Consumption is computed only between consecutive full tanks,
-counting every partial fill in between.
-
-**Costs** — the category tree of İLK ALIŞ, TEKRAR EDEN and MANUAL, with payment
-method, bank and instalment as three separate fields rather than one remark
-column.
-
-**Service** — Periyodik Bakım: what was done, at what reading, for how much, and
-where it came from.
-
-**Lists** — dense tables with time-range chips, sortable columns, and a detail
-region beside them.
-
-**Charts** — seven of them: fuel consumption, monthly costs, gas price, fill-up
-costs, odometer, cost per kilometre, monthly distance.
-
-**Summary and Statistics** — the cards you open on, and a section of its own for
-best and worst tank, distance per day, projected annual cost, and true cost per
-kilometre including what the vehicle cost to buy.
-
-**Eleven palettes**, English and Turkish, and units — km/miles, litres/gallons,
-l/100km, km/l or mpg — each set independently of the others and of the language.
+TRITIUM is an offline journal of what your vehicle costs to run — fuel, expenses and periodic
+service, for as many vehicles as you own. Your data is plaintext TOML in your own home directory,
+editable by hand. Nothing is estimated, and nothing leaves the machine: it contains no network code.
 
 
 
 ## 2. DEPENDENCIES
 
-**To run**, from the Arch repositories:
+**To run** — from the official Arch repositories:
 
 ```
 alsa-lib  at-spi2-core  gtk3  libcups  libnotify  libxss  libxtst  nss
 ```
 
-Electron ships inside the package; those are the desktop libraries it links
-against.
+Electron ships inside the package; the list above is the desktop stack it links against.
 
-**To build**, additionally: `git`, `nodejs`, `npm`.
+**To build** — additionally `git`, `nodejs` and `npm`.
 
-TRITIUM targets **Arch Linux exclusively** in this phase. Android follows later
-as a full, separate rewrite on its own branch.
+TRITIUM targets **Arch Linux** in this phase. Android is planned as a separate rewrite.
 
 
 
 ## 3. INSTALLATION
 
-Build the package in a clean chroot and install it:
+### 3.A Build From Source
+
+Runs it straight from the checkout, without root and without a package:
+
+```sh
+git clone https://github.com/sudo-megas/TRITIUM.git
+cd TRITIUM
+npm ci
+npm run dev
+```
+
+To produce the unpacked application tree instead of running the dev server:
+
+```sh
+npm run build
+npx electron-builder --linux dir
+./release/linux-unpacked/tritium
+```
+
+### 3.B Arch Linux
+
+Builds the real package in a clean chroot and installs it:
 
 ```sh
 git clone https://github.com/sudo-megas/TRITIUM.git
@@ -110,53 +76,70 @@ extra-x86_64-build
 sudo pacman -U tritium-*.pkg.tar.zst
 ```
 
-`packaging/README.md` carries the full release procedure.
-
-To run it from a checkout instead:
-
-```sh
-npm ci
-npm run dev
-```
-
-**There is no AUR package and no CI.** Packages are signed by the maker and
-placed in his own repository by hand.
+**There is no AUR package.** Packages are signed and published by hand.
+`packaging/README.md` carries the full procedure.
 
 
 
-## 4. HOW TO USE
+## 4. HOW TO USE? WHAT IS THE APPLICATION SECTIONS?
 
-**First launch** asks one question — your currency — and never asks again. There
-are no exchange rates and no conversion between currencies, ever.
+The first launch asks one question — your currency — and never asks again. Add a vehicle from
+the picker in the tab bar; only its name is required, and everything is editable afterwards.
+The eight tabs below are the whole application.
 
-**Add a vehicle** from the picker in the tab bar. Name it, and give it whatever
-else you know; every field but the name is optional and all of them are editable
-later.
+### SUMMARY
 
-**Log a fill-up** on the FUEL tab. *Quick add* asks three things — odometer,
-volume, price — and fills in the rest: today's date, the vehicle's own fuel, and
-a full tank. *Full form* asks everything.
+The page you open on. Cards for the vehicle, this month against last month, lifetime totals,
+and the most recent entries drawn from all three files at once. It shows and never asks:
+there is nothing here to change.
 
-> The **full-tank flag is a real field, not decoration.** Consumption is measured
-> between consecutive full tanks, so mis-flagging one shifts the figures on both
-> sides of it. A partial fill is counted into the tank that follows it.
+### FUEL
 
-**Log a cost** on the COSTS tab: choose the group, then the category. Periyodik
-Bakım is not there — it has its own tab, because its records have a different
-shape and live in a different file.
+Logs a fill-up. *Quick add* takes the three figures you have at the pump — odometer, volume,
+price — and fills in the rest. *Full form* takes everything.
 
-**Read the figures** on SUMMARY for the shape of things, CHARTS for how they
-moved, and STATISTICS for the lifetime numbers — each of which states the window
-it was computed over, because a statistic without its span is a number without
-units.
+> The **full-tank flag is a real field, not decoration.** Consumption is measured between
+> consecutive full tanks, so mis-flagging one moves the figures on both sides of it.
 
-**Change units, precision, language or palette** on SETTINGS. The files always
-hold kilometres and litres whatever you choose; a unit is a way of looking, not a
-way of writing.
+### COSTS
 
-**Your data is yours.** It is in `~/.local/share/tritium/`, in TOML, one
-directory per vehicle. Back it up by copying that directory. The application
-ships no backup, export or import feature, because it does not need one.
+Everything that is not fuel and not periodic service. Pick the group, then the category: **İLK
+ALIŞ** for buying the car (deposit, price, notary, plates), **TEKRAR EDEN** for what comes round
+again (MTV, trafik sigortası, kasko), and **MANUAL** for a category you type yourself. Payment
+method, bank and instalment are three separate fields rather than one remark column. Refunds and
+payouts are entered as income and subtract from your totals.
+
+### SERVICE
+
+Periyodik Bakım, kept apart from costs because its records have a different shape: what was
+done, at what odometer reading, for how much, and where it was done. The vendor is plain text —
+type whatever the receipt says.
+
+### CHARTS
+
+Seven charts over a range you choose: fuel consumption, monthly costs, gas price, fill-up costs,
+odometer, cost per kilometre and monthly distance. Each one is drawn from your entries only,
+so a gap in the data is drawn as a gap.
+
+### STATISTICS
+
+The lifetime numbers: best and worst tank, distance per day, projected annual cost, and true
+cost per kilometre including what the vehicle cost to buy. Every figure states the window it
+was computed over, because a statistic without its span is a number without units.
+
+### SETTINGS
+
+Language (English or Turkish), eleven palettes, and units — km or miles, litres or gallons,
+l/100km, km/l or mpg — each chosen independently of the others. The files always hold kilometres
+and litres whatever you pick: a unit is a way of looking, not a way of writing.
+
+### ABOUT
+
+The mark, the maker, the version and release date, the source address, and the full licence
+text. Addresses here are selectable text and never links — TRITIUM opens no browser.
+
+> **Your data is yours.** It lives in `~/.local/share/tritium/`, one directory per vehicle, in
+> TOML. Back it up by copying that directory. There is no export feature because none is needed.
 
 
 
@@ -165,14 +148,12 @@ ships no backup, export or import feature, because it does not need one.
 TRITIUM is free software under the **GNU General Public License, version 3 or later**
 (`GPL-3.0-or-later`).
 
-In plain terms: you may use it for anything, study how it works, share it with anyone, and
-change it to suit yourself. If you distribute a changed version, it must carry this same
-licence (or a later version of it) so that whoever receives it has the freedoms you had. It
-comes with **no warranty**.
+In plain terms: use it for anything, study how it works, share it with anyone, and change it to
+suit yourself. If you pass on a changed version it must carry this same licence, so whoever
+receives it has the freedoms you had. It comes with **no warranty**.
 
-That is a summary and nothing more — the text that actually governs is the full
-[`LICENSE`](LICENSE) file in this repository, and the same full text is readable inside the
-application from the **About** page.
+This is a summary only. The text that governs is the full [`LICENSE`](LICENSE) file, readable
+inside the application from the **ABOUT** page.
 
 Copyright © sudo-megas · <https://github.com/sudo-megas/TRITIUM>
 
