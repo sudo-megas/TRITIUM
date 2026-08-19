@@ -30,6 +30,7 @@ import io.github.sudomegas.tritium.storage.FUEL_TYPES
 import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.Scaled
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.FuelViewModel
 
 /**
@@ -40,17 +41,23 @@ import io.github.sudomegas.tritium.ui.FuelViewModel
  * add/edit shape (AF3.md decision 2).
  */
 @Composable
-fun FuelFormScreen(viewModel: FuelViewModel, entryId: String?, currency: String?, onSaved: () -> Unit) {
+fun FuelFormScreen(
+    viewModel: FuelViewModel,
+    entryId: String?,
+    currency: String?,
+    unitFormat: UnitFormat,
+    onSaved: () -> Unit,
+) {
     val initial = remember(entryId) { entryId?.let { viewModel.entry(it) } ?: FuelEntry(id = "") }
 
     var date by rememberSaveable {
         mutableStateOf(if (entryId == null) Format.formatDate(Format.todayIso()) else Format.formatDate(initial.date))
     }
     var odometerText by rememberSaveable {
-        mutableStateOf(if (initial.odometerKm == 0) "" else initial.odometerKm.toString())
+        mutableStateOf(if (initial.odometerKm == 0) "" else unitFormat.distanceInput(initial.odometerKm))
     }
-    var litresText by rememberSaveable { mutableStateOf(Format.toInput(initial.litres, Scaled.PUMP_DECIMALS)) }
-    var priceText by rememberSaveable { mutableStateOf(Format.toInput(initial.pricePerLitre, Scaled.PUMP_DECIMALS)) }
+    var litresText by rememberSaveable { mutableStateOf(unitFormat.volumeInput(initial.litres)) }
+    var priceText by rememberSaveable { mutableStateOf(unitFormat.pricePerVolumeInput(initial.pricePerLitre)) }
     var fullTank by rememberSaveable {
         mutableStateOf(if (entryId == null) true else initial.fullTank)
     }
@@ -58,8 +65,8 @@ fun FuelFormScreen(viewModel: FuelViewModel, entryId: String?, currency: String?
         mutableStateOf(initial.fuelType.ifEmpty { if (entryId == null) viewModel.activeVehicleFuelSpec() else "" })
     }
 
-    val litres = Format.parseInput(litresText, Scaled.PUMP_DECIMALS)
-    val price = Format.parseInput(priceText, Scaled.PUMP_DECIMALS)
+    val litres = unitFormat.parseVolume(litresText)
+    val price = unitFormat.parsePricePerVolume(priceText)
     val total = if (litres != null && price != null) Scaled.fuelTotal(litres, price) else null
 
     Column(
@@ -83,21 +90,21 @@ fun FuelFormScreen(viewModel: FuelViewModel, entryId: String?, currency: String?
         OutlinedTextField(
             value = odometerText,
             onValueChange = { odometerText = it },
-            label = { Text(stringResource(R.string.fuel_field_odometer)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            label = { Text("${stringResource(R.string.fuel_field_odometer)} (${unitFormat.distanceSymbol})") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = litresText,
             onValueChange = { litresText = it },
-            label = { Text(stringResource(R.string.fuel_field_litres)) },
+            label = { Text("${stringResource(R.string.fuel_field_litres)} (${unitFormat.volumeSymbol})") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth().testTag("fuelFormLitres"),
         )
         OutlinedTextField(
             value = priceText,
             onValueChange = { priceText = it },
-            label = { Text(stringResource(R.string.fuel_field_price_per_litre)) },
+            label = { Text("${stringResource(R.string.fuel_field_price_per_litre)} (${unitFormat.volumeSymbol})") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -120,7 +127,7 @@ fun FuelFormScreen(viewModel: FuelViewModel, entryId: String?, currency: String?
             Text(stringResource(R.string.fuel_field_full_tank))
         }
 
-        val odometer = odometerText.toIntOrNull()
+        val odometer = unitFormat.parseDistance(odometerText)
         Button(
             enabled = odometer != null && odometer > 0 && litres != null && litres > 0 && price != null,
             onClick = {

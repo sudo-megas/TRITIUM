@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import io.github.sudomegas.tritium.R
 import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.storage.Scaled
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.storage.Vehicle
 import io.github.sudomegas.tritium.ui.HomeViewModel
 
@@ -43,7 +44,12 @@ import io.github.sudomegas.tritium.ui.HomeViewModel
  * the app warns nothing here yet and accepts what it can read.
  */
 @Composable
-fun VehicleFormScreen(viewModel: HomeViewModel, slug: String?, onSaved: (String) -> Unit) {
+fun VehicleFormScreen(
+    viewModel: HomeViewModel,
+    slug: String?,
+    unitFormat: UnitFormat,
+    onSaved: (String) -> Unit,
+) {
     val initial = remember(slug) { slug?.let { viewModel.loadVehicle(it) }?.vehicle ?: Vehicle() }
 
     var name by rememberSaveable { mutableStateOf(initial.name) }
@@ -55,7 +61,7 @@ fun VehicleFormScreen(viewModel: HomeViewModel, slug: String?, onSaved: (String)
     var plate by rememberSaveable { mutableStateOf(initial.plate) }
     var vin by rememberSaveable { mutableStateOf(initial.vin) }
     var tankCapacity by rememberSaveable {
-        mutableStateOf(Format.toInput(initial.tankCapacityL, Scaled.TANK_DECIMALS))
+        mutableStateOf(unitFormat.tankInput(initial.tankCapacityL))
     }
     var purchaseDate by rememberSaveable { mutableStateOf(Format.formatDate(initial.purchaseDate)) }
     var purchasePrice by rememberSaveable {
@@ -87,7 +93,7 @@ fun VehicleFormScreen(viewModel: HomeViewModel, slug: String?, onSaved: (String)
         Field(stringResource(R.string.vehicle_field_plate), plate) { plate = it }
         Field(stringResource(R.string.vehicle_field_vin), vin) { vin = it }
         Field(
-            stringResource(R.string.vehicle_field_tank_capacity),
+            "${stringResource(R.string.vehicle_field_tank_capacity)} (${unitFormat.volumeSymbol})",
             tankCapacity,
             KeyboardType.Decimal,
         ) { tankCapacity = it }
@@ -112,7 +118,7 @@ fun VehicleFormScreen(viewModel: HomeViewModel, slug: String?, onSaved: (String)
                     fuelSpec = fuelSpec,
                     plate = plate,
                     vin = vin,
-                    tankCapacityL = Format.parseInput(tankCapacity, Scaled.TANK_DECIMALS) ?: 0L,
+                    tankCapacityL = unitFormat.parseTank(tankCapacity) ?: 0L,
                     purchaseDate = Format.parseDate(purchaseDate) ?: "",
                     purchasePrice = Format.parseInput(purchasePrice, Scaled.MONEY_DECIMALS) ?: 0L,
                     registrationDate = Format.parseDate(registrationDate) ?: "",

@@ -49,6 +49,18 @@
     <string name="settings_language_en">English</string>
     <string name="settings_language_tr">Türkçe</string>
 
+    <string name="settings_units_title">Birimler</string>
+    <string name="settings_units_distance">Mesafe</string>
+    <string name="settings_units_volume">Hacim</string>
+    <string name="settings_units_consumption">Tüketim</string>
+    <string name="settings_units_decimals">Tüketim hassasiyeti</string>
+    <string name="settings_appearance_title">Görünüm</string>
+    <string name="settings_appearance_theme">Tema</string>
+    <string name="settings_appearance_theme_system">Sistem</string>
+    <string name="settings_appearance_theme_light">Açık</string>
+    <string name="settings_appearance_theme_dark">Koyu</string>
+    <string name="settings_appearance_dynamic_color">Duvar kağıdı renklerini kullan (Android 12+)</string>
+
     <string name="about_title">Hakkında</string>
     <string name="about_maker">Yapımcı</string>
     <string name="about_version">Sürüm</string>
@@ -90,12 +102,11 @@
     <string name="fuel_save">Kaydet</string>
     <string name="fuel_edit">Düzenle</string>
     <string name="fuel_total">Tutar</string>
-    <string name="fuel_consumption">l/100km</string>
     <string name="fuel_full">Dolu</string>
     <string name="fuel_partial">Kısmi</string>
     <string name="fuel_empty">Henüz yakıt kaydı yok.</string>
-    <string name="fuel_previous_odometer">Önceki: %1$s km</string>
-    <string name="fuel_backwards">Bu değer öncekinden (%1$s km) küçük. Yazıldığı gibi kaydedilecek.</string>
+    <string name="fuel_previous_odometer">Önceki: %1$s %2$s</string>
+    <string name="fuel_backwards">Bu değer öncekinden (%1$s %2$s) küçük. Yazıldığı gibi kaydedilecek.</string>
     <string name="fuel_quick_defaults">%1$s tarihine, dolu depo olarak, %2$s yakıtıyla kaydedilir. Tümü tüm alanlar formundan düzenlenebilir.</string>
     <string name="fuel_field_date">Tarih</string>
     <string name="fuel_field_odometer">Sayaç</string>

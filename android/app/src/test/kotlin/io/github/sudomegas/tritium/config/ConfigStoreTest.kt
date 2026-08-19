@@ -1,5 +1,8 @@
 package io.github.sudomegas.tritium.config
 
+import io.github.sudomegas.tritium.storage.Units.ConsumptionUnit
+import io.github.sudomegas.tritium.storage.Units.DistanceUnit
+import io.github.sudomegas.tritium.storage.Units.VolumeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -127,6 +130,69 @@ class ConfigStoreTest {
 
         val load = ConfigStore(tmp.root).load()
         assertEquals("tr", load.config.language)
+    }
+
+    @Test
+    fun `units, format and appearance round-trip through tomlkt`() {
+        val store = ConfigStore(tmp.root)
+        store.save(
+            AppConfig(
+                distanceUnit = DistanceUnit.MI,
+                volumeUnit = VolumeUnit.GAL,
+                consumptionUnit = ConsumptionUnit.MPG,
+                decimalsConsumption = 3,
+                themeMode = ThemeMode.DARK,
+                dynamicColor = false,
+            ),
+        )
+
+        val load = store.load()
+        assertEquals(DistanceUnit.MI, load.config.distanceUnit)
+        assertEquals(VolumeUnit.GAL, load.config.volumeUnit)
+        assertEquals(ConsumptionUnit.MPG, load.config.consumptionUnit)
+        assertEquals(3, load.config.decimalsConsumption)
+        assertEquals(ThemeMode.DARK, load.config.themeMode)
+        assertEquals(false, load.config.dynamicColor)
+
+        val text = java.io.File(tmp.root, "settings.toml").readText()
+        assertTrue("[units]" in text)
+        assertTrue("distance = \"mi\"" in text)
+        assertTrue("[format]" in text)
+        assertTrue("[appearance]" in text)
+        assertTrue("theme_mode = \"dark\"" in text)
+        // AF9.md §1 — no Android feature reads a cost-per-km figure.
+        assertTrue("decimals_cost_per_km" !in text)
+        assertTrue("palette" !in text)
+    }
+
+    @Test
+    fun `a malformed unit token falls back to the metric default rather than crashing`() {
+        val file = java.io.File(tmp.root, "settings.toml")
+        file.writeText(
+            "schema_version = 1\n" +
+                "[units]\n" +
+                "distance = \"furlongs\"\n" +
+                "[appearance]\n" +
+                "theme_mode = \"solarised\"\n",
+        )
+
+        val load = ConfigStore(tmp.root).load()
+        assertEquals(DistanceUnit.KM, load.config.distanceUnit)
+        assertEquals(ThemeMode.SYSTEM, load.config.themeMode)
+        assertEquals(null, load.error)
+    }
+
+    @Test
+    fun `a pre-AF9 file with no units, format or appearance section loads to their defaults`() {
+        val file = java.io.File(tmp.root, "settings.toml")
+        file.writeText("schema_version = 1\n[general]\nlanguage = \"tr\"\n")
+
+        val load = ConfigStore(tmp.root).load()
+        assertEquals("tr", load.config.language)
+        assertEquals(AppConfig().distanceUnit, load.config.distanceUnit)
+        assertEquals(AppConfig().decimalsConsumption, load.config.decimalsConsumption)
+        assertEquals(AppConfig().themeMode, load.config.themeMode)
+        assertEquals(AppConfig().dynamicColor, load.config.dynamicColor)
     }
 
     @Test

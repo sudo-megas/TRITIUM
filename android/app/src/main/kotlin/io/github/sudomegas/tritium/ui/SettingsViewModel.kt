@@ -5,8 +5,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.sudomegas.tritium.TritiumApplication
 import io.github.sudomegas.tritium.config.AppConfig
+import io.github.sudomegas.tritium.config.ThemeMode
 import io.github.sudomegas.tritium.storage.Bundle
 import io.github.sudomegas.tritium.storage.Format
+import io.github.sudomegas.tritium.storage.Units.ConsumptionUnit
+import io.github.sudomegas.tritium.storage.Units.DistanceUnit
+import io.github.sudomegas.tritium.storage.Units.VolumeUnit
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -40,6 +44,34 @@ class SettingsViewModel(private val app: TritiumApplication) : ViewModel() {
     }
 
     fun clearError() = app.configState.clearError()
+
+    // AF9 — units, precision, appearance. Each setter writes settings.toml
+    // through the same configState.update the language/currency setters
+    // above already use; the unit boundary itself (Units.kt) never touches
+    // config, so a switch here only ever changes what a figure is SHOWN as.
+    fun setDistanceUnit(unit: DistanceUnit) {
+        viewModelScope.launch { app.configState.update { it.copy(distanceUnit = unit) } }
+    }
+
+    fun setVolumeUnit(unit: VolumeUnit) {
+        viewModelScope.launch { app.configState.update { it.copy(volumeUnit = unit) } }
+    }
+
+    fun setConsumptionUnit(unit: ConsumptionUnit) {
+        viewModelScope.launch { app.configState.update { it.copy(consumptionUnit = unit) } }
+    }
+
+    fun setDecimalsConsumption(decimals: Int) {
+        viewModelScope.launch { app.configState.update { it.copy(decimalsConsumption = decimals.coerceIn(0, 6)) } }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { app.configState.update { it.copy(themeMode = mode) } }
+    }
+
+    fun setDynamicColor(enabled: Boolean) {
+        viewModelScope.launch { app.configState.update { it.copy(dynamicColor = enabled) } }
+    }
 
     /**
      * Every vehicle the phone has, one bundle (AF8.md §1.2) — F16's own

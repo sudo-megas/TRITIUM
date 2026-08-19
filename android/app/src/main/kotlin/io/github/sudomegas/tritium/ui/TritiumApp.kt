@@ -25,6 +25,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import io.github.sudomegas.tritium.TritiumApplication
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.nav.CostFormRoute
 import io.github.sudomegas.tritium.ui.nav.CostsRoute
 import io.github.sudomegas.tritium.ui.nav.FuelFormRoute
@@ -68,6 +69,9 @@ fun TritiumApp(app: TritiumApplication) {
     val serviceViewModel: ServiceViewModel = viewModel(factory = ServiceViewModel.factory(app))
     val error by settingsViewModel.error.collectAsStateWithLifecycle()
     val config by settingsViewModel.config.collectAsStateWithLifecycle()
+    val unitFormat = remember(config.distanceUnit, config.volumeUnit, config.consumptionUnit, config.decimalsConsumption) {
+        UnitFormat(config.distanceUnit, config.volumeUnit, config.consumptionUnit, config.decimalsConsumption)
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -127,6 +131,7 @@ fun TritiumApp(app: TritiumApplication) {
                 HomeScreen(
                     viewModel = homeViewModel,
                     currency = config.currency,
+                    unitFormat = unitFormat,
                     onAddVehicle = { navController.navigate(VehicleFormRoute()) },
                     onEditVehicle = { slug -> navController.navigate(VehicleFormRoute(slug)) },
                 )
@@ -137,6 +142,7 @@ fun TritiumApp(app: TritiumApplication) {
                 VehicleFormScreen(
                     viewModel = homeViewModel,
                     slug = route.slug,
+                    unitFormat = unitFormat,
                     onSaved = { navController.popBackStack() },
                 )
             }
@@ -144,6 +150,7 @@ fun TritiumApp(app: TritiumApplication) {
                 FuelScreen(
                     viewModel = fuelViewModel,
                     currency = config.currency,
+                    unitFormat = unitFormat,
                     onQuickAdd = { navController.navigate(FuelQuickAddRoute) },
                     onFullAdd = { navController.navigate(FuelFormRoute()) },
                     onEditEntry = { entryId -> navController.navigate(FuelFormRoute(entryId)) },
@@ -153,6 +160,7 @@ fun TritiumApp(app: TritiumApplication) {
                 FuelQuickAddScreen(
                     viewModel = fuelViewModel,
                     currency = config.currency,
+                    unitFormat = unitFormat,
                     onSaved = { navController.popBackStack() },
                 )
             }
@@ -162,6 +170,7 @@ fun TritiumApp(app: TritiumApplication) {
                     viewModel = fuelViewModel,
                     entryId = route.entryId,
                     currency = config.currency,
+                    unitFormat = unitFormat,
                     onSaved = { navController.popBackStack() },
                 )
             }
@@ -186,6 +195,7 @@ fun TritiumApp(app: TritiumApplication) {
                 ServiceScreen(
                     viewModel = serviceViewModel,
                     currency = config.currency,
+                    unitFormat = unitFormat,
                     onAddService = { navController.navigate(ServiceFormRoute()) },
                     onEditEntry = { entryId -> navController.navigate(ServiceFormRoute(entryId)) },
                 )
@@ -196,6 +206,7 @@ fun TritiumApp(app: TritiumApplication) {
                     viewModel = serviceViewModel,
                     entryId = route.entryId,
                     currency = config.currency,
+                    unitFormat = unitFormat,
                     onSaved = { navController.popBackStack() },
                 )
             }

@@ -86,7 +86,7 @@ class FuelFlowTest {
         composeRule.onNodeWithText("Save").performClick()
         composeRule.waitForIdle()
 
-        composeRule.onAllNodesWithText("10000 km").assertCountEquals(1)
+        composeRule.onAllNodesWithText("10.000 km").assertCountEquals(1)
         composeRule.onAllNodesWithText("l/100km", substring = true).assertCountEquals(0)
 
         // Second fill-up, a later full tank — now a consumption figure exists,
@@ -99,12 +99,12 @@ class FuelFlowTest {
         composeRule.onNodeWithText("Save").performClick()
         composeRule.waitForIdle()
 
-        composeRule.onAllNodesWithText("10500 km").assertCountEquals(1)
+        composeRule.onAllNodesWithText("10.500 km").assertCountEquals(1)
         composeRule.onAllNodesWithText("l/100km", substring = true).assertCountEquals(1)
 
         // The full form edits the second entry in place — tapping its row
         // opens it pre-filled, and a changed litres figure is what comes back.
-        composeRule.onNodeWithText("10500 km").performClick()
+        composeRule.onNodeWithText("10.500 km").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("fuelFormLitres").performTextClearance()
         composeRule.onNodeWithTag("fuelFormLitres").performTextInput("55")

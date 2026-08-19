@@ -46,7 +46,8 @@ class SummaryAndDeletionTest {
                 val repository = VehicleRepository(paths)
                 val slug = repository.uniqueSlugForNewVehicle("Test Car")
                 repository.saveVehicleRecord(slug, VehicleDocument(1, Vehicle(name = "Test Car"), emptyMap()))
-                // Two full tanks — one consumption interval, 7,000 l/100km.
+                // Two full tanks — one consumption interval, 7 l/100km, shown
+                // at AF9's default 2-decimal precision.
                 repository.addFuelEntry(slug) { id ->
                     FuelEntry(id, date = "2026-08-01", odometerKm = 10000, litres = 40_000, pricePerLitre = 45_000, fullTank = true)
                 }
@@ -71,7 +72,7 @@ class SummaryAndDeletionTest {
         // Home's summary block reflects the seeded entries, not "—" for a
         // figure that has something to compute from (AF7.md §4 criterion 7).
         // Average and last consumption are the same figure — one interval.
-        composeRule.onAllNodesWithText("7,000 l/100km").assertCountEquals(2)
+        composeRule.onAllNodesWithText("7,00 l/100km").assertCountEquals(2)
         // Lifetime spend: fuel 1.800,00 + 1.575,00, service 500,00.
         composeRule.onAllNodesWithText("3.875,00 ₺").assertCountEquals(1)
 

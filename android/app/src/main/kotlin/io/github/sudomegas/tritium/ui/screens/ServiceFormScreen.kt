@@ -27,6 +27,7 @@ import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.storage.FuelDraft
 import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.ServiceEntry
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.ServiceViewModel
 
 /**
@@ -40,7 +41,13 @@ import io.github.sudomegas.tritium.ui.ServiceViewModel
  * below says so, ported verbatim from the desktop's own `service.vendorHint`.
  */
 @Composable
-fun ServiceFormScreen(viewModel: ServiceViewModel, entryId: String?, currency: String?, onSaved: () -> Unit) {
+fun ServiceFormScreen(
+    viewModel: ServiceViewModel,
+    entryId: String?,
+    currency: String?,
+    unitFormat: UnitFormat,
+    onSaved: () -> Unit,
+) {
     val initial = remember(entryId) { entryId?.let { viewModel.entry(it) } ?: ServiceEntry(id = "") }
     val previousOdometer = remember { viewModel.previousOdometer() }
 
@@ -49,12 +56,12 @@ fun ServiceFormScreen(viewModel: ServiceViewModel, entryId: String?, currency: S
     }
     var part by rememberSaveable { mutableStateOf(initial.part) }
     var odometerText by rememberSaveable {
-        mutableStateOf(if (initial.odometerKm == 0) "" else initial.odometerKm.toString())
+        mutableStateOf(if (initial.odometerKm == 0) "" else unitFormat.distanceInput(initial.odometerKm))
     }
     var amountText by rememberSaveable { mutableStateOf(Format.toInput(initial.amount, Scaled.MONEY_DECIMALS)) }
     var vendor by rememberSaveable { mutableStateOf(initial.vendor) }
 
-    val odometer = odometerText.toIntOrNull()
+    val odometer = unitFormat.parseDistance(odometerText)
     val backwards = odometer != null && FuelDraft.goesBackwards(odometer, previousOdometer)
     val amount = Format.parseInput(amountText, Scaled.MONEY_DECIMALS)
     val canSave = amount != null && amount > 0
@@ -85,17 +92,29 @@ fun ServiceFormScreen(viewModel: ServiceViewModel, entryId: String?, currency: S
         )
 
         if (previousOdometer != null) {
-            Text(stringResource(R.string.fuel_previous_odometer, previousOdometer.toString()))
+            Text(
+                stringResource(
+                    R.string.fuel_previous_odometer,
+                    unitFormat.distance(previousOdometer),
+                    unitFormat.distanceSymbol,
+                ),
+            )
         }
         OutlinedTextField(
             value = odometerText,
             onValueChange = { odometerText = it },
-            label = { Text(stringResource(R.string.service_field_odometer)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            label = { Text("${stringResource(R.string.service_field_odometer)} (${unitFormat.distanceSymbol})") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth().testTag("serviceOdometer"),
         )
-        if (backwards) {
-            Text(stringResource(R.string.fuel_backwards, previousOdometer.toString()))
+        if (backwards && previousOdometer != null) {
+            Text(
+                stringResource(
+                    R.string.fuel_backwards,
+                    unitFormat.distance(previousOdometer),
+                    unitFormat.distanceSymbol,
+                ),
+            )
         }
 
         OutlinedTextField(

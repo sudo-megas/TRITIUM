@@ -30,10 +30,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.sudomegas.tritium.R
-import io.github.sudomegas.tritium.storage.Consumption
 import io.github.sudomegas.tritium.storage.Format
-import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.Summary
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.storage.Vehicle
 import io.github.sudomegas.tritium.ui.HomeSummary
 import io.github.sudomegas.tritium.ui.HomeViewModel
@@ -51,6 +50,7 @@ import io.github.sudomegas.tritium.ui.HomeViewModel
 fun HomeScreen(
     viewModel: HomeViewModel,
     currency: String?,
+    unitFormat: UnitFormat,
     onAddVehicle: () -> Unit,
     onEditVehicle: (String) -> Unit,
 ) {
@@ -107,7 +107,7 @@ fun HomeScreen(
         if (vehicle != null && slug != null) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 VehicleSummary(vehicle = vehicle!!, onEdit = { onEditVehicle(slug) })
-                if (summary != null) SummaryBlock(summary = summary!!, currency = currency)
+                if (summary != null) SummaryBlock(summary = summary!!, currency = currency, unitFormat = unitFormat)
             }
         } else {
             EmptyHome()
@@ -142,32 +142,33 @@ private fun SummaryRow(label: String, value: String) {
  * missing period.
  */
 @Composable
-private fun SummaryBlock(summary: HomeSummary, currency: String?) {
+private fun SummaryBlock(summary: HomeSummary, currency: String?, unitFormat: UnitFormat) {
     val nothing = stringResource(R.string.home_summary_nothing)
-    val suffix = stringResource(R.string.fuel_consumption)
 
     Column(modifier = Modifier.padding(horizontal = 24.dp)) {
         Text(stringResource(R.string.home_summary_lifetime), style = MaterialTheme.typography.titleMedium)
         SummaryRow(
             stringResource(R.string.home_summary_average_consumption),
-            summary.averageConsumption?.let { "${Format.formatFigure(it, Consumption.CONSUMPTION_DECIMALS)} $suffix" }
+            summary.averageConsumption?.let { unitFormat.consumption(it) }
+                ?.let { "$it ${unitFormat.consumptionSymbol}" }
                 ?: nothing,
         )
         SummaryRow(
             stringResource(R.string.home_summary_last_consumption),
-            summary.lastConsumption?.let { "${Format.formatFigure(it, Consumption.CONSUMPTION_DECIMALS)} $suffix" }
+            summary.lastConsumption?.let { unitFormat.consumption(it) }
+                ?.let { "$it ${unitFormat.consumptionSymbol}" }
                 ?: nothing,
         )
         SummaryRow(
             stringResource(R.string.home_summary_last_price),
             summary.lastPrice?.let {
-                "${Format.formatPricePerLitreText(it.price, currency ?: "")} · ${Format.formatDate(it.date)}"
+                "${unitFormat.pricePerVolumeText(it.price, currency ?: "")} · ${Format.formatDate(it.date)}"
             } ?: nothing,
         )
-        SummaryRow(stringResource(R.string.home_summary_total_distance), "${summary.lifetimeDistance} km")
+        SummaryRow(stringResource(R.string.home_summary_total_distance), unitFormat.distanceWith(summary.lifetimeDistance))
         SummaryRow(
             stringResource(R.string.home_summary_total_litres),
-            "${Format.formatFigure(summary.lifetimeLitres, Scaled.PUMP_DECIMALS)} l",
+            unitFormat.volumeWith(summary.lifetimeLitres),
         )
         SummaryRow(
             stringResource(R.string.home_summary_total_spend),

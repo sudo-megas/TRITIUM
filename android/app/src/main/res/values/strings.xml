@@ -59,11 +59,27 @@
     <string name="export_success">Exported. Bring the file to the desktop and import it there.</string>
     <string name="export_failure">Not exported. Nothing was written.</string>
 
-    <!-- Settings — AF1 ships the language switch only. -->
+    <!-- Settings — AF1 ships the language switch, AF9 the rest. -->
     <string name="settings_title">Settings</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_en">English</string>
     <string name="settings_language_tr">Türkçe</string>
+
+    <!-- Units and appearance — AF9. Unit SYMBOLS (km, mi, l, gal, l/100km,
+         km/l, mpg) are not catalogue entries (units.ts's own rule: notation,
+         like ₺ and like the digits themselves) — only the labels here are
+         translated. -->
+    <string name="settings_units_title">Units</string>
+    <string name="settings_units_distance">Distance</string>
+    <string name="settings_units_volume">Volume</string>
+    <string name="settings_units_consumption">Consumption</string>
+    <string name="settings_units_decimals">Consumption precision</string>
+    <string name="settings_appearance_title">Appearance</string>
+    <string name="settings_appearance_theme">Theme</string>
+    <string name="settings_appearance_theme_system">System</string>
+    <string name="settings_appearance_theme_light">Light</string>
+    <string name="settings_appearance_theme_dark">Dark</string>
+    <string name="settings_appearance_dynamic_color">Use wallpaper colours (Android 12+)</string>
 
     <!-- About — XTRITIUM §10, unchanged by platform: the mark, the maker,
          version, source address, licence. "Released" is deliberately absent —
@@ -117,12 +133,11 @@
     <string name="fuel_save">Save</string>
     <string name="fuel_edit">Edit</string>
     <string name="fuel_total">Total</string>
-    <string name="fuel_consumption">l/100km</string>
     <string name="fuel_full">Full</string>
     <string name="fuel_partial">Partial</string>
     <string name="fuel_empty">No fill-ups yet.</string>
-    <string name="fuel_previous_odometer">Previous: %1$s km</string>
-    <string name="fuel_backwards">This reading is lower than the previous one (%1$s km). It will be saved as typed.</string>
+    <string name="fuel_previous_odometer">Previous: %1$s %2$s</string>
+    <string name="fuel_backwards">This reading is lower than the previous one (%1$s %2$s). It will be saved as typed.</string>
     <string name="fuel_quick_defaults">Filed on %1$s, as a full tank, %2$s. All of it editable in the full form.</string>
     <string name="fuel_field_date">Date</string>
     <string name="fuel_field_odometer">Odometer</string>

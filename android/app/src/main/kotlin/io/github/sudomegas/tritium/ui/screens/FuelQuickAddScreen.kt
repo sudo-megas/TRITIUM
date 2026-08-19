@@ -25,6 +25,7 @@ import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.storage.FuelDraft
 import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.Scaled
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.FuelViewModel
 
 /**
@@ -35,7 +36,7 @@ import io.github.sudomegas.tritium.ui.FuelViewModel
  * quietly wrong (§5.2). Add-only: this screen never edits.
  */
 @Composable
-fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, onSaved: () -> Unit) {
+fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, unitFormat: UnitFormat, onSaved: () -> Unit) {
     val previousOdometer = remember { viewModel.previousOdometer() }
     val defaults = remember { FuelDraft.quickAddDefaults(viewModel.activeVehicleFuelSpec()) }
 
@@ -43,9 +44,9 @@ fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, onSaved: () 
     var litresText by rememberSaveable { mutableStateOf("") }
     var priceText by rememberSaveable { mutableStateOf("") }
 
-    val odometer = odometerText.toIntOrNull()
-    val litres = Format.parseInput(litresText, Scaled.PUMP_DECIMALS)
-    val price = Format.parseInput(priceText, Scaled.PUMP_DECIMALS)
+    val odometer = unitFormat.parseDistance(odometerText)
+    val litres = unitFormat.parseVolume(litresText)
+    val price = unitFormat.parsePricePerVolume(priceText)
     val backwards = odometer != null && FuelDraft.goesBackwards(odometer, previousOdometer)
     val total = if (litres != null && price != null) Scaled.fuelTotal(litres, price) else null
 
@@ -58,31 +59,43 @@ fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, onSaved: () 
         Text(stringResource(R.string.fuel_quick_title), style = MaterialTheme.typography.headlineSmall)
 
         if (previousOdometer != null) {
-            Text(stringResource(R.string.fuel_previous_odometer, previousOdometer.toString()))
+            Text(
+                stringResource(
+                    R.string.fuel_previous_odometer,
+                    unitFormat.distance(previousOdometer),
+                    unitFormat.distanceSymbol,
+                ),
+            )
         }
 
         OutlinedTextField(
             value = odometerText,
             onValueChange = { odometerText = it },
-            label = { Text(stringResource(R.string.fuel_field_odometer)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            label = { Text("${stringResource(R.string.fuel_field_odometer)} (${unitFormat.distanceSymbol})") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth().testTag("fuelQuickOdometer"),
         )
-        if (backwards) {
-            Text(stringResource(R.string.fuel_backwards, previousOdometer.toString()))
+        if (backwards && previousOdometer != null) {
+            Text(
+                stringResource(
+                    R.string.fuel_backwards,
+                    unitFormat.distance(previousOdometer),
+                    unitFormat.distanceSymbol,
+                ),
+            )
         }
 
         OutlinedTextField(
             value = litresText,
             onValueChange = { litresText = it },
-            label = { Text(stringResource(R.string.fuel_field_litres)) },
+            label = { Text("${stringResource(R.string.fuel_field_litres)} (${unitFormat.volumeSymbol})") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth().testTag("fuelQuickLitres"),
         )
         OutlinedTextField(
             value = priceText,
             onValueChange = { priceText = it },
-            label = { Text(stringResource(R.string.fuel_field_price_per_litre)) },
+            label = { Text("${stringResource(R.string.fuel_field_price_per_litre)} (${unitFormat.volumeSymbol})") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth().testTag("fuelQuickPrice"),
         )

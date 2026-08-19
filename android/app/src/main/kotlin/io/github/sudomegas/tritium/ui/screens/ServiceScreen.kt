@@ -29,6 +29,7 @@ import io.github.sudomegas.tritium.storage.CustomRange
 import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.storage.RangeKey
 import io.github.sudomegas.tritium.storage.ServiceEntry
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.storage.boundsFor
 import io.github.sudomegas.tritium.storage.filterByBounds
 import io.github.sudomegas.tritium.ui.ServiceViewModel
@@ -49,6 +50,7 @@ import io.github.sudomegas.tritium.ui.ServiceViewModel
 fun ServiceScreen(
     viewModel: ServiceViewModel,
     currency: String?,
+    unitFormat: UnitFormat,
     onAddService: () -> Unit,
     onEditEntry: (String) -> Unit,
 ) {
@@ -112,6 +114,7 @@ fun ServiceScreen(
                     ServiceRow(
                         entry = entry,
                         currency = currency,
+                        unitFormat = unitFormat,
                         confirming = confirmingId == entry.id,
                         onClick = { confirmingId = null; onEditEntry(entry.id) },
                         onDeleteTap = { confirmingId = entry.id },
@@ -132,6 +135,7 @@ fun ServiceScreen(
 private fun ServiceRow(
     entry: ServiceEntry,
     currency: String?,
+    unitFormat: UnitFormat,
     confirming: Boolean,
     onClick: () -> Unit,
     onDeleteTap: () -> Unit,
@@ -151,7 +155,7 @@ private fun ServiceRow(
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("${entry.odometerKm} km", style = MaterialTheme.typography.bodySmall)
+            Text(unitFormat.distanceWith(entry.odometerKm), style = MaterialTheme.typography.bodySmall)
             Text(Format.formatMoneyText(entry.amount, currency ?: ""), style = MaterialTheme.typography.bodySmall)
             if (entry.vendor.isNotEmpty()) {
                 Text(entry.vendor, style = MaterialTheme.typography.bodySmall)

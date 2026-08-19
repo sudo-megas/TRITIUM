@@ -31,6 +31,7 @@ import io.github.sudomegas.tritium.storage.Format
 import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.RangeKey
 import io.github.sudomegas.tritium.storage.Scaled
+import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.storage.boundsFor
 import io.github.sudomegas.tritium.storage.filterByBounds
 import io.github.sudomegas.tritium.ui.FuelViewModel
@@ -48,6 +49,7 @@ import io.github.sudomegas.tritium.ui.FuelViewModel
 fun FuelScreen(
     viewModel: FuelViewModel,
     currency: String?,
+    unitFormat: UnitFormat,
     onQuickAdd: () -> Unit,
     onFullAdd: () -> Unit,
     onEditEntry: (String) -> Unit,
@@ -121,6 +123,7 @@ fun FuelScreen(
                         entry = entry,
                         consumption = consumption[entry.id],
                         currency = currency,
+                        unitFormat = unitFormat,
                         confirming = confirmingId == entry.id,
                         onClick = { confirmingId = null; onEditEntry(entry.id) },
                         onDeleteTap = { confirmingId = entry.id },
@@ -142,6 +145,7 @@ private fun FuelRow(
     entry: FuelEntry,
     consumption: Consumption.ConsumptionPoint?,
     currency: String?,
+    unitFormat: UnitFormat,
     confirming: Boolean,
     onClick: () -> Unit,
     onDeleteTap: () -> Unit,
@@ -156,29 +160,26 @@ private fun FuelRow(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(Format.formatDate(entry.date), style = MaterialTheme.typography.bodyMedium)
-            Text("${entry.odometerKm} km", style = MaterialTheme.typography.bodyMedium)
+            Text(unitFormat.distanceWith(entry.odometerKm), style = MaterialTheme.typography.bodyMedium)
             Text(
                 stringResource(if (entry.fullTank) R.string.fuel_full else R.string.fuel_partial),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(unitFormat.volumeWith(entry.litres), style = MaterialTheme.typography.bodySmall)
             Text(
-                Format.formatFigure(entry.litres, Scaled.PUMP_DECIMALS) + " l",
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Text(
-                Format.formatPricePerLitreText(entry.pricePerLitre, currency ?: ""),
+                unitFormat.pricePerVolumeText(entry.pricePerLitre, currency ?: ""),
                 style = MaterialTheme.typography.bodySmall,
             )
             Text(
                 Format.formatMoneyText(Scaled.fuelTotal(entry.litres, entry.pricePerLitre), currency ?: ""),
                 style = MaterialTheme.typography.bodySmall,
             )
-            if (consumption != null) {
+            val consumptionText = consumption?.let { unitFormat.consumption(it.l100km) }
+            if (consumptionText != null) {
                 Text(
-                    Format.formatFigure(consumption.l100km, Consumption.CONSUMPTION_DECIMALS) + " " +
-                        stringResource(R.string.fuel_consumption),
+                    "$consumptionText ${unitFormat.consumptionSymbol}",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }

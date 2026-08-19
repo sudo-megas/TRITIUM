@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.sudomegas.tritium.ui.TritiumApp
 import io.github.sudomegas.tritium.ui.theme.TritiumTheme
 
@@ -28,7 +30,8 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             val app = application as TritiumApplication
-            TritiumTheme {
+            val config by app.configState.config.collectAsStateWithLifecycle()
+            TritiumTheme(themeMode = config.themeMode, dynamicColor = config.dynamicColor) {
                 TritiumApp(app = app)
             }
         }

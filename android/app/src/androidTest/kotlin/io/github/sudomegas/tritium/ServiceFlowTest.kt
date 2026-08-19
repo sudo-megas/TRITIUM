@@ -84,7 +84,7 @@ class ServiceFlowTest {
             composeRule.onAllNodesWithText("Add service record").fetchSemanticsNodes().size == 1
         }
 
-        composeRule.onAllNodesWithText("19764 km").assertCountEquals(1)
+        composeRule.onAllNodesWithText("19.764 km").assertCountEquals(1)
         composeRule.onAllNodesWithText("https://www.lastikcim.com.tr/lastik/").assertCountEquals(1)
 
         // The maker's own fourth row: no part, no vendor, amount alone —
@@ -102,9 +102,9 @@ class ServiceFlowTest {
             composeRule.onAllNodesWithText("Add service record").fetchSemanticsNodes().size == 1
         }
 
-        composeRule.onAllNodesWithText("15100 km").assertCountEquals(1)
+        composeRule.onAllNodesWithText("15.100 km").assertCountEquals(1)
 
         // The first entry is untouched by the second save.
-        composeRule.onAllNodesWithText("19764 km").assertCountEquals(1)
+        composeRule.onAllNodesWithText("19.764 km").assertCountEquals(1)
     }
 }

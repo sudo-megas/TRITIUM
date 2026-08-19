@@ -1,6 +1,7 @@
 package io.github.sudomegas.tritium.config
 
 import dev.eav.tomlkt.Toml
+import io.github.sudomegas.tritium.storage.Units
 import io.github.sudomegas.tritium.storage.writeAtomically
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -33,9 +34,13 @@ data class ConfigLoad(
  * amended for AF1, describes the phone's copy as "TOML, parsed the same way"
  * as the desktop's, and a settings file with a different shape for the one
  * key both platforms already agree on would make that sentence false. The
- * sections the desktop's settings.toml also carries — `[units]`, `[format]`,
- * `[appearance]` — are absent here because AF1 has nothing to put in them,
- * not because the shape has diverged.
+ * `[units]` and `[format]` arrive with AF9, keyed exactly as the desktop's
+ * own `settings-file.ts` keys them (`distance`/`volume`/`consumption`,
+ * `decimals_consumption`) — minus `decimals_cost_per_km`, which AF9.md §1
+ * records has no Android feature to read it. `[appearance]` arrives too, but
+ * diverges on purpose: `theme_mode`/`dynamic_color`, not `palette` — AF6b.md
+ * §1's own answer for what this setting means once native Material 3 is the
+ * premise.
  */
 class ConfigStore(root: File) {
 
@@ -60,9 +65,30 @@ class ConfigStore(root: File) {
     )
 
     @Serializable
+    private data class UnitsSection(
+        val distance: String? = null,
+        val volume: String? = null,
+        val consumption: String? = null,
+    )
+
+    @Serializable
+    private data class FormatSection(
+        val decimals_consumption: Int? = null,
+    )
+
+    @Serializable
+    private data class AppearanceSection(
+        val theme_mode: String? = null,
+        val dynamic_color: Boolean? = null,
+    )
+
+    @Serializable
     private data class SettingsDto(
         val schema_version: Int = SCHEMA_VERSION,
         val general: GeneralSection? = null,
+        val units: UnitsSection? = null,
+        val format: FormatSection? = null,
+        val appearance: AppearanceSection? = null,
     )
 
     fun load(): ConfigLoad {
@@ -87,6 +113,16 @@ class ConfigStore(root: File) {
                 currency = config.currency,
                 active_vehicle = config.activeVehicleSlug,
             ),
+            units = UnitsSection(
+                distance = config.distanceUnit.token,
+                volume = config.volumeUnit.token,
+                consumption = config.consumptionUnit.token,
+            ),
+            format = FormatSection(decimals_consumption = config.decimalsConsumption),
+            appearance = AppearanceSection(
+                theme_mode = config.themeMode.token,
+                dynamic_color = config.dynamicColor,
+            ),
         )
         writeAtomically(file, toml.encodeToString(dto))
     }
@@ -105,8 +141,22 @@ class ConfigStore(root: File) {
             // there for the picker to find.
             currency = dto.general?.currency,
             activeVehicleSlug = dto.general?.active_vehicle,
+            // An unrecognised or missing token falls back to the metric
+            // default (AF9.md §4 acceptance criterion 6) — Units.*Of mirrors
+            // the desktop's own isDistanceUnit/isVolumeUnit/isConsumptionUnit
+            // type guards, which do the same rather than raising.
+            distanceUnit = Units.distanceUnitOf(dto.units?.distance),
+            volumeUnit = Units.volumeUnitOf(dto.units?.volume),
+            consumptionUnit = Units.consumptionUnitOf(dto.units?.consumption),
+            decimalsConsumption = validDecimals(dto.format?.decimals_consumption),
+            themeMode = ThemeMode.of(dto.appearance?.theme_mode),
+            dynamicColor = dto.appearance?.dynamic_color ?: true,
         )
     }
+
+    /** A small non-negative integer, or the default — mirrors `readDecimals` (`settings.ts`). */
+    private fun validDecimals(value: Int?): Int =
+        if (value != null && value in 0..6) value else AppConfig.DEFAULT_DECIMALS_CONSUMPTION
 
     /**
      * Move a `settings.toml` this app cannot read out of the way, rather than

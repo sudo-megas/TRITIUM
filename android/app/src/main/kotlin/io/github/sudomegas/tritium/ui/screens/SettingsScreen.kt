@@ -14,13 +14,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -29,7 +32,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.sudomegas.tritium.BuildConfig
 import io.github.sudomegas.tritium.R
+import io.github.sudomegas.tritium.config.AppConfig
+import io.github.sudomegas.tritium.config.ThemeMode
 import io.github.sudomegas.tritium.storage.Format
+import io.github.sudomegas.tritium.storage.Units.CONSUMPTION_SYMBOL
+import io.github.sudomegas.tritium.storage.Units.ConsumptionUnit
+import io.github.sudomegas.tritium.storage.Units.DISTANCE_SYMBOL
+import io.github.sudomegas.tritium.storage.Units.DistanceUnit
+import io.github.sudomegas.tritium.storage.Units.VOLUME_SYMBOL
+import io.github.sudomegas.tritium.storage.Units.VolumeUnit
 import io.github.sudomegas.tritium.ui.SettingsViewModel
 
 /**
@@ -60,6 +71,14 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             modifier = Modifier.padding(top = 24.dp),
         )
         LanguageSwitch(current = config.language, onSelect = viewModel::setLanguage)
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
+
+        UnitsSection(config = config, viewModel = viewModel)
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
+
+        AppearanceSection(config = config, viewModel = viewModel)
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
 
@@ -111,6 +130,142 @@ private fun ExportSection(viewModel: SettingsViewModel) {
     }
     status?.let {
         Text(text = it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+/**
+ * The unit boundary's own settings surface (AF9.md §2) — three pickers and
+ * a precision stepper. Options render as their raw symbol (`km`, `l`,
+ * `l/100km`…), never a translated label: `Units.kt`'s own rule, ported from
+ * `units.ts`, is that a symbol is notation, not prose.
+ */
+@Composable
+private fun UnitsSection(config: AppConfig, viewModel: SettingsViewModel) {
+    Text(
+        text = stringResource(id = R.string.settings_units_title),
+        style = MaterialTheme.typography.titleMedium,
+    )
+
+    UnitRow(
+        label = stringResource(id = R.string.settings_units_distance),
+        options = DistanceUnit.entries,
+        selected = config.distanceUnit,
+        symbol = { DISTANCE_SYMBOL.getValue(it) },
+        onSelect = viewModel::setDistanceUnit,
+        testTagPrefix = "distanceUnit",
+    )
+    UnitRow(
+        label = stringResource(id = R.string.settings_units_volume),
+        options = VolumeUnit.entries,
+        selected = config.volumeUnit,
+        symbol = { VOLUME_SYMBOL.getValue(it) },
+        onSelect = viewModel::setVolumeUnit,
+        testTagPrefix = "volumeUnit",
+    )
+    UnitRow(
+        label = stringResource(id = R.string.settings_units_consumption),
+        options = ConsumptionUnit.entries,
+        selected = config.consumptionUnit,
+        symbol = { CONSUMPTION_SYMBOL.getValue(it) },
+        onSelect = viewModel::setConsumptionUnit,
+        testTagPrefix = "consumptionUnit",
+    )
+
+    Text(
+        text = stringResource(id = R.string.settings_units_decimals),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp),
+    )
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+        TextButton(
+            onClick = { viewModel.setDecimalsConsumption(config.decimalsConsumption - 1) },
+            enabled = config.decimalsConsumption > 0,
+        ) { Text("−") }
+        Text(
+            text = config.decimalsConsumption.toString(),
+            modifier = Modifier.padding(horizontal = 16.dp).testTag("decimalsConsumptionValue"),
+        )
+        TextButton(
+            onClick = { viewModel.setDecimalsConsumption(config.decimalsConsumption + 1) },
+            enabled = config.decimalsConsumption < 6,
+        ) { Text("+") }
+    }
+}
+
+@Composable
+private fun <T> UnitRow(
+    label: String,
+    options: List<T>,
+    selected: T,
+    symbol: (T) -> String,
+    onSelect: (T) -> Unit,
+    testTagPrefix: String,
+) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+    Row(modifier = Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { option ->
+            FilterChip(
+                modifier = Modifier.testTag("$testTagPrefix${symbol(option)}"),
+                selected = option == selected,
+                onClick = { onSelect(option) },
+                label = { Text(symbol(option)) },
+            )
+        }
+    }
+}
+
+/**
+ * AF6b.md §1's own answer for what this setting means, built here (AF9.md
+ * §1): a light/dark/system toggle and a dynamic-colour switch, not a picker
+ * over the desktop's eleven palettes.
+ */
+@Composable
+private fun AppearanceSection(config: AppConfig, viewModel: SettingsViewModel) {
+    Text(
+        text = stringResource(id = R.string.settings_appearance_title),
+        style = MaterialTheme.typography.titleMedium,
+    )
+
+    Text(
+        text = stringResource(id = R.string.settings_appearance_theme),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+    Row(modifier = Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            modifier = Modifier.testTag("themeModeSystem"),
+            selected = config.themeMode == ThemeMode.SYSTEM,
+            onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
+            label = { Text(stringResource(id = R.string.settings_appearance_theme_system)) },
+        )
+        FilterChip(
+            modifier = Modifier.testTag("themeModeLight"),
+            selected = config.themeMode == ThemeMode.LIGHT,
+            onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
+            label = { Text(stringResource(id = R.string.settings_appearance_theme_light)) },
+        )
+        FilterChip(
+            modifier = Modifier.testTag("themeModeDark"),
+            selected = config.themeMode == ThemeMode.DARK,
+            onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
+            label = { Text(stringResource(id = R.string.settings_appearance_theme_dark)) },
+        )
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
+        Switch(
+            modifier = Modifier.testTag("dynamicColorSwitch"),
+            checked = config.dynamicColor,
+            onCheckedChange = viewModel::setDynamicColor,
+        )
+        Text(
+            text = stringResource(id = R.string.settings_appearance_dynamic_color),
+            modifier = Modifier.padding(start = 8.dp),
+        )
     }
 }
 

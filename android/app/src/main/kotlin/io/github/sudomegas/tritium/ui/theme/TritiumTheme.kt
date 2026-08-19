@@ -9,22 +9,34 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import io.github.sudomegas.tritium.config.ThemeMode
 
 /**
  * Native Material 3 (AF6b.md §1) — the fork AF1.md §2.1 decision 7 deferred,
- * closed by the maker rather than inferred. Dynamic/tonal colour where the
- * platform offers it (API 31+); the M3 baseline scheme, unbranded, below
- * that — minSdk 26 reaches five versions further back than dynamic colour
- * does. No custom seed colour: the fork just closed was "native," not
- * "native, but branded."
+ * closed by the maker rather than inferred. [themeMode] and [dynamicColor]
+ * are AF9's own answer to AF6b.md's recorded question — "a light/dark/system
+ * toggle, and whether to allow dynamic colour" — not a picker over the
+ * desktop's eleven palettes. No custom seed colour where dynamic colour is
+ * off or unavailable: the fork just closed was "native," not "native, but
+ * branded."
  */
 @Composable
-fun TritiumTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
+fun TritiumTheme(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    val systemDark = isSystemInDarkTheme()
+    val dark = when (themeMode) {
+        ThemeMode.SYSTEM -> systemDark
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
     val context = LocalContext.current
+    val dynamicAvailable = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val scheme = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && dark -> dynamicDarkColorScheme(context)
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(context)
+        dynamicAvailable && dark -> dynamicDarkColorScheme(context)
+        dynamicAvailable -> dynamicLightColorScheme(context)
         dark -> darkColorScheme()
         else -> lightColorScheme()
     }
