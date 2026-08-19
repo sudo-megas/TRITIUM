@@ -1,8 +1,9 @@
 package io.github.sudomegas.tritium
 
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -34,8 +35,10 @@ class ShellLanguageSwitchTest {
 
     @Test
     fun switchingToTurkishFlipsTheSettingsHeadingInstantly() {
-        // English by default — XTRITIUM §3 principle 6.
-        composeRule.onNodeWithTag("settingsHeading").assertDoesNotExist()
+        // English by default — XTRITIUM §3 principle 6. Not yet on Settings,
+        // so no node carries this tag at all — assertCountEquals(0) rather
+        // than assertDoesNotExist(), which this Compose BOM does not resolve.
+        composeRule.onAllNodesWithTag("settingsHeading").assertCountEquals(0)
 
         composeRule.onNodeWithTag("nav_settings").performClick()
         composeRule.onNodeWithTag("settingsHeading").assertTextEquals("Settings")
