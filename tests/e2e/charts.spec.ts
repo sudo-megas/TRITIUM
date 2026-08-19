@@ -199,7 +199,7 @@ test('a palette switch re-colours the charts', async () => {
   const before = await canvasData(shell, 'monthlyCosts')
 
   await shell.getByTestId('tab-settings').click()
-  await shell.getByTestId('palette-select').selectOption('catppuccin-latte')
+  await shell.getByTestId('swatch-catppuccin-latte').click()
   await shell.getByTestId('tab-charts').click()
   await expect(shell.getByTestId('chart-monthlyCosts-canvas')).toBeVisible()
 

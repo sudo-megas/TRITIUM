@@ -49,7 +49,7 @@ test('no request ever leaves the app', async () => {
   })
 
   await page.getByTestId('tab-settings').click()
-  await page.getByTestId('palette-select').selectOption('aubergine')
+  await page.getByTestId('swatch-aubergine').click()
   await page.getByTestId('tab-about').click()
   await page.waitForTimeout(500)
 

@@ -91,7 +91,7 @@ test('the shell paints the stored palette on its first frame', async () => {
   // which the defaults could show (XTRITIUM §3.2 — straight into the data).
   const page = await app.firstWindow()
   await page.getByTestId('tab-settings').click()
-  await page.getByTestId('palette-select').selectOption('nord')
+  await page.getByTestId('swatch-nord').click()
   await waitForSettings('palette = "nord"')
 
   app = await relaunch()
@@ -223,7 +223,7 @@ test('the palette switch changes a computed custom property and persists', async
     )
 
   const before = await readAccent()
-  await page.getByTestId('palette-select').selectOption('aubergine')
+  await page.getByTestId('swatch-aubergine').click()
   const after = await readAccent()
 
   expect(after).not.toBe(before)
@@ -290,7 +290,7 @@ test('the window refuses to shrink below 1280 x 720', async () => {
 test('settings.toml is valid TOML and carries schema_version', async () => {
   const page = await app.firstWindow()
   await page.getByTestId('tab-settings').click()
-  await page.getByTestId('palette-select').selectOption('catppuccin-latte')
+  await page.getByTestId('swatch-catppuccin-latte').click()
 
   await waitForSettings('palette = "catppuccin-latte"')
 
@@ -313,7 +313,7 @@ test('all eleven palettes resolve a complete token set, and none repeats another
   const seen = new Map<string, string>()
 
   for (const id of PALETTES) {
-    await page.getByTestId('palette-select').selectOption(id)
+    await page.getByTestId(`swatch-${id}`).click()
 
     await expect(async () => {
       const attribute = await page.evaluate(() => document.documentElement.dataset['palette'] ?? '')
@@ -372,7 +372,7 @@ test('a form opened before the palette changed follows it anyway', async () => {
 
   // Now change it in the shell, with the form already open and untouched.
   await shell.getByTestId('tab-settings').click()
-  await shell.getByTestId('palette-select').selectOption('aubergine')
+  await shell.getByTestId('swatch-aubergine').click()
 
   await expect(async () => {
     expect(await accentOf(form)).not.toBe(before)
