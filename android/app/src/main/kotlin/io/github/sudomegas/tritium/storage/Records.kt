@@ -88,7 +88,7 @@ data class Vehicle(
 
 /** `fuel.toml` — one `[[entry]]` per fill-up. */
 data class FuelEntry(
-    val id: String,
+    override val id: String,
     val date: String = "",
     val odometerKm: Int = 0,
     /** scaled ×1000 */
@@ -102,7 +102,7 @@ data class FuelEntry(
 
 /** `costs.toml` — İLK ALIŞ, TEKRAR EDEN (except Periyodik Bakım), and manual entries. */
 data class CostEntry(
-    val id: String,
+    override val id: String,
     val date: String = "",
     val group: CostGroup = CostGroup.MANUAL,
     val category: String = "",
@@ -120,7 +120,7 @@ data class CostEntry(
 
 /** `service.toml` — the Periyodik Bakım sheet's shape. */
 data class ServiceEntry(
-    val id: String,
+    override val id: String,
     val date: String = "",
     val part: String = "",
     val odometerKm: Int = 0,
