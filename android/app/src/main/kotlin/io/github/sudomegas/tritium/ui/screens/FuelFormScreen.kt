@@ -1,8 +1,6 @@
 package io.github.sudomegas.tritium.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,8 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -61,7 +57,6 @@ fun FuelFormScreen(viewModel: FuelViewModel, entryId: String?, currency: String?
     var fuelType by rememberSaveable {
         mutableStateOf(initial.fuelType.ifEmpty { if (entryId == null) viewModel.activeVehicleFuelSpec() else "" })
     }
-    var fuelTypeMenuExpanded by remember { mutableStateOf(false) }
 
     val litres = Format.parseInput(litresText, Scaled.PUMP_DECIMALS)
     val price = Format.parseInput(priceText, Scaled.PUMP_DECIMALS)
@@ -111,28 +106,14 @@ fun FuelFormScreen(viewModel: FuelViewModel, entryId: String?, currency: String?
             Text("${stringResource(R.string.fuel_total)}: ${Format.formatMoneyText(total, currency ?: "")}")
         }
 
-        Box {
-            OutlinedTextField(
-                value = fuelType,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(R.string.fuel_field_fuel_type)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { fuelTypeMenuExpanded = true },
-            )
-            DropdownMenu(expanded = fuelTypeMenuExpanded, onDismissRequest = { fuelTypeMenuExpanded = false }) {
-                FUEL_TYPES.forEach { type ->
-                    DropdownMenuItem(
-                        text = { Text(type) },
-                        onClick = {
-                            fuelType = type
-                            fuelTypeMenuExpanded = false
-                        },
-                    )
-                }
-            }
-        }
+        DropdownField(
+            label = stringResource(R.string.fuel_field_fuel_type),
+            selectedText = fuelType,
+            options = FUEL_TYPES,
+            optionText = { it },
+            onSelect = { type -> fuelType = type },
+            testTag = "fuelTypeField",
+        )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = fullTank, onCheckedChange = { fullTank = it })

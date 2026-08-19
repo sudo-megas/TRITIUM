@@ -1,8 +1,6 @@
 package io.github.sudomegas.tritium.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,8 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -74,10 +70,6 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
     var instalment by rememberSaveable { mutableStateOf(initial.instalment) }
     var note by rememberSaveable { mutableStateOf(initial.note) }
 
-    var groupMenuExpanded by remember { mutableStateOf(false) }
-    var categoryMenuExpanded by remember { mutableStateOf(false) }
-    var paymentMenuExpanded by remember { mutableStateOf(false) }
-
     val amount = Format.parseInput(amountText, Scaled.MONEY_DECIMALS)
     val resolvedCategory = if (takesTypedCategory(group)) slugify(typedCategory) else pickedCategory
     val canSave = amount != null && resolvedCategory.isNotEmpty()
@@ -101,31 +93,18 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Box {
-            OutlinedTextField(
-                value = costGroupLabel(group),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(R.string.costs_field_group)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("costGroupField")
-                    .clickable { groupMenuExpanded = true },
-            )
-            DropdownMenu(expanded = groupMenuExpanded, onDismissRequest = { groupMenuExpanded = false }) {
-                CostGroup.entries.forEach { entry ->
-                    DropdownMenuItem(
-                        text = { Text(costGroupLabel(entry)) },
-                        onClick = {
-                            group = entry
-                            pickedCategory = ""
-                            typedCategory = ""
-                            groupMenuExpanded = false
-                        },
-                    )
-                }
-            }
-        }
+        DropdownField(
+            label = stringResource(R.string.costs_field_group),
+            selectedText = costGroupLabel(group),
+            options = CostGroup.entries,
+            optionText = { costGroupLabel(it) },
+            onSelect = { entry ->
+                group = entry
+                pickedCategory = ""
+                typedCategory = ""
+            },
+            testTag = "costGroupField",
+        )
 
         if (takesTypedCategory(group)) {
             OutlinedTextField(
@@ -136,29 +115,14 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
             )
             Text(stringResource(R.string.costs_typed_category_hint), style = MaterialTheme.typography.bodySmall)
         } else {
-            Box {
-                OutlinedTextField(
-                    value = if (pickedCategory.isEmpty()) "" else costCategoryLabel(pickedCategory),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.costs_field_category)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("costCategoryPicked")
-                        .clickable { categoryMenuExpanded = true },
-                )
-                DropdownMenu(expanded = categoryMenuExpanded, onDismissRequest = { categoryMenuExpanded = false }) {
-                    pickableCategories(group).forEach { token ->
-                        DropdownMenuItem(
-                            text = { Text(costCategoryLabel(token)) },
-                            onClick = {
-                                pickedCategory = token
-                                categoryMenuExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
+            DropdownField(
+                label = stringResource(R.string.costs_field_category),
+                selectedText = if (pickedCategory.isEmpty()) "" else costCategoryLabel(pickedCategory),
+                options = pickableCategories(group),
+                optionText = { costCategoryLabel(it) },
+                onSelect = { token -> pickedCategory = token },
+                testTag = "costCategoryPicked",
+            )
         }
 
         OutlinedTextField(
@@ -190,29 +154,14 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
             Text(stringResource(R.string.costs_income_hint), style = MaterialTheme.typography.bodySmall)
         }
 
-        Box {
-            OutlinedTextField(
-                value = if (paymentMethod.isEmpty()) "" else costPaymentMethodLabel(paymentMethod),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(R.string.costs_field_payment_method)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("costPaymentMethodField")
-                    .clickable { paymentMenuExpanded = true },
-            )
-            DropdownMenu(expanded = paymentMenuExpanded, onDismissRequest = { paymentMenuExpanded = false }) {
-                PAYMENT_METHODS.forEach { token ->
-                    DropdownMenuItem(
-                        text = { Text(costPaymentMethodLabel(token)) },
-                        onClick = {
-                            paymentMethod = token
-                            paymentMenuExpanded = false
-                        },
-                    )
-                }
-            }
-        }
+        DropdownField(
+            label = stringResource(R.string.costs_field_payment_method),
+            selectedText = if (paymentMethod.isEmpty()) "" else costPaymentMethodLabel(paymentMethod),
+            options = PAYMENT_METHODS,
+            optionText = { costPaymentMethodLabel(it) },
+            onSelect = { token -> paymentMethod = token },
+            testTag = "costPaymentMethodField",
+        )
 
         OutlinedTextField(
             value = bank,
