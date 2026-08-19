@@ -116,7 +116,10 @@ data class CostEntry(
     /** Plain text, no engine behind it. */
     val instalment: String = "",
     val note: String = "",
-) : HasId
+) : HasId {
+    /** The amount as it is shown, income subtracting — never what is stored (AF5.md §1.2). */
+    fun signedAmount(): Long = if (income) -amount else amount
+}
 
 /** `service.toml` — the Periyodik Bakım sheet's shape. */
 data class ServiceEntry(

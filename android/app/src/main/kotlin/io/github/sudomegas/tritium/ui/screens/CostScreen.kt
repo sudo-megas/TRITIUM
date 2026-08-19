@@ -90,7 +90,7 @@ private fun CostRow(entry: CostEntry, currency: String?, onClick: () -> Unit) {
                 Text(entry.title, style = MaterialTheme.typography.bodySmall)
             }
             Text(
-                Format.formatMoneyText(if (entry.income) -entry.amount else entry.amount, currency ?: ""),
+                Format.formatMoneyText(entry.signedAmount(), currency ?: ""),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
