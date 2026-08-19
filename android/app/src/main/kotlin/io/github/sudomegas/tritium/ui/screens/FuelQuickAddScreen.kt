@@ -92,7 +92,7 @@ fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, onSaved: () 
         }
 
         Text(
-            stringResource(R.string.fuel_quick_defaults, defaults.date, defaults.fuelType),
+            stringResource(R.string.fuel_quick_defaults, Format.formatDate(defaults.date), defaults.fuelType),
             style = MaterialTheme.typography.bodySmall,
         )
 
