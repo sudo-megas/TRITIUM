@@ -6,6 +6,26 @@
 // genuine need appears, the exemption is written here, in the open, next to the
 // rule it narrows, the way audit-colours exempts palettes.css by name.
 //
+// ONE EXEMPTION EXISTS, and it is narrower than it looks.
+//
+// XTRITIUM §7.2 grants every chart a tooltip, by name, alongside zoom and pan.
+// Where §7.2 and a milestone's implementation rule disagree, XTRITIUM wins, so
+// F8's charts have one.
+//
+// It costs this file nothing, and that is the point rather than a loophole. The
+// rules below describe the APPLICATION'S OWN CHROME — a menu over a table, a
+// dialog over a form, a popover tethered to a control — and they are written as
+// source patterns because that chrome is written in src/. A chart tooltip is a
+// reading aid drawn by ECharts inside its own canvas: it exists only while the
+// pointer is inside that canvas, it covers only the plot it belongs to, and it
+// is configured through an option object rather than a role or an attribute. No
+// `role="tooltip"` and no `title=` is written anywhere in src/, so every rule
+// below still applies with its full force and none of them is relaxed.
+//
+// What would NOT be covered by this exemption, and would be a defect: a tooltip
+// on anything that is not a chart, a chart tooltip escaping its canvas, or the
+// Popover API being reached for because ECharts made overlays feel permissible.
+//
 // One accepted gap: rules run line by line, so a shadow declared across two
 // lines (the inset keyword on its own line) would read as unallowed. The
 // codebase writes shadows on one line, so this is left alone rather than

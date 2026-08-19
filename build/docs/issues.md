@@ -61,6 +61,48 @@ table itself still wants amending.
 
 ---
 
+## Accepted
+
+### I-11 · The renderer bundle is over half a megabyte
+**Status: ACCEPTED** · found F8 · not a defect
+
+Adding ECharts took the renderer chunk to **~946 kB** minified, and Vite prints
+its "chunks are larger than 500 kB" advice, which suggests dynamic `import()` and
+manual chunking.
+
+**Deliberately not acted on.** That advice is written for pages fetched over a
+network. TRITIUM loads its bundle from the local filesystem inside Electron
+(§3.1 — there is no network, ever), so the number it is warning about is a
+read from disk that has already happened by the time the window paints. Code
+splitting would add moving parts and buy nothing.
+
+The library is imported through `echarts/core` with each chart type and
+component named one at a time, so what is in there is the line chart, the bar
+chart, the grid, the tooltip, the data-zoom and the canvas renderer — not the
+map, the graph, the tree or the geo system. That is the size reduction that was
+worth doing, and it was done.
+
+### I-12 · §7.2 grants a tooltip; the layout law forbids overlays
+**Status: ACCEPTED** · resolved in F8 · a rule tension, recorded so it is not re-argued
+
+XTRITIUM §7.2 gives every chart a **tooltip**, by name. F4b's standing layout
+law, enforced by `audit-overlap`, is that nothing may overlap anything.
+
+**Resolved in favour of both, not by relaxing either.** XTRITIUM wins where it
+and a milestone's implementation rule disagree, so the charts have a tooltip.
+`audit-overlap` is unchanged and still passes: its rules describe the
+application's own chrome, which is written in `src/`, and a chart tooltip is a
+reading aid drawn by ECharts inside its own canvas, configured through an option
+object rather than a role or an attribute.
+
+The exemption is **written into `scripts/audit-overlap.mjs`'s own header**, which
+is the mechanism that file already documents for exactly this case, along with
+what would *not* be covered by it: a tooltip on anything that is not a chart, a
+chart tooltip escaping its canvas, or the Popover API being reached for because
+ECharts made overlays feel permissible.
+
+---
+
 ## Fixed
 
 ### I-01 · `costs:save` told no one it had written
