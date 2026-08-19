@@ -102,6 +102,47 @@ someone reads when they are about to build.
 
 ---
 
+## 5. WHAT v0.2.6 ACTUALLY BUILT, AND HOW
+
+Recorded because §4 above was written at F13 and two of its three "not run" items
+have moved, while the first one has not.
+
+**A real `tritium-0.2.6-1-x86_64.pkg.tar.zst` exists.** Built on 19/08/2026 from
+the pushed tag `v0.2.6`, 117.6 MiB compressed, 396.5 MiB installed. Verified:
+
+- `pacman -Qip` — name, version, licence and the eight runtime `depends` are what
+  the PKGBUILD declares.
+- `pacman -Qlp` — `/usr/bin/tritium` is the two-line launcher (45 bytes),
+  `/usr/lib/tritium/tritium` is the binary, `chrome-sandbox` carries its setuid
+  bit (`-rwsr-xr-x`), five hicolor sizes are installed, and `LICENSE` is at
+  `/usr/share/licenses/tritium/`.
+- The desktop entry has **no `MimeType` and no field code**, which is §9.3's rule
+  and the reason there is no file association to claim.
+- **The packaged binary was extracted and run** against a throwaway
+  `XDG_DATA_HOME`. It stayed up, wrote a valid `settings.toml`, and put nothing on
+  stderr. That is the closest anything has come to F13's third item.
+
+**It was built with `makepkg`, NOT with `extra-x86_64-build`,** and that
+difference is the whole of §9.3's caution rather than a formality. `devtools` is
+not installed on this machine and installing it needs root, so the build resolved
+against the host's own packages instead of a clean chroot. Every dependency the
+PKGBUILD names happened to be present — which is exactly the condition under which
+a missing `depends` entry stays invisible.
+
+So the package is real and it runs. **It is not yet proof that the dependency list
+is complete**, and only the chroot can give that:
+
+```sh
+sudo pacman -S devtools namcap
+cd packaging && extra-x86_64-build
+namcap tritium-0.2.6-1-x86_64.pkg.tar.zst
+```
+
+The tag is on the remote now, so the first of those finally can run — which is the
+one sentence in §4 that has stopped being true.
+
+---
+
 ## 5. THINGS DELIBERATELY ABSENT
 
 - **No AUR**, and no `.SRCINFO` committed. §1 — "No AUR. No CI."
