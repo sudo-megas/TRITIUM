@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="Arch Linux"    src="https://img.shields.io/badge/Arch%20Linux-~136%20MiB-1793D1?style=for-the-badge&logo=archlinux&logoColor=white">
+  <img alt="Arch Linux"    src="https://img.shields.io/badge/Arch%20Linux-~118%20MiB-1793D1?style=for-the-badge&logo=archlinux&logoColor=white">
   <img alt="Android"       src="https://img.shields.io/badge/Android-planned-3DDC84?style=for-the-badge&logo=android&logoColor=white">
 </p>
 
@@ -67,13 +67,23 @@ npx electron-builder --linux dir
 
 ### 3.B Arch Linux
 
-Builds the real package in a clean chroot and installs it:
+Take the package from the [releases page](https://github.com/sudo-megas/TRITIUM/releases)
+and install it:
+
+```sh
+sudo pacman -U tritium-0.2.6-3-x86_64.pkg.tar.zst
+```
+
+118 MiB to download, 397 MiB installed. Electron's own runtime ships inside the
+package rather than being pulled from the system, which is where the size goes.
+
+To build that same package yourself instead of downloading it — from the tag, in
+a clean chroot, which is what `extra-x86_64-build` is for:
 
 ```sh
 git clone https://github.com/sudo-megas/TRITIUM.git
 cd TRITIUM/packaging
 extra-x86_64-build
-sudo pacman -U tritium-*.pkg.tar.zst
 ```
 
 **There is no AUR package.** Packages are signed and published by hand.
