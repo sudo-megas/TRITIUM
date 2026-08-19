@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.sudomegas.tritium.storage.TritiumPaths
@@ -32,6 +33,14 @@ import org.junit.runners.model.Statement
  * Seeds through `ConfigState.update`, not `ConfigStore` alone — AF4's own
  * fix, `FuelFlowTest`'s doc comment records why: `Application.onCreate()`
  * reads `settings.toml` synchronously before any `@Rule` runs.
+ *
+ * `closeSoftKeyboard()` runs before every Save tap: on this real device, a
+ * `performClick()` fired while the real IME is still up and focused on the
+ * amount field never actually lands — the form sits unchanged indefinitely
+ * (confirmed by screenshotting mid-run, seconds apart, showing byte-for-byte
+ * the same "New cost" screen). Neither `FuelFlowTest` nor `VehicleFlowTest`
+ * hit this because their own last-focused field before Save is a dropdown
+ * or checkbox, never a still-focused text field with the keyboard up.
  */
 @RunWith(AndroidJUnit4::class)
 class CostFlowTest {
@@ -74,6 +83,7 @@ class CostFlowTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("costAmount").performTextClearance()
         composeRule.onNodeWithTag("costAmount").performTextInput("1000")
+        closeSoftKeyboard()
         composeRule.onNodeWithTag("costSave").performClick()
         // "Add cost" exists only on CostScreen, never on CostFormScreen — a
         // definitive signal the pop-back-stack navigation has actually
@@ -96,6 +106,7 @@ class CostFlowTest {
         composeRule.onNodeWithTag("costAmount").performTextClearance()
         composeRule.onNodeWithTag("costAmount").performTextInput("500")
         composeRule.onNodeWithTag("costIncomeCheckbox").performClick()
+        closeSoftKeyboard()
         composeRule.onNodeWithTag("costSave").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("Add cost").fetchSemanticsNodes().size == 1
