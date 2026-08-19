@@ -25,7 +25,8 @@ export function EntryTable<T extends { id: string }>({
   defaultSorting,
   selectedId,
   onSelect,
-  name
+  name,
+  textColumns = []
 }: {
   rows: T[]
   columns: ColumnDef<T, string>[]
@@ -33,6 +34,12 @@ export function EntryTable<T extends { id: string }>({
   selectedId: string | null
   onSelect: (id: string) => void
   name: string
+  /**
+   * Columns holding prose rather than figures, capped so they cannot widen the
+   * table past its pane. Their full value is in the detail region — which is
+   * what that region is for.
+   */
+  textColumns?: string[]
 }): JSX.Element {
   const { t } = useTranslation()
   const [sorting, setSorting] = useState<SortingState>(defaultSorting)
@@ -115,7 +122,13 @@ export function EntryTable<T extends { id: string }>({
           >
             {row.getVisibleCells().map((cell) => (
               <td key={cell.id} data-testid={`${name}-${cell.column.id}-${row.original.id}`}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                {textColumns.includes(cell.column.id) ? (
+                  <span className="entries__text">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </span>
+                ) : (
+                  flexRender(cell.column.columnDef.cell, cell.getContext())
+                )}
               </td>
             ))}
             <td className="entries__slack" />

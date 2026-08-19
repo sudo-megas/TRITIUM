@@ -121,6 +121,7 @@ export function ServicePane(): JSX.Element {
           selectedId={selected}
           onSelect={setSelected}
           name="service"
+          textColumns={['part']}
         />
       </section>
 

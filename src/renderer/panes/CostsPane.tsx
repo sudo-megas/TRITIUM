@@ -133,6 +133,7 @@ export function CostsPane(): JSX.Element {
           selectedId={selected}
           onSelect={setSelected}
           name="cost"
+          textColumns={['category', 'title']}
         />
       </section>
 

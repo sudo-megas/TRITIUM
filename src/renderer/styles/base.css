@@ -934,3 +934,27 @@ select,
   color: var(--danger);
   background: var(--surface-raised);
 }
+
+/*
+ * A prose column in a dense table, capped.
+ *
+ * Measured rather than assumed: at the 1280 minimum each pane is 628px, and a
+ * title reading "Trafik Sigortası 26/27 Sonradan Taksitlendirme" took 339 of
+ * them on its own — enough to push the costs table 88px past its pane and put
+ * a horizontal scrollbar under a table of figures, which F4 called the one
+ * thing it must never do.
+ *
+ * Eliding is the right answer here rather than wrapping: a wrapped cell gives
+ * every row a different height and the density goes with it. Nothing is lost —
+ * the detail region beside the table exists precisely to hold the fields the
+ * columns have no room for, and it shows this one whole. A `title` attribute
+ * would be the conventional fix and is forbidden outright: it paints a native
+ * tooltip over whatever is beneath it, which `audit-overlap` fails the build on.
+ */
+.entries__text {
+  display: block;
+  max-width: var(--measure-prose);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
