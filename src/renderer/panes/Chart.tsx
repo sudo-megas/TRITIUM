@@ -38,6 +38,8 @@ export interface ChartPalette {
   border: string
   surface: string
   series: string[]
+  font: string
+  fontSize: number
 }
 
 /**
@@ -47,6 +49,13 @@ export interface ChartPalette {
  * defined for exactly this, and every one of the eleven palettes declares all
  * eight — `tests/e2e/shell.spec.ts` already asserts that, which is what makes
  * reading them here safe rather than hopeful.
+ *
+ * The FAMILY and SIZE are read the same way, and F15 added them. A canvas
+ * cannot inherit CSS, so until this milestone every axis label, legend and
+ * tooltip in all seven charts rendered in ECharts' own default sans at its own
+ * default size — while §8 says CaskaydiaCove Nerd Font Mono is the font of the
+ * whole UI (issues.md I-28). Nobody wrote that exception down; it was simply
+ * never bridged, the way colour already was.
  */
 export function readChartPalette(): ChartPalette {
   const style = getComputedStyle(document.documentElement)
@@ -57,7 +66,10 @@ export function readChartPalette(): ChartPalette {
     muted: token('--text-muted'),
     border: token('--border'),
     surface: token('--surface-raised'),
-    series: [1, 2, 3, 4, 5, 6, 7, 8].map((index) => token(`--accent-seq-${index}`))
+    series: [1, 2, 3, 4, 5, 6, 7, 8].map((index) => token(`--accent-seq-${index}`)),
+    font: token('--font-ui'),
+    // The ramp is authored in px, so parseFloat gets the number ECharts wants.
+    fontSize: Number.parseFloat(token('--text-xs'))
   }
 }
 

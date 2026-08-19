@@ -1,4 +1,4 @@
-// The seven charts of XTRITIUM §7.2 (F8).
+// The seven charts of XTRITIUM §7.2 (F8, retiled in F15).
 //
 // Fuel Consumption · Monthly Costs · Gas Price · Fill-up Costs · Odometer ·
 // Cost per Kilometer · Monthly Distance. Not six, not eight, and not renamed.
@@ -6,9 +6,12 @@
 // §7.2 gives the chips to EACH chart, so each carries its own — a chart is
 // asked its own question, and one shared row would mean the maker could not look
 // at this year's consumption beside last year's price without changing both.
-// That is why the seven are stacked at full width rather than tiled: a chip row,
-// a toggle and a fullscreen button do not fit under a 628-pixel card, and the
-// alternative was to disobey §7.2 to save vertical space.
+//
+// F8 read that as a reason to stack the seven at full width: a chip row, a
+// toggle and a fullscreen button were judged not to fit under a 628-pixel card,
+// and the only alternative F8 saw was disobeying §7.2 to save space. F15 tiles
+// them two to a row and keeps every chip, by letting the control row wrap
+// instead of choosing between the two.
 //
 // Nothing here projects anything. No trend line, no regression, no average
 // reference line — §3.3 and §7.2, which names that last one explicitly.
@@ -84,7 +87,7 @@ export function ChartsPane(): JSX.Element {
   return (
     <div className="panes">
       <section className="pane pane--wide">
-        <div className="charts">
+        <div className={full === null ? 'charts' : 'charts charts--full'}>
           {shown.map((id) => (
             <ChartCard
               key={id}
@@ -345,6 +348,11 @@ function buildOption(
 
   return {
     animation: false,
+    // A canvas inherits no CSS, so the family and size are handed over here or
+    // the charts speak in a different typeface from the rest of the application
+    // (F15, issues.md I-28). This is the root default; the tooltip and the axis
+    // labels below override textStyle, so they carry it explicitly too.
+    textStyle: { fontFamily: palette.font, fontSize: palette.fontSize },
     grid: { left: 64, right: 16, top: 16, bottom: 28, containLabel: true },
     // §7.2 grants the tooltip. It is a reading aid inside one canvas, not a
     // layer over the interface — see F8.md decision 2 and the note in
@@ -353,7 +361,11 @@ function buildOption(
       trigger: 'axis',
       backgroundColor: palette.surface,
       borderColor: palette.border,
-      textStyle: { color: palette.text },
+      textStyle: {
+        color: palette.text,
+        fontFamily: palette.font,
+        fontSize: palette.fontSize
+      },
       formatter: (params: unknown) => {
         const rows = Array.isArray(params) ? params : [params]
         const first = rows[0] as { axisValue?: string; value?: number } | undefined
@@ -368,13 +380,23 @@ function buildOption(
       type: 'category',
       data: points.map((point) => point.label),
       axisLine: { lineStyle: { color: palette.border } },
-      axisLabel: { color: palette.muted, hideOverlap: true }
+      axisLabel: {
+        color: palette.muted,
+        hideOverlap: true,
+        fontFamily: palette.font,
+        fontSize: palette.fontSize
+      }
     },
     yAxis: {
       type: 'value',
       axisLine: { show: false },
       splitLine: { lineStyle: { color: palette.border } },
-      axisLabel: { color: palette.muted, formatter: (value: number) => show(value) }
+      axisLabel: {
+        color: palette.muted,
+        formatter: (value: number) => show(value),
+        fontFamily: palette.font,
+        fontSize: palette.fontSize
+      }
     },
     series: [
       {
