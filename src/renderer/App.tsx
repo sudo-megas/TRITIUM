@@ -6,6 +6,7 @@
 
 import { useEffect, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ChartsPane } from './panes/ChartsPane.js'
 import { CostsPane } from './panes/CostsPane.js'
 import { EmptyPanes } from './panes/EmptyPanes.js'
 import { FuelPane } from './panes/FuelPane.js'
@@ -43,12 +44,13 @@ const TABS = [
 
 type Tab = (typeof TABS)[number]
 
-// Settings and About since F1, Fuel since F4, Costs since F5, Service since F6;
-// every other tab is still the real two-pane layout with empty cells.
+// Settings and About since F1, Fuel since F4, Costs since F5, Service since F6,
+// Charts since F8; every other tab is still the two-pane layout with empty cells.
 const PANES: Partial<Record<Tab, () => JSX.Element>> = {
   fuel: FuelPane,
   costs: CostsPane,
   service: ServicePane,
+  charts: ChartsPane,
   settings: SettingsPane,
   about: AboutPane
 }

@@ -130,6 +130,8 @@
   --measure-form: 640px; /* how far a field row runs before it stops */
   --measure-cell: 176px; /* the narrowest an empty cell may be */
   --measure-prose: 200px; /* the widest a prose column runs before it elides */
+  --chart-height: 260px; /* a plot in the stack of seven */
+  --chart-height-full: 620px; /* the same plot, alone on the tab */
   --measure-swatch: 56px; /* a palette swatch: a small picture of the app */
 
   /* ---- Edges --------------------------------------------------------------

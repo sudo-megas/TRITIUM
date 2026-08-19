@@ -958,3 +958,83 @@ select,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── the charts (F8) ─────────────────────────────────────────────────────
+ * XTRITIUM §7.2's seven, stacked at full width rather than tiled.
+ *
+ * The stacking is not a taste: §7.2 gives the chips to EACH chart, and a chip
+ * row, a three-way toggle and a fullscreen button do not fit under a 628-pixel
+ * card at the 1280 minimum. Tiling would have meant sharing one chip row across
+ * seven charts, which is a different application from the one §7.2 describes.
+ */
+.charts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-region);
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-inside);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  padding: var(--gap-between);
+  min-width: 0;
+}
+
+.chart__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-between);
+  flex-wrap: wrap;
+}
+
+.chart__title {
+  margin: var(--space-0);
+  font-size: var(--text-md);
+  font-weight: normal;
+  color: var(--text);
+}
+
+.chart__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-inside);
+  flex-wrap: wrap;
+}
+
+/* A tight row of mode chips beside the fullscreen button, with no bottom margin
+ * of its own — the header already spaces it. */
+.chips--tight {
+  margin-bottom: var(--space-0);
+}
+
+/*
+ * The plot's own box. A canvas has no intrinsic height, so one is given here
+ * rather than left to the content — and fullscreen is simply a taller box in
+ * the same flow, because §7's fullscreen must not paint over anything
+ * (audit-overlap, and F8.md decision 4).
+ */
+.chart__body {
+  height: var(--chart-height);
+  min-width: 0;
+}
+
+.chart__body--full {
+  height: var(--chart-height-full);
+}
+
+.chart__canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.charts__empty {
+  margin: var(--gap-between) var(--space-0) var(--space-0);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}

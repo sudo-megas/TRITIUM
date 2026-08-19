@@ -156,6 +156,23 @@
     "deleteCancel": "Vazgeç",
     "deleteWarning": "Bu kayıt dosyadan çıkarılır. Dosyadaki başka hiçbir şey değişmez ve kimlik yeniden kullanılmaz."
   },
+  "charts": {
+    "consumption": "Yakıt tüketimi",
+    "monthlyCosts": "Aylık giderler",
+    "gasPrice": "Yakıt fiyatı",
+    "fillupCosts": "Dolum tutarları",
+    "odometer": "Kilometre",
+    "costPerKm": "Kilometre başına maliyet",
+    "monthlyDistance": "Aylık mesafe",
+    "line": "Çizgi",
+    "area": "Alan",
+    "smooth": "Yumuşak",
+    "fullscreen": "Tam ekran",
+    "exitFullscreen": "Tümünü göster",
+    "month": "Ay",
+    "value": "Değer",
+    "span": "Ölçüldüğü aralık"
+  },
   "range": {
     "all": "Tüm zamanlar",
     "ytd": "Yıl başından",
