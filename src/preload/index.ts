@@ -18,6 +18,7 @@ import {
   isVehicleSlug,
   isVolumeUnit,
   readDecimals,
+  readPaymentMethods,
   type Settings
 } from '../shared/settings.js'
 
@@ -50,6 +51,10 @@ function initialSettings(): Settings {
       decimals_cost_per_km: readDecimals(
         candidate.decimals_cost_per_km,
         DEFAULT_SETTINGS.decimals_cost_per_km
+      ),
+      payment_methods: readPaymentMethods(
+        candidate.payment_methods,
+        DEFAULT_SETTINGS.payment_methods
       ),
       palette: isPalette(candidate.palette) ? candidate.palette : DEFAULT_SETTINGS.palette
     }

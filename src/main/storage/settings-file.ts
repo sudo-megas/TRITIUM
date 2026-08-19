@@ -26,6 +26,7 @@ import {
   isVehicleSlug,
   isVolumeUnit,
   readDecimals,
+  readPaymentMethods,
   type Settings
 } from '../../shared/settings.js'
 import { writeFileAtomicSync } from './atomic.js'
@@ -35,7 +36,7 @@ type TomlTable = Record<string, unknown>
 
 const TABLES = ['general', 'units', 'format', 'appearance'] as const
 const OWNED: Readonly<Record<(typeof TABLES)[number], readonly string[]>> = {
-  general: ['language', 'currency', 'active_vehicle'],
+  general: ['language', 'currency', 'active_vehicle', 'payment_methods'],
   units: ['distance', 'volume', 'consumption'],
   format: ['decimals_consumption', 'decimals_cost_per_km'],
   appearance: ['palette']
@@ -91,6 +92,13 @@ export function parseSettings(text: string): { settings: Settings; unknown: Toml
       format['decimals_cost_per_km'],
       DEFAULT_SETTINGS.decimals_cost_per_km
     ),
+    // §4.4's "editable list", editable from F11. An absent key falls back to
+    // the three that ship; an EMPTY one is honoured, because a maker who
+    // removed all three meant to (§3.8).
+    payment_methods: readPaymentMethods(
+      general['payment_methods'],
+      DEFAULT_SETTINGS.payment_methods
+    ),
     palette: isPalette(appearance['palette']) ? appearance['palette'] : DEFAULT_SETTINGS.palette
   }
 
@@ -122,6 +130,7 @@ export function serialiseSettings(settings: Settings, unknown: TomlTable = {}): 
     language: settings.language,
     ...(settings.currency !== undefined ? { currency: settings.currency } : {}),
     ...(settings.active_vehicle !== undefined ? { active_vehicle: settings.active_vehicle } : {}),
+    payment_methods: settings.payment_methods,
     ...asTable(unknown['__general_rest'])
   }
   document['units'] = {

@@ -283,6 +283,52 @@ character being wrong.
 misleading: a collection error and an assertion failure look similar in the
 summary line and are nothing alike.
 
+### I-15 · Whole miles could not hold a kilometre
+**Status: FIXED in F11** · found by a failing round-trip test · severity: silent data drift
+
+F11's first draft showed and read distances in **whole miles**. The round-trip
+test written for it failed, and it was right to.
+
+A mile is 1,609 km, so a whole mile is **coarser** than the whole kilometre
+underneath it: 3.907 km and 3.908 km both land on 2.428 miles, and converting
+back cannot know which was meant. Measured across the whole range:
+
+| Shown as | Values that fail to round-trip, 0–300.000 km |
+|---|---|
+| whole miles | **113.589 of 300.001 — 37,9%** |
+| miles at one decimal | **0** |
+
+**Why it mattered more than a rounding difference.** A maker working in miles
+who opened a fill-up and pressed Save **without touching anything** had better
+than one chance in three of moving his own odometer by a kilometre. The file
+would have drifted under him, one edit at a time — which is the exact failure
+F11's first decision exists to prevent, arriving through the door that decision
+was holding open.
+
+**Fix:** a distance in miles is shown to one decimal, which makes the display
+finer than the storage (0,1 mi is 0,16 km) and makes the round trip exact.
+Kilometres keep no decimal — the file stores whole kilometres and a decimal
+there would invent precision that is not in the data. Volume needed no change:
+gallons were already at three decimals, finer than the litre underneath.
+
+**Regression cover:** `tests/unit/units.test.ts` walks all 300.001 values, and a
+second test pins the whole-mile failure explicitly, so the decimal cannot be
+removed later by someone who reads it as cosmetic.
+
+### I-16 · Hand arithmetic in test expectations, three times
+**Status: FIXED in F11** · severity: wasted runs, no defect shipped
+
+Three F11 test expectations were written from arithmetic done in my head and
+were wrong — `19764 km → 12280 mi` (it is 12280,8), `73380 × 3,785411784 →
+277773` (it is 277774), and a mile figure off by one in the other direction.
+Each time the CODE was right and the EXPECTATION was wrong.
+
+No defect reached the tree, and the tests did their job. It is recorded because
+the failure mode is worth naming: a test whose expected value was computed by
+the same mind that wrote the code proves less than it appears to, and when it
+disagrees the first suspect should be the expectation. The figures now in the
+suite were computed with `node`, not by eye.
+
 ---
 
 ## Notes on method

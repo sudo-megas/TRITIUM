@@ -49,6 +49,7 @@ import {
   isVehicleSlug,
   isVolumeUnit,
   readDecimals,
+  readPaymentMethods,
   type Settings
 } from '../shared/settings.js'
 
@@ -204,6 +205,12 @@ function registerIpc(): void {
         candidate?.decimals_cost_per_km,
         current.settings.decimals_cost_per_km
       ),
+      // A caller that did not send the list keeps the one on disk — the same
+      // merge that stops a units change from erasing the currency (F1).
+      payment_methods:
+        candidate?.payment_methods === undefined
+          ? current.settings.payment_methods
+          : readPaymentMethods(candidate.payment_methods, current.settings.payment_methods),
       ...(isPalette(candidate?.palette) ? { palette: candidate.palette } : {})
     }
 

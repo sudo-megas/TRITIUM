@@ -10,6 +10,13 @@
 import { formatDate, parseDate, parseInput, toInput, todayIso } from './format.js'
 import type { ServiceEntry } from './records.js'
 import { MONEY_DECIMALS } from './scaled.js'
+import {
+  DISTANCE_DECIMALS,
+  METRIC,
+  readDistance,
+  showDistance,
+  type UnitPrefs
+} from './units.js'
 
 export interface ServiceDraft {
   date: string
@@ -29,11 +36,14 @@ export function emptyServiceDraft(): ServiceDraft {
   }
 }
 
-export function serviceDraftOf(entry: ServiceEntry): ServiceDraft {
+export function serviceDraftOf(entry: ServiceEntry, units: UnitPrefs = METRIC): ServiceDraft {
   return {
     date: formatDate(entry.date),
     part: entry.part,
-    odometer_km: entry.odometer_km > 0 ? entry.odometer_km.toString() : '',
+    odometer_km:
+      entry.odometer_km > 0
+        ? toInput(showDistance(entry.odometer_km, units.distance), DISTANCE_DECIMALS[units.distance])
+        : '',
     amount: entry.amount > 0 ? toInput(entry.amount, MONEY_DECIMALS) : '',
     vendor: entry.vendor
   }
@@ -50,11 +60,18 @@ export function serviceDraftOf(entry: ServiceEntry): ServiceDraft {
  * sheet has one of each — so there is nothing here to validate and nothing to
  * normalise (§4.4, §3.5).
  */
-export function serviceEntryOf(draft: ServiceDraft): Omit<ServiceEntry, 'id'> {
+export function serviceEntryOf(
+  draft: ServiceDraft,
+  units: UnitPrefs = METRIC
+): Omit<ServiceEntry, 'id'> {
   return {
     date: parseDate(draft.date) ?? '',
     part: draft.part.trim(),
-    odometer_km: parseInput(draft.odometer_km, 0) ?? 0,
+    // Kilometres in the file, whatever the settings say (F11.md decision 1).
+    odometer_km: readDistance(
+      parseInput(draft.odometer_km, DISTANCE_DECIMALS[units.distance]) ?? 0,
+      units.distance
+    ),
     amount: Math.abs(parseInput(draft.amount, MONEY_DECIMALS) ?? 0),
     vendor: draft.vendor.trim()
   }
@@ -65,8 +82,12 @@ export function serviceEntryOf(draft: ServiceDraft): Omit<ServiceEntry, 'id'> {
  * knows. §5.1 — this warns and is then accepted: typos in old entries must be
  * fixable, and the maker's word is final (§3.8).
  */
-export function serviceGoesBackwards(draft: ServiceDraft, previous: number | null): boolean {
+export function serviceGoesBackwards(
+  draft: ServiceDraft,
+  previous: number | null,
+  units: UnitPrefs = METRIC
+): boolean {
   if (previous === null) return false
-  const odometer = parseInput(draft.odometer_km, 0)
+  const odometer = parseInput(draft.odometer_km, DISTANCE_DECIMALS[units.distance])
   return odometer !== null && odometer > 0 && odometer < previous
 }

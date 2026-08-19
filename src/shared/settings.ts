@@ -50,6 +50,13 @@ export type VolumeUnit = (typeof VOLUME_UNITS)[number]
 export const CONSUMPTION_UNITS = ['l100km', 'kml', 'mpg'] as const
 export type ConsumptionUnit = (typeof CONSUMPTION_UNITS)[number]
 
+/**
+ * The three §4.4 ships. The maker's own list starts here and F11 lets him
+ * change it; `records.ts` keeps the same three as the vocabulary a cost file is
+ * read against, which is a different question and stays where it is.
+ */
+export const SHIPPED_PAYMENT_METHODS = ['eft', 'kredi-karti', 'banka-karti'] as const
+
 export interface Settings {
   language: Language
   /**
@@ -76,6 +83,15 @@ export interface Settings {
   consumption: ConsumptionUnit
   decimals_consumption: number
   decimals_cost_per_km: number
+  /**
+   * XTRITIUM §4.4 calls `payment_method` an "editable list", and F5 shipped the
+   * three fixed because editing is a settings surface. F11 makes it editable.
+   *
+   * Removing one never touches a record that uses it: F5's cost form already
+   * keeps a stored value that is not in the list (its decision 5), which is what
+   * makes removal safe rather than destructive.
+   */
+  payment_methods: string[]
   palette: Palette
 }
 
@@ -87,6 +103,7 @@ export const DEFAULT_SETTINGS: Settings = {
   consumption: 'l100km',
   decimals_consumption: 2,
   decimals_cost_per_km: 3,
+  payment_methods: [...SHIPPED_PAYMENT_METHODS],
   // The constitution fixes the count and the roster but never named the one
   // the app opens on. Dark, because the interface is dense figures on a ground
   // that should stay out of their way.
@@ -121,6 +138,26 @@ export function isCurrency(value: unknown): value is string {
 /** A vehicle slug, as stored in active_vehicle. Any non-empty name of a directory. */
 export function isVehicleSlug(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
+}
+
+/**
+ * The maker's payment-method list, as it comes off disk or over the bridge.
+ *
+ * Non-empty strings only, de-duplicated, order kept. An absent or unreadable
+ * key falls back to the three §4.4 ships — but an EMPTY list is honoured: a
+ * maker who removed all three meant to, and inventing them back would be the
+ * app arguing with him (§3.8).
+ */
+export function readPaymentMethods(value: unknown, fallback: readonly string[]): string[] {
+  if (!Array.isArray(value)) return [...fallback]
+
+  const cleaned: string[] = []
+  for (const entry of value) {
+    if (typeof entry !== 'string') continue
+    const trimmed = entry.trim()
+    if (trimmed.length > 0 && !cleaned.includes(trimmed)) cleaned.push(trimmed)
+  }
+  return cleaned
 }
 
 /** Decimal places: a small non-negative integer, or the default. */
