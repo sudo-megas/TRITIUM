@@ -112,7 +112,7 @@ private fun FuelRow(entry: FuelEntry, consumption: Consumption.ConsumptionPoint?
                 style = MaterialTheme.typography.bodySmall,
             )
             Text(
-                Format.formatMoneyText(entry.pricePerLitre, currency ?: ""),
+                Format.formatPricePerLitreText(entry.pricePerLitre, currency ?: ""),
                 style = MaterialTheme.typography.bodySmall,
             )
             Text(

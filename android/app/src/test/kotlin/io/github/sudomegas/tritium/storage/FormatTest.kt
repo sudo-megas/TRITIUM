@@ -39,6 +39,17 @@ class FormatTest {
     }
 
     @Test
+    fun `formatPricePerLitreText reads pump decimals, not money decimals`() {
+        // A price of 45,000 (three pump decimals) must never print as
+        // 450,00 — the bug this test exists to pin: feeding a PUMP_DECIMALS
+        // integer through formatMoneyText's MONEY_DECIMALS reads its last
+        // digit as a third decimal place that was never there, inflating
+        // the figure tenfold.
+        assertEquals("45,000 ₺", Format.formatPricePerLitreText(45000L, "TRY"))
+        assertEquals("45,000", Format.formatPricePerLitreText(45000L, ""))
+    }
+
+    @Test
     fun `toInput never groups`() {
         assertEquals("54,0", Format.toInput(540L, Scaled.TANK_DECIMALS))
         assertEquals("11746,00", Format.toInput(1174600L, Scaled.MONEY_DECIMALS))

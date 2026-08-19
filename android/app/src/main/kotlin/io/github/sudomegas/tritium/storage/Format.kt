@@ -80,6 +80,21 @@ object Format {
         return if (symbol.isEmpty()) figure else "$figure $symbol"
     }
 
+    /**
+     * A price-per-litre figure with its symbol: `45,000 ₺`. `price_per_litre`
+     * is scaled at [Scaled.PUMP_DECIMALS] (3), not [Scaled.MONEY_DECIMALS]
+     * (2) — [formatMoneyText] would read its integer at the wrong decimal
+     * place and print ten times the real price. Matches the desktop's own
+     * `ChartsPane.tsx` (`formatFigure(value, PUMP_DECIMALS)` for gas price)
+     * and `FuelPane.tsx` (`units.pricePerVolume`), neither of which ever
+     * routes a per-litre price through the money formatter.
+     */
+    fun formatPricePerLitreText(scaled: Long, currency: String): String {
+        val symbol = currencySymbol(currency)
+        val figure = formatFigure(scaled, Scaled.PUMP_DECIMALS)
+        return if (symbol.isEmpty()) figure else "$figure $symbol"
+    }
+
     /** A scaled integer as an editable field shows it: `54,0` — no grouping. */
     fun toInput(scaled: Long, decimals: Int): String =
         Scaled.formatScaled(scaled, decimals).replace('.', DECIMAL)

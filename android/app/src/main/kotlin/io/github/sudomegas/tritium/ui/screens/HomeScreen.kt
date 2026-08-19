@@ -161,7 +161,7 @@ private fun SummaryBlock(summary: HomeSummary, currency: String?) {
         SummaryRow(
             stringResource(R.string.home_summary_last_price),
             summary.lastPrice?.let {
-                "${Format.formatMoneyText(it.price, currency ?: "")} · ${Format.formatDate(it.date)}"
+                "${Format.formatPricePerLitreText(it.price, currency ?: "")} · ${Format.formatDate(it.date)}"
             } ?: nothing,
         )
         SummaryRow(stringResource(R.string.home_summary_total_distance), "${summary.lifetimeDistance} km")
