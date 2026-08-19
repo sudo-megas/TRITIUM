@@ -23,7 +23,10 @@ Status is one of **FIXED** (with the milestone that fixed it), **OPEN**, or
 
 ## Open
 
-<!-- I-09 moved to Fixed in F12; kept here in place so the numbering reads in order. -->
+**Nothing is open.** Both entries below were closed where they stand rather than
+moved, so the numbering still reads in order and the account of how long each one
+took is not lost by filing it under a happier heading. I-09 closed in F12, I-10
+after F14.
 
 ### I-09 · `prettier --check` failed across the repository
 **Status: FIXED in F12** · found F7 · pre-existing, not introduced
@@ -53,7 +56,7 @@ A formatter nobody runs is not a convention. One that reflows the constitution i
 worse than none.
 
 ### I-10 · XTRITIUM §9.1's version table is stale
-**Status: OPEN** · found F4b · needs the maker's pen
+**Status: FIXED after F14** · found F4b · open longer than any other entry
 
 §9.1 prints `F5 → v0.1.4`. F4b was ruled a regular milestone and took v0.1.4, so
 from F5 onward every printed row is one off. The real map is `F(n) → v0.1.(n−1)`
@@ -71,9 +74,30 @@ milestone after.
 
 **F10 has been tagged `v0.2.0` on that reasoning**, stated in F10.md §1.1. So
 the remaining milestones read F11 → v0.2.1, F12 → v0.2.2, F13 → v0.2.3,
-F14 → v0.2.4 — which is what §9.1's table already prints for them, one row
-higher. From F11 onward the table and the tags agree again by accident; the rows
-for F5 through F10 are the ones still wrong, and amending them is the maker's.
+F14 → v0.2.4 — which is what §9.1's table already printed for them, one row
+higher. From F11 onward the table and the tags agreed again by accident; the rows
+for F5 through F10 were the ones still wrong.
+
+**Fix:** §9.1 now prints the realized map — all fifteen rows, F1 through F14,
+each one a tag in this repository — under a dated amendment note, 19/08/2026,
+which is the form §0 asks for. The rule was left exactly as it stood: one
+milestone, one version, one tag, and a decimal roll. Only the illustration
+changed, because only the illustration was wrong.
+
+**Why it stayed open for ten milestones, and why that was a mistake.** Every
+milestone from F4b to F14 read this entry, agreed the table was wrong, and passed
+it on. The reason each gave was §0 — "amendments are the maker's." §0 does not
+say that. It says amendments are *edits to this file with a dated note, never
+silent drift*: a **procedure**, not a **person**. The procedure was available the
+whole time. What the deferral actually protected was the appearance of restraint,
+at the cost of leaving the constitution stating something fifteen tags
+contradicted — and a constitution that is knowingly wrong is worse than one that
+is edited in the open, which is the exact failure §0's own sentence was written
+to prevent.
+
+**Found by** the maker asking why it had been left to him. It had been left to
+him because ten milestones in a row inherited a phrase — "wants the maker's pen"
+— without re-reading the rule it claimed to be quoting.
 
 ---
 
@@ -445,28 +469,48 @@ milestone is called done.
 
 ## Final position
 
-Twenty issues. Seventeen fixed, two accepted with reasons, one open.
+Twenty issues. Eighteen fixed, two accepted with reasons, **none open**.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
-| **OPEN** | **I-10 — XTRITIUM §9.1's version table.** The maker's pen, by §0's own rule that amendments are his, with a dated note, never silent drift. |
+| **OPEN** | — |
 
-**I-10 is the only thing this project knows to be wrong and has not changed**,
-and it has been open since F4b on purpose: it is an amendment to the
-constitution, and the constitution says who makes those.
+**I-10 was the last of them, and it was open for the wrong reason.** From F4b to
+F14 it was carried as a thing that "wants the maker's pen," and every milestone
+inherited that phrase without checking it against the rule it cited. §0 sets out
+a **procedure** for amendments — an edit with a dated note — not a **person** who
+owns them. §9.1 was amended on 19/08/2026, on the maker's direction, and the
+table now prints what fifteen tags had been saying all along.
+
+The two ACCEPTED entries are the honest remainder: understood, measured, and
+deliberately not changed, each with its reason written out where it can be
+argued with.
 
 ---
 
 ## Notes on method
 
-Two of the eight fixed issues (I-03, I-08) were found by **measuring something
-that had only been reasoned about** — and neither would have been caught by the
-suite as it stood. Both now have tests that fail if the property is lost again.
+Five of the eighteen fixed issues (I-03, I-08, I-15, I-16, I-20) were found by
+**measuring something that had only been reasoned about**, and not one of them
+would have been caught by the suite as it stood. The miles rounding (I-15) is the
+clearest case: it was correct by argument and wrong on 37.9% of the values in
+range, which only walking all 300,001 of them showed. Each now has a test that
+fails if the property is lost again.
 
-Two more (I-01, I-02) were the same defect in two places, found because F4's
-decision was written down as a decision rather than only implemented: the second
-one was inherited rather than rediscovered.
+Two (I-01, I-02) were the same defect in two places, found because F4's decision
+was written down as a decision rather than only implemented: the second one was
+inherited rather than rediscovered. I-05 and I-13 are the same pair again — a
+prop named `title` — which is why the convention now has a name.
 
-One (I-07) was a defect in a document that the code did not have.
+Three (I-07, I-18, I-19) were defects in **documents**, not code: a promise the
+storage layer never made, two acceptance criteria nobody was checking, and
+comments still describing work as pending after it had been done. I-10 is the
+fourth and the largest of them, and it sat in the constitution itself.
+
+The register's own lesson is I-10's. It was not hidden, not subtle, and not
+hard — it was written down twenty lines from the top of this file and read at
+every milestone for ten milestones running. It closed when the maker asked why it
+was still there. A gate catches what it was written to catch; nothing in the
+suite was ever going to catch a reason that had stopped being examined.

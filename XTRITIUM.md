@@ -326,13 +326,33 @@ data only.
 
 ### 9.1 Versions ride milestones (decimal roll)
 
+One milestone, one version, one tag. The patch digit **rolls at ten**: the tenth
+version of a series is `.0` of the next, never `.10`.
+
+The desktop phase is finished, so the rows below are no longer an illustration.
+Every one of them is a tag in this repository:
+
 ```
-F1  → v0.1.0      F10 → v0.1.9
-F2  → v0.1.1      F11 → v0.2.0
-F3  → v0.1.2      …
-…                 F20 → v0.2.9
-                  F21 → v0.3.0
+F1  → v0.1.0      F5  → v0.1.5      F10 → v0.2.0
+F2  → v0.1.1      F6  → v0.1.6      F11 → v0.2.1
+F3  → v0.1.2      F7  → v0.1.7      F12 → v0.2.2
+F4  → v0.1.3      F8  → v0.1.8      F13 → v0.2.3
+F4b → v0.1.4      F9  → v0.1.9      F14 → v0.2.4
 ```
+
+**Amendment — 19/08/2026.** This table used to run `F1 → v0.1.0` straight
+through the F-numbers, which printed `F5 → v0.1.4` and left every row after it
+one short. The **rule** was never wrong; the **illustration** was. It assumed one
+milestone per F-number, and **F4b** — the design milestone inserted after F4 —
+took a version of its own, shifting everything behind it by one.
+
+The decimal roll is the part that came through untouched, and F10 is where it
+earned its place: the shifted map put F10 at `v0.1.10`, which is not a version
+this project uses, so F10 took **v0.2.0** — precisely what the roll is for.
+
+`build/docs/issues.md` I-10 carried this from F4b to today, deferred each time as
+an amendment rather than a correction. It was a correction: the tags were already
+the fact, and the table was only failing to print them.
 
 The Android phase (separate rewrite, branch **`android-port`**, milestones
 AF1, AF2, …) ends at **v1.0**.
