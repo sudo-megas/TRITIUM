@@ -5,7 +5,8 @@
 // browser: navigation away from the bundled renderer is refused outright, and
 // window.open stays refused. Windows are opened by this process or not at all.
 
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
+import { importBundle } from './storage/import.js'
 import { readSettings, writeSettings } from './storage/settings-file.js'
 import { createMainWindow, openFormWindow } from './windows.js'
 import {
@@ -368,6 +369,40 @@ function registerIpc(): void {
     const removed = removeServiceEntry(String(slug), String(id))
     if (removed) broadcast('vehicles:changed')
     return removed
+  })
+
+  /*
+   * Import (F16). Two channels rather than one, deliberately.
+   *
+   * `data:pick` opens the native file picker and returns a path or nothing.
+   * `data:import` takes a path and does the work. Splitting them is what makes
+   * the import testable: Playwright cannot see an OS-drawn dialog at all, so a
+   * test drives `data:import` with a path it wrote itself, and the picker is the
+   * only part left unexercised.
+   *
+   * The dialog's title arrives from the renderer, already translated. It is not
+   * written here because `audit-strings` only scans .tsx — a string invented in
+   * this file would escape the gate that keeps every visible word in the
+   * catalogues, and escaping a gate is not the same as passing it.
+   */
+  ipcMain.handle('data:pick', async (_event, title: unknown, buttonLabel: unknown) => {
+    const chosen = await dialog.showOpenDialog({
+      title: String(title),
+      buttonLabel: String(buttonLabel),
+      properties: ['openFile'],
+      filters: [{ name: 'TOML', extensions: ['toml'] }]
+    })
+    return chosen.canceled ? null : (chosen.filePaths[0] ?? null)
+  })
+
+  ipcMain.handle('data:import', (_event, file: unknown) => {
+    const result = importBundle(String(file))
+    // Not required by audit-storage — importBundle is not one of the names its
+    // regex knows — and done anyway, because the rule the audit stands for is
+    // that a handler which changes the disk tells the other windows. I-01 and
+    // I-02 were this omission twice.
+    broadcast('vehicles:changed')
+    return result
   })
 
   // Form windows (XTRITIUM §5.1). The renderer asks; this process decides.

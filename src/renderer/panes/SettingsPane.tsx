@@ -53,6 +53,41 @@ export function SettingsPane(): JSX.Element {
     settings.setPaymentMethods(settings.payment_methods.filter((entry) => entry !== value))
   }
 
+  /*
+   * F16 — choose a bundle, import it, and say what happened.
+   *
+   * A silent import is indistinguishable from one that did nothing, and the
+   * commonest outcome of a monthly sync is "most of this was already here" —
+   * so the count of skipped records is the part that reassures rather than the
+   * part worth hiding.
+   */
+  const [report, setReport] = useState('')
+
+  const runImport = async (): Promise<void> => {
+    const file = await window.tritium.pickBundle(t('settings.importTitle'), t('settings.import'))
+    if (file === null) return
+
+    try {
+      const result = (await window.tritium.importBundle(file)) as {
+        vehicles: {
+          added: { fuel: number; costs: number; service: number }
+          skipped: { fuel: number; costs: number; service: number }
+        }[]
+      }
+      const total = (pick: 'added' | 'skipped'): number =>
+        result.vehicles.reduce(
+          (sum, one) => sum + one[pick].fuel + one[pick].costs + one[pick].service,
+          0
+        )
+      setReport(t('settings.importDone', { added: total('added'), skipped: total('skipped') }))
+    } catch {
+      // The main process refused it — not ours, newer than us, or unreadable —
+      // and nothing was written. The maker is told, and the file he chose is
+      // exactly as he left it.
+      setReport(t('settings.importRefused'))
+    }
+  }
+
   return (
     <div className="panes">
       <section className="pane">
@@ -226,6 +261,34 @@ export function SettingsPane(): JSX.Element {
             {t('settings.addMethod')}
           </button>
         </div>
+
+        {/*
+         * F16 — import. The phone exports, this imports, and nothing goes the
+         * other way (XTRITIUM §4.1, as amended 19/08/2026).
+         *
+         * The dialog's own words are resolved here and handed to the main
+         * process, not written there: audit-strings scans only .tsx, so a title
+         * invented in main/index.ts would escape the gate rather than pass it.
+         */}
+        <h2 className="section__title">{t('settings.import')}</h2>
+        <p className="field__hint">{t('settings.importHint')}</p>
+
+        <div className="field field--inline">
+          <button
+            type="button"
+            className="button"
+            data-testid="import-pick"
+            onClick={() => void runImport()}
+          >
+            {t('settings.importChoose')}
+          </button>
+        </div>
+
+        {report !== '' && (
+          <p className="field__hint" data-testid="import-report">
+            {report}
+          </p>
+        )}
       </section>
 
       <section className="pane">

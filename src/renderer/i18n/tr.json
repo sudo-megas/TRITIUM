@@ -33,7 +33,13 @@
     "paymentMethods": "Ödeme yöntemleri",
     "paymentMethodsHint": "Birini kaldırmak, onu kullanan giderleri olduğu gibi bırakır.",
     "addMethod": "Ekle",
-    "remove": "Kaldır"
+    "remove": "Kald\u0131r",
+    "import": "\u0130\u00e7e aktar",
+    "importHint": "Telefondan bir ay\u0131 buraya getirin. Zaten var olan kay\u0131tlar atlan\u0131r, ayn\u0131 dosyay\u0131 iki kez i\u00e7e aktarmak hi\u00e7bir \u015fey de\u011fi\u015ftirmez. \u00dczerine yaz\u0131lacak dosyalar \u00f6nce backups/ i\u00e7ine kopyalan\u0131r.",
+    "importChoose": "Dosya se\u00e7\u2026",
+    "importTitle": "Bir TRITIUM d\u0131\u015fa aktar\u0131m\u0131 se\u00e7in",
+    "importDone": "\u0130\u00e7e aktar\u0131ld\u0131. {{added}} eklendi, {{skipped}} zaten vard\u0131.",
+    "importRefused": "\u0130\u00e7e aktar\u0131lmad\u0131. Dosya bir TRITIUM d\u0131\u015fa aktar\u0131m\u0131 de\u011fil ya da daha yeni bir s\u00fcr\u00fcm taraf\u0131ndan yaz\u0131lm\u0131\u015f. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi."
   },
   "vehicles": {
     "picker": "Araç",

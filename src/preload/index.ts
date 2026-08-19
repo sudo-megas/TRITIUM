@@ -127,6 +127,18 @@ const api = {
   removeService: (slug: string, id: string): Promise<boolean> =>
     ipcRenderer.invoke('service:remove', slug, id),
 
+  // F16 — import, in two halves. `pickBundle` opens the OS file picker and
+  // returns a path or null; `importBundle` does the work on a path. Split
+  // because a native dialog is invisible to Playwright, so the half that
+  // matters can be tested with a path a test wrote itself.
+  //
+  // The dialog's words are passed IN, already translated: main invents no
+  // user-visible text, because audit-strings only scans .tsx and a string
+  // written there would slip past the gate rather than satisfy it.
+  pickBundle: (title: string, buttonLabel: string): Promise<string | null> =>
+    ipcRenderer.invoke('data:pick', title, buttonLabel),
+  importBundle: (file: string): Promise<unknown> => ipcRenderer.invoke('data:import', file),
+
   // Form windows. The renderer asks the main process to open one; window.open
   // is still refused, which is the point of asking.
   openForm: (kind: string, slug?: string, entry?: string): Promise<void> =>

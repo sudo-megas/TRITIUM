@@ -51,14 +51,15 @@ const KNOWN_KEYS = [
 export type { VehicleDocument }
 export { EMPTY_VEHICLE }
 
-export function parseVehicle(text: string, file = '<memory>'): VehicleDocument {
-  let document: TomlTable
-  try {
-    document = asTable(parse(text))
-  } catch (error) {
-    throw new CorruptFileError(file, error)
-  }
-
+/**
+ * A parsed table becomes a vehicle.
+ *
+ * Split out of parseVehicle in F16 so an import can read a vehicle from a
+ * bundle's `[[vehicle]]` table without re-implementing the field handling. The
+ * bundle uses §4.4's key names for exactly this reason: there is one reader, and
+ * a foreign file goes through the same coercion and the same scaling as our own.
+ */
+export function readVehicleTable(document: TomlTable): VehicleDocument {
   const vehicle: Vehicle = {
     name: readString(document['name']),
     make: readString(document['make']),
@@ -81,6 +82,15 @@ export function parseVehicle(text: string, file = '<memory>'): VehicleDocument {
       : RECORD_SCHEMA_VERSION
 
   return { schemaVersion, vehicle, rest: unknownKeys(document, KNOWN_KEYS) }
+}
+
+export function parseVehicle(text: string, file = '<memory>'): VehicleDocument {
+  try {
+    return readVehicleTable(asTable(parse(text)))
+  } catch (error) {
+    if (error instanceof CorruptFileError) throw error
+    throw new CorruptFileError(file, error)
+  }
 }
 
 export function serialiseVehicle(document: VehicleDocument): string {

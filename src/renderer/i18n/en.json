@@ -33,7 +33,13 @@
     "paymentMethods": "Payment methods",
     "paymentMethodsHint": "Removing one leaves every cost that already uses it exactly as it is.",
     "addMethod": "Add",
-    "remove": "Remove"
+    "remove": "Remove",
+    "import": "Import",
+    "importHint": "Bring a month across from the phone. Records you already have are skipped, so importing the same file twice changes nothing. What it overwrites is copied into backups/ first.",
+    "importChoose": "Choose a file\u2026",
+    "importTitle": "Choose a TRITIUM export",
+    "importDone": "Imported. {{added}} added, {{skipped}} already here.",
+    "importRefused": "Not imported. The file is not a TRITIUM export, or it was written by a newer version. Nothing was changed."
   },
   "vehicles": {
     "picker": "Vehicle",
