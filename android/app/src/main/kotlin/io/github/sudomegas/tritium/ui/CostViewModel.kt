@@ -3,6 +3,7 @@ package io.github.sudomegas.tritium.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import io.github.sudomegas.tritium.TritiumApplication
 import io.github.sudomegas.tritium.storage.CostEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
