@@ -1,4 +1,4 @@
-# TRITIUM — AF6b · versionName 0.7 · «Design phase»
+# TRITIUM — AF6b · rides on versionName 0.6 · «Design phase»
 
 Repo path of this file: `~/REPO/build/docs/AF6b.md`
 Governing document: `~/REPO/XTRITIUM.md` — where this file and XTRITIUM disagree, XTRITIUM wins.
@@ -50,6 +50,14 @@ palettes carry obviously-wrong colours on purpose so nobody mistakes them for
 the design phase's output"* — is exactly why `PlaceholderMagenta`/`Lime`/
 `Mustard` existed from AF1 onward: so that closing this fork would be a
 visible, deliberate act, not a colour someone forgot to change.
+
+AF6b also takes F4b's precedent on the one thing this title line got wrong on
+first push: F4b rode between F4 and F5 without ever claiming a version number
+of its own. AF6b's first commit briefly bumped `versionName` to `0.7` —
+AF1.md's own map already promises that number to AF7, not to a design pass
+sitting in front of it — and the mistake was caught and corrected before AF7
+existed to collide with it. AF6b rides on **0.6**, AF6's own number; AF7 is
+the one that moves the version forward.
 
 ---
 
