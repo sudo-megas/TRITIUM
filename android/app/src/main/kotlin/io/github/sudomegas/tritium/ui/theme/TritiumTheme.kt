@@ -1,43 +1,32 @@
 package io.github.sudomegas.tritium.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 
 /**
- * PLACEHOLDER. Deliberately wrong, on purpose, so nobody mistakes this for
- * TRITIUM's actual Android identity (AF1.md §2.1 decision 7 — F1.md's own
- * precedent for the desktop's provisional tab bar: "placeholder palettes
- * carry obviously-wrong colours on purpose so nobody mistakes them for the
- * design phase's output").
- *
- * Whether the real answer is the desktop's CaskaydiaCove-and-eleven-palettes
- * identity carried over, Material 3 with dynamic colour the way the family's
- * sibling Android port chose, or something else again is XTRITIUM §11's own
- * kind of question — deliberately not decided here, settled together before
- * AF7 (AF1.md §1.2).
+ * Native Material 3 (AF6b.md §1) — the fork AF1.md §2.1 decision 7 deferred,
+ * closed by the maker rather than inferred. Dynamic/tonal colour where the
+ * platform offers it (API 31+); the M3 baseline scheme, unbranded, below
+ * that — minSdk 26 reaches five versions further back than dynamic colour
+ * does. No custom seed colour: the fork just closed was "native," not
+ * "native, but branded."
  */
-private val PlaceholderMagenta = Color(0xFFFF00FF)
-private val PlaceholderLime = Color(0xFF66FF00)
-private val PlaceholderMustard = Color(0xFFE0C200)
-
-private val PlaceholderLightScheme = lightColorScheme(
-    primary = PlaceholderMagenta,
-    secondary = PlaceholderLime,
-    tertiary = PlaceholderMustard,
-)
-
-private val PlaceholderDarkScheme = darkColorScheme(
-    primary = PlaceholderMagenta,
-    secondary = PlaceholderLime,
-    tertiary = PlaceholderMustard,
-)
-
 @Composable
 fun TritiumTheme(content: @Composable () -> Unit) {
-    val scheme = if (isSystemInDarkTheme()) PlaceholderDarkScheme else PlaceholderLightScheme
+    val dark = isSystemInDarkTheme()
+    val context = LocalContext.current
+    val scheme = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && dark -> dynamicDarkColorScheme(context)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(context)
+        dark -> darkColorScheme()
+        else -> lightColorScheme()
+    }
     MaterialTheme(colorScheme = scheme, content = content)
 }
