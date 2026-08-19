@@ -105,4 +105,18 @@
     <string name="costs_method_eft">EFT</string>
     <string name="costs_method_kredi_karti">Kredi Kartı</string>
     <string name="costs_method_banka_karti">Banka Kartı</string>
+    <string name="costs_service_elsewhere">Periyodik Bakım SERVICE sekmesinden girilir — kayıtları service.toml dosyasında durur.</string>
+
+    <string name="nav_service">Bakım</string>
+    <string name="service_add">Bakım kaydı ekle</string>
+    <string name="service_add_title">Yeni bakım kaydı</string>
+    <string name="service_edit_title">Bakım kaydını düzenle</string>
+    <string name="service_save">Kaydet</string>
+    <string name="service_empty">Henüz bakım kaydı yok.</string>
+    <string name="service_vendor_hint">Alındığı link veya yer: bir adres, bir dükkân ya da hiçbir şey. Metin olarak saklanır — TRITIUM hiçbir zaman açmaz.</string>
+    <string name="service_field_date">Tarih</string>
+    <string name="service_field_part">Parça veya işlem</string>
+    <string name="service_field_odometer">Sayaç</string>
+    <string name="service_field_amount">Tutar</string>
+    <string name="service_field_vendor">Alındığı link / yer</string>
 </resources>

@@ -124,4 +124,19 @@
     <string name="costs_method_eft">EFT</string>
     <string name="costs_method_kredi_karti">Kredi Kartı</string>
     <string name="costs_method_banka_karti">Banka Kartı</string>
+    <string name="costs_service_elsewhere">Periyodik Bakım is entered on the SERVICE tab — its records live in service.toml.</string>
+
+    <!-- Service — AF6. Wording matches the desktop's own service.* keys exactly. -->
+    <string name="nav_service">Service</string>
+    <string name="service_add">Add service record</string>
+    <string name="service_add_title">New service record</string>
+    <string name="service_edit_title">Edit service record</string>
+    <string name="service_save">Save</string>
+    <string name="service_empty">No service records yet.</string>
+    <string name="service_vendor_hint">Where it came from: an address, a shop, or nothing. Stored as text — TRITIUM never opens it.</string>
+    <string name="service_field_date">Date</string>
+    <string name="service_field_part">Part or work</string>
+    <string name="service_field_odometer">Odometer</string>
+    <string name="service_field_amount">Amount</string>
+    <string name="service_field_vendor">Bought from</string>
 </resources>

@@ -36,7 +36,7 @@ import io.github.sudomegas.tritium.ui.FuelViewModel
  */
 @Composable
 fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, onSaved: () -> Unit) {
-    val previousOdometer = remember { FuelDraft.lastOdometer(viewModel.fuelEntries.value) }
+    val previousOdometer = remember { viewModel.previousOdometer() }
     val defaults = remember { FuelDraft.quickAddDefaults(viewModel.activeVehicleFuelSpec()) }
 
     var odometerText by rememberSaveable { mutableStateOf("") }

@@ -54,6 +54,13 @@ object CostsRoute
 @Serializable
 data class CostFormRoute(val entryId: String? = null)
 
+@Serializable
+object ServiceRoute
+
+/** No slug, same reasoning as [CostFormRoute] — acts on whichever vehicle is active. */
+@Serializable
+data class ServiceFormRoute(val entryId: String? = null)
+
 enum class TopLevelDestination(
     val route: Any,
     @param:StringRes val labelRes: Int,
@@ -61,5 +68,6 @@ enum class TopLevelDestination(
     HOME(HomeRoute, R.string.nav_home),
     FUEL(FuelRoute, R.string.nav_fuel),
     COSTS(CostsRoute, R.string.nav_costs),
+    SERVICE(ServiceRoute, R.string.nav_service),
     SETTINGS(SettingsRoute, R.string.nav_settings),
 }

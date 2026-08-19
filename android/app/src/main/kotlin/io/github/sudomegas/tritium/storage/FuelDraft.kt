@@ -8,8 +8,14 @@ package io.github.sudomegas.tritium.storage
  */
 object FuelDraft {
 
-    /** The highest odometer reading among a vehicle's fuel entries, or null with none yet. */
-    fun lastOdometer(entries: List<FuelEntry>): Int? = entries.maxOfOrNull { it.odometerKm }
+    /**
+     * The highest odometer reading the vehicle knows, from any file
+     * (AF6.md §1.2) — a service entry carries an odometer too, and a hint
+     * built from fuel entries alone would state the wrong number
+     * confidently once a service record outran the last fill-up.
+     */
+    fun highestOdometer(fuel: List<FuelEntry>, service: List<ServiceEntry>): Int? =
+        (fuel.asSequence().map { it.odometerKm } + service.asSequence().map { it.odometerKm }).maxOrNull()
 
     /**
      * A backwards odometer WARNS and is then accepted (XTRITIUM §5.1, §3

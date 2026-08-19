@@ -8,17 +8,36 @@ import org.junit.Test
 
 class FuelDraftTest {
 
-    private fun entry(odometer: Int) = FuelEntry(id = "f-0001", odometerKm = odometer)
+    private fun fuelEntry(odometer: Int) = FuelEntry(id = "f-0001", odometerKm = odometer)
+    private fun serviceEntry(odometer: Int) = ServiceEntry(id = "s-0001", odometerKm = odometer)
 
     @Test
-    fun `lastOdometer is null with no entries yet`() {
-        assertNull(FuelDraft.lastOdometer(emptyList()))
+    fun `highestOdometer is null with no entries in either file`() {
+        assertNull(FuelDraft.highestOdometer(emptyList(), emptyList()))
     }
 
     @Test
-    fun `lastOdometer is the highest reading, regardless of entry order`() {
-        val entries = listOf(entry(19764), entry(19500), entry(19900))
-        assertEquals(19900, FuelDraft.lastOdometer(entries))
+    fun `highestOdometer is the highest fuel reading, regardless of entry order`() {
+        val fuel = listOf(fuelEntry(19764), fuelEntry(19500), fuelEntry(19900))
+        assertEquals(19900, FuelDraft.highestOdometer(fuel, emptyList()))
+    }
+
+    @Test
+    fun `highestOdometer reads service entries too, not fuel alone`() {
+        val fuel = listOf(fuelEntry(15000))
+        val service = listOf(serviceEntry(19764))
+        assertEquals(
+            "a service entry can outrun the last fill-up; ignoring it states the wrong number confidently",
+            19764,
+            FuelDraft.highestOdometer(fuel, service),
+        )
+    }
+
+    @Test
+    fun `highestOdometer takes the higher file when fuel outranks service`() {
+        val fuel = listOf(fuelEntry(19900))
+        val service = listOf(serviceEntry(15100))
+        assertEquals(19900, FuelDraft.highestOdometer(fuel, service))
     }
 
     @Test

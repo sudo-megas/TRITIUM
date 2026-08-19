@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.sudomegas.tritium.TritiumApplication
+import io.github.sudomegas.tritium.storage.FuelDraft
 import io.github.sudomegas.tritium.storage.FuelEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -53,6 +54,19 @@ class FuelViewModel(private val app: TritiumApplication) : ViewModel() {
 
     /** Looked up from the last [refresh] — the form's edit-mode load, no second disk read. */
     fun entry(id: String): FuelEntry? = fuelEntries.value.firstOrNull { it.id == id }
+
+    /**
+     * The highest odometer reading across both `fuel.toml` and
+     * `service.toml` (AF6.md §1.2) — a one-off repository read at
+     * form-open time, the same shape [activeVehicleFuelSpec] already uses
+     * for a single derived field.
+     */
+    fun previousOdometer(): Int? {
+        val slug = activeVehicleSlug.value ?: return null
+        val serviceEntries = runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }
+            .getOrDefault(emptyList())
+        return FuelDraft.highestOdometer(fuelEntries.value, serviceEntries)
+    }
 
     /** Add-only — quick-add's path. Allocates the id in the repository, as F4's own `fuel:add` does. */
     fun addFuelEntry(entry: (id: String) -> FuelEntry): FuelEntry? {

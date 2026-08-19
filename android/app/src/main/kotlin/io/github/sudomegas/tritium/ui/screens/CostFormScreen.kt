@@ -115,6 +115,9 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
             )
             Text(stringResource(R.string.costs_typed_category_hint), style = MaterialTheme.typography.bodySmall)
         } else {
+            if (group == CostGroup.TEKRAR_EDEN) {
+                Text(stringResource(R.string.costs_service_elsewhere), style = MaterialTheme.typography.bodySmall)
+            }
             DropdownField(
                 label = stringResource(R.string.costs_field_category),
                 selectedText = if (pickedCategory.isEmpty()) "" else costCategoryLabel(pickedCategory),

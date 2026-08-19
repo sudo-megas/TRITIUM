@@ -31,6 +31,8 @@ import io.github.sudomegas.tritium.ui.nav.FuelFormRoute
 import io.github.sudomegas.tritium.ui.nav.FuelQuickAddRoute
 import io.github.sudomegas.tritium.ui.nav.FuelRoute
 import io.github.sudomegas.tritium.ui.nav.HomeRoute
+import io.github.sudomegas.tritium.ui.nav.ServiceFormRoute
+import io.github.sudomegas.tritium.ui.nav.ServiceRoute
 import io.github.sudomegas.tritium.ui.nav.SettingsRoute
 import io.github.sudomegas.tritium.ui.nav.TopLevelDestination
 import io.github.sudomegas.tritium.ui.nav.VehicleFormRoute
@@ -40,6 +42,8 @@ import io.github.sudomegas.tritium.ui.screens.FuelFormScreen
 import io.github.sudomegas.tritium.ui.screens.FuelQuickAddScreen
 import io.github.sudomegas.tritium.ui.screens.FuelScreen
 import io.github.sudomegas.tritium.ui.screens.HomeScreen
+import io.github.sudomegas.tritium.ui.screens.ServiceFormScreen
+import io.github.sudomegas.tritium.ui.screens.ServiceScreen
 import io.github.sudomegas.tritium.ui.screens.SettingsScreen
 import io.github.sudomegas.tritium.ui.screens.VehicleFormScreen
 
@@ -61,6 +65,7 @@ fun TritiumApp(app: TritiumApplication) {
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory(app))
     val fuelViewModel: FuelViewModel = viewModel(factory = FuelViewModel.factory(app))
     val costViewModel: CostViewModel = viewModel(factory = CostViewModel.factory(app))
+    val serviceViewModel: ServiceViewModel = viewModel(factory = ServiceViewModel.factory(app))
     val error by settingsViewModel.error.collectAsStateWithLifecycle()
     val config by settingsViewModel.config.collectAsStateWithLifecycle()
 
@@ -79,7 +84,8 @@ fun TritiumApp(app: TritiumApplication) {
         it.hasRoute(VehicleFormRoute::class) ||
             it.hasRoute(FuelQuickAddRoute::class) ||
             it.hasRoute(FuelFormRoute::class) ||
-            it.hasRoute(CostFormRoute::class)
+            it.hasRoute(CostFormRoute::class) ||
+            it.hasRoute(ServiceFormRoute::class)
     } == true
 
     Scaffold(
@@ -170,6 +176,23 @@ fun TritiumApp(app: TritiumApplication) {
                 val route: CostFormRoute = entry.toRoute()
                 CostFormScreen(
                     viewModel = costViewModel,
+                    entryId = route.entryId,
+                    currency = config.currency,
+                    onSaved = { navController.popBackStack() },
+                )
+            }
+            composable<ServiceRoute> {
+                ServiceScreen(
+                    viewModel = serviceViewModel,
+                    currency = config.currency,
+                    onAddService = { navController.navigate(ServiceFormRoute()) },
+                    onEditEntry = { entryId -> navController.navigate(ServiceFormRoute(entryId)) },
+                )
+            }
+            composable<ServiceFormRoute> { entry ->
+                val route: ServiceFormRoute = entry.toRoute()
+                ServiceFormScreen(
+                    viewModel = serviceViewModel,
                     entryId = route.entryId,
                     currency = config.currency,
                     onSaved = { navController.popBackStack() },
