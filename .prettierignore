@@ -1,0 +1,27 @@
+# What the formatter does not touch (F12).
+
+# Build output and dependencies.
+node_modules/
+out/
+dist/
+release/
+test-results/
+playwright-report/
+
+# npm writes it; npm's shape is the right shape.
+package-lock.json
+
+# Deliberately broken, so the audits can be proved to bite. Formatting them
+# would be tidying a thing whose whole job is to be wrong.
+tests/fixtures/
+
+# ── PROSE IS THE MAKER'S ──────────────────────────────────────────────────────
+#
+# XTRITIUM is the constitution and the F-documents are its record. Both are
+# hand-set: wrapped where the sentences want to break, with tables aligned by
+# eye and paragraphs shaped to be read. Prettier would reflow all of it to a
+# printWidth and destroy an authorship the project has kept for twelve
+# milestones.
+#
+# The formatter serves the code. The prose does not need serving.
+*.md

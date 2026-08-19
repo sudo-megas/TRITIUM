@@ -33,28 +33,46 @@ const TRANSLITERATIONS: Readonly<Record<string, string>> = {
 /** The fallback when a name slugifies to nothing at all. */
 export const EMPTY_SLUG = 'vehicle'
 
-export function slugFor(name: string): string {
+/**
+ * The slug itself, with no fallback — empty in, empty out, and empty for
+ * anything that holds no letter or digit at all.
+ *
+ * Kept separate from `slugFor` because the fallback is the caller's decision
+ * and not the transliteration's. F12 found out why the hard way: see below.
+ */
+function slugify(name: string): string {
   let mapped = ''
   for (const character of name) mapped += TRANSLITERATIONS[character] ?? character
 
   // toLowerCase is locale-independent by specification — it is toLocaleLowerCase
   // that consults the ambient locale, and the Turkish letters are already gone.
-  const slug = mapped
+  return mapped
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
 
+/** A vehicle must have a directory, so a name that slugifies to nothing gets one. */
+export function slugFor(name: string): string {
+  const slug = slugify(name)
   return slug.length > 0 ? slug : EMPTY_SLUG
 }
 
 /**
- * `slugFor`, but empty in becomes empty out.
+ * A category, which must NOT be invented.
  *
- * A vehicle must have a directory, so `slugFor('')` gives it one. A cost
- * category must not be invented: a MANUAL entry saved with nothing typed keeps
- * an empty `category`, which reads back as "not categorised" rather than as a
- * category called "vehicle" that the maker never named (§3.3).
+ * A MANUAL entry saved with nothing usable typed keeps an empty `category` and
+ * reads back as "not categorised" — never as a category the maker did not name
+ * (§3.3).
+ *
+ * This used to delegate to `slugFor` for anything non-blank, and `issues.md`
+ * I-17 is what that cost: a category typed as `!!!` or as an emoji has no
+ * letters to slugify, fell through to the vehicle fallback, and was stored as a
+ * category literally called **"vehicle"** — which passed the cost form's
+ * "a category was chosen" gate on the way. It now slugifies directly, so a
+ * category with nothing in it stays nothing, while a maker who genuinely types
+ * "Vehicle" still gets `vehicle`.
  */
 export function categorySlug(text: string): string {
-  return text.trim().length === 0 ? '' : slugFor(text)
+  return slugify(text)
 }

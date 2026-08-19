@@ -23,8 +23,10 @@ Status is one of **FIXED** (with the milestone that fixed it), **OPEN**, or
 
 ## Open
 
-### I-09 · `prettier --check` fails across the repository
-**Status: OPEN** · found F7 · pre-existing, not introduced
+<!-- I-09 moved to Fixed in F12; kept here in place so the numbering reads in order. -->
+
+### I-09 · `prettier --check` failed across the repository
+**Status: FIXED in F12** · found F7 · pre-existing, not introduced
 
 `npx prettier --check .` reports style differences in **40 files**, including
 many never touched by F5–F7 — `XTRITIUM.md`, `src/shared/scaled.ts`,
@@ -35,12 +37,20 @@ Prettier is **not a gate**: `package.json` wires it only as `format`
 The codebase is hand-formatted in a style close to, but not identical with, what
 `.prettierrc.json` would produce.
 
-Left alone deliberately. Running `prettier --write .` would rewrite forty files
-in a single commit, most of them for reasons unrelated to any milestone, and
-would reflow hand-set prose in the documents. **This wants the maker's decision:**
-either adopt Prettier properly (one formatting commit, then add `--check` to the
-`test` script so it stays true), or drop the `format` script and say the
-codebase is hand-formatted.
+It was left alone through F7–F11 because running `prettier --write .` would have
+rewritten forty files at once, most for reasons unrelated to any milestone, and
+would have reflowed the hand-set prose in the documents.
+
+**F12 settled it, and split the difference along the line that mattered.** The
+**code** — 37 files of `.ts`, `.tsx`, `.css` and `.json` — is formatted once and
+`prettier --check` now runs as part of `npm run audit`, so it stays true. **The
+prose is excluded by `.prettierignore`,** which says why in full: XTRITIUM is the
+constitution and the F-documents are its record, both wrapped where the sentences
+want to break, and a printWidth would destroy an authorship the project has kept
+for twelve milestones.
+
+A formatter nobody runs is not a convention. One that reflows the constitution is
+worse than none.
 
 ### I-10 · XTRITIUM §9.1's version table is stale
 **Status: OPEN** · found F4b · needs the maker's pen
@@ -328,6 +338,56 @@ the failure mode is worth naming: a test whose expected value was computed by
 the same mind that wrote the code proves less than it appears to, and when it
 disagrees the first suspect should be the expectation. The figures now in the
 suite were computed with `node`, not by eye.
+
+### I-17 · A category the maker never named, called "vehicle"
+**Status: FIXED in F12** · introduced F5 · severity: invented data
+
+`categorySlug` delegated to `slugFor` for any non-blank text:
+
+```ts
+return text.trim().length === 0 ? '' : slugFor(text)
+```
+
+`slugFor` exists to name a **vehicle directory**, so it has a fallback: a name
+that slugifies to nothing still gets `'vehicle'`, because a vehicle must have a
+directory. A MANUAL cost category typed as `!!!`, or as an emoji, has no letters
+to slugify either — and fell straight through that fallback.
+
+**Effect:** the cost was stored with `category = "vehicle"`. Worse, it passed the
+cost form's own gate on the way: `ready` requires
+`categorySlug(draft.category).length > 0`, and `'vehicle'` is seven characters,
+so the form was satisfied that a category had been chosen. §3.3 forbids the app
+creating entries the maker did not make, and this was the app naming one for him.
+
+The irony is on the record: F5's own comment on `categorySlug` says it exists so
+that a category is never "a category called 'vehicle' that the maker never
+named". It said the right thing and did the other one.
+
+**Fix:** the transliteration is now a private `slugify` with no fallback, and
+the fallback belongs to `slugFor` alone — which is where the decision always
+belonged. `categorySlug('Vehicle')` still gives `vehicle`, because that is a
+maker naming a category; `categorySlug('!!!')` gives nothing, because that is
+not.
+
+**Regression cover:** `tests/unit/edges.test.ts` for both cases, and
+`tests/e2e/edges.spec.ts` proves the form now refuses to save rather than
+inventing the category.
+
+### I-18 · Two acceptance criteria nobody was checking
+**Status: FIXED in F12** · severity: unguarded guarantees
+
+Eight milestone documents from F4 onward carry the line *"`writeFileSync`
+appears nowhere in `src/` outside `atomic.ts`"* — the mechanical half of §4.1's
+atomic-write promise — and nothing checked it. And I-01 and I-02 above are the
+same missing broadcast in two places, caught by a person reading code.
+
+**Fix:** `scripts/audit-storage.mjs`, the seventh audit. It fails a tree where a
+write bypasses the helper, and fails one where an `ipcMain.handle` reaches a
+repository write without broadcasting. Both rules are proved to bite against a
+deliberately broken fixture, the way the other six are.
+
+The second rule is the one worth having: a defect that occurred twice, written
+down once, and now cannot occur a third time.
 
 ---
 
