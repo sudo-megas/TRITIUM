@@ -24,3 +24,13 @@ playwright-report/
 *.swo
 *~
 .DS_Store
+
+# A git worktree here holds a COMPLETE second copy of this repository, so an
+# unqualified `git add -A` would commit the tree into itself. Machine-local
+# settings are local by their own name. Neither is the project.
+#
+# .prettierignore excludes the same directory for the same reason (issues.md
+# I-20); this is the other half of it (I-21). Nothing else under .claude/ is
+# ignored, so a config the maker decides to track stays visible.
+.claude/worktrees/
+.claude/settings.local.json

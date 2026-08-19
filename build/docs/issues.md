@@ -467,13 +467,70 @@ milestone is called done.
 
 ---
 
+### I-21 · The same worktree copy, invisible to the formatter but not to git
+**Status: FIXED after F14** · found after F14 · the other half of I-20
+
+I-20 stopped `prettier` walking `.claude/worktrees/`, and stopped there. **git was
+never told the same thing.**
+
+The consequence is a single keystroke away, and it is the project's own
+documented keystroke: **`git add -A` opens the exit block of all fourteen
+F-documents**, F1 through F14.
+
+Measured rather than argued, against the `.gitignore` as it stood one commit
+earlier — `git ls-files --others --exclude-from=<old .gitignore> -- .claude` —
+**118 entries**, in two different failure modes:
+
+| Entries | What | Why |
+|---:|---|---|
+| 116 | individual files under `.claude/worktrees/f1-scaffold/` | a **stale** worktree — absent from `git worktree list`, its `.git` file pointing at metadata git no longer resolves, so git recurses into it as an ordinary directory |
+| 1 | `.claude/worktrees/f5-f7-costs-service-lists/` | a **live** worktree, which git detects as an embedded repository and stages as a single **gitlink** — with the `adding embedded git repository` warning |
+| 1 | `.claude/settings.local.json` | machine-local by its own name |
+
+Both are wrong and they are wrong differently. The stale copy commits 116 source
+files **into the tree they were copied from**, at a second path, silently. The
+live one commits a gitlink to a commit in a branch no clone will contain, which
+leaves a directory that is permanently empty for everyone else. Which one a given
+worktree produces depends only on whether git still remembers it.
+
+The count is 118 and not 13,449 because the existing `node_modules/`, `out/` and
+`release/` patterns match at any depth and so already covered most of the copy.
+`git add -A` respects them; `git add -f` does not, which is why forcing the same
+path stages 13,449 files. **The 118 is the number that was actually reachable.**
+
+That it never happened is luck rather than design. Every commit this project has
+made was staged by explicit path, so nothing ever swept the directory up. The
+first `git add -A` would have.
+
+**Fix:** `.gitignore` excludes `.claude/worktrees/` and
+`.claude/settings.local.json`, with the reason written in. Deliberately **not**
+`.claude/` wholesale, though `.prettierignore` does exactly that: the formatter
+must never touch a second copy of the tree, but git ignoring the whole directory
+would silently hide a config the maker might later decide to track. The two files
+ignore different things because they are answering different questions.
+
+**Found by** reading `git status` at the end of the I-10 amendment instead of
+looking only at the diff being committed — the `?? .claude/` line had been in
+every status output for ten milestones, and was read as noise every time.
+
+**This entry was itself written wrong first**, and it is recorded here because
+I-16 is the rule that says so. The first draft asserted that `git add -A` would
+stage "every source file twice, plus a `.git` pointer file" — reasoned from a
+`git status` count, never run. It is half right: that is the **stale** worktree's
+behaviour, and the live one produces a single gitlink instead, which the draft
+would have had the register denying. The numbers above replaced the argument
+before this was merged. A register whose whole claim is that it measures things
+does not get to hand-derive its last entry.
+
+---
+
 ## Final position
 
-Twenty issues. Eighteen fixed, two accepted with reasons, **none open**.
+Twenty-one issues. Nineteen fixed, two accepted with reasons, **none open**.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
 | **OPEN** | — |
 
@@ -492,7 +549,7 @@ argued with.
 
 ## Notes on method
 
-Five of the eighteen fixed issues (I-03, I-08, I-15, I-16, I-20) were found by
+Five of the nineteen fixed issues (I-03, I-08, I-15, I-16, I-20) were found by
 **measuring something that had only been reasoned about**, and not one of them
 would have been caught by the suite as it stood. The miles rounding (I-15) is the
 clearest case: it was correct by argument and wrong on 37.9% of the values in
@@ -509,8 +566,19 @@ storage layer never made, two acceptance criteria nobody was checking, and
 comments still describing work as pending after it had been done. I-10 is the
 fourth and the largest of them, and it sat in the constitution itself.
 
-The register's own lesson is I-10's. It was not hidden, not subtle, and not
-hard — it was written down twenty lines from the top of this file and read at
-every milestone for ten milestones running. It closed when the maker asked why it
-was still there. A gate catches what it was written to catch; nothing in the
-suite was ever going to catch a reason that had stopped being examined.
+Two (I-20, I-21) are one fact met twice: a git worktree is a second copy of the
+tree, and every tool that walks a directory has to be told so separately. The
+formatter was told in F12. Git was not told until I-21, ten milestones later,
+because fixing the tool that complained felt like fixing the problem.
+
+The register's own lesson is I-10's, and I-21 is the same lesson in miniature.
+Neither was hidden, subtle, or hard. I-10 was written twenty lines from the top
+of this file and read at every milestone for ten milestones running; I-21 was a
+`?? .claude/` line printed by `git status` every single time and classified as
+noise every single time. One closed because the maker asked why it was still
+there, the other because a status output was finally read instead of skimmed.
+
+So the register ends on a caveat about itself. A gate catches what it was written
+to catch. Nothing here was ever going to catch a thing that was seen constantly
+and had simply stopped being looked at — and the honest reading of twenty-one
+issues is that this project's real failure mode was never a missing test.
