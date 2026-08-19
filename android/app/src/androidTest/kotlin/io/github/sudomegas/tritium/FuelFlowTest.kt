@@ -10,12 +10,11 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.github.sudomegas.tritium.config.AppConfig
-import io.github.sudomegas.tritium.config.ConfigStore
 import io.github.sudomegas.tritium.storage.TritiumPaths
 import io.github.sudomegas.tritium.storage.Vehicle
 import io.github.sudomegas.tritium.storage.VehicleDocument
 import io.github.sudomegas.tritium.storage.VehicleRepository
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -30,9 +29,20 @@ import org.junit.runners.model.Statement
  * rather than only in [io.github.sudomegas.tritium.storage.ConsumptionTest].
  *
  * A currency and one active vehicle are seeded directly through
- * [VehicleRepository]/[ConfigStore], the same [RuleChain]-before-launch
- * pattern `ShellLanguageSwitchTest` already established — this test is
- * about the Fuel tab, not about re-proving AF3's own creation flow.
+ * [VehicleRepository]/[TritiumApplication.configState], the same
+ * [RuleChain]-before-launch pattern `ShellLanguageSwitchTest` already
+ * established — this test is about the Fuel tab, not about re-proving AF3's
+ * own creation flow.
+ *
+ * The seed goes through [io.github.sudomegas.tritium.config.ConfigState.update]
+ * rather than [io.github.sudomegas.tritium.config.ConfigStore] directly: on a
+ * real device, `Application.onCreate()` — which reads `settings.toml` once,
+ * synchronously, into `ConfigState`'s initial value — runs before any `@Rule`
+ * does, `outerRule` included. Writing only the file left the live in-memory
+ * config at its untouched default, so the very first assertion below saw
+ * `activeVehicleSlug == null` and the "No vehicle" empty state instead of
+ * the fuel one — found running this test for real, not in CI, which compiles
+ * but never executes it.
  */
 @RunWith(AndroidJUnit4::class)
 class FuelFlowTest {
@@ -50,7 +60,8 @@ class FuelFlowTest {
                     slug,
                     VehicleDocument(1, Vehicle(name = "Test Car", fuelSpec = "Kurşunsuz 95"), emptyMap()),
                 )
-                ConfigStore(context.filesDir).save(AppConfig(currency = "TRY", activeVehicleSlug = slug))
+                val app = context.applicationContext as TritiumApplication
+                runBlocking { app.configState.update { it.copy(currency = "TRY", activeVehicleSlug = slug) } }
                 base.evaluate()
             }
         }
