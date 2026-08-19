@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TRITIUM</string>
+
+    <string name="nav_home">Ana Sayfa</string>
+    <string name="nav_settings">Ayarlar</string>
+
+    <string name="home_placeholder_title">TRITIUM</string>
+    <string name="home_placeholder_body">Sadece iskelet — henüz veri yok.</string>
+
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_language">Dil</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_tr">Türkçe</string>
+
+    <string name="about_title">Hakkında</string>
+    <string name="about_maker">Yapımcı</string>
+    <string name="about_version">Sürüm</string>
+    <string name="about_source">Kaynak</string>
+    <string name="about_licence">Lisans</string>
+    <string name="about_licence_title">Lisans metni</string>
+</resources>

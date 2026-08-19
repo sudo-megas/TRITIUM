@@ -19,7 +19,7 @@ Milestone documents live in `~/REPO/build/docs/F<N>.md`.
 | Name | **TRITIUM** (product), `tritium` (app id, binary, desktop file, data dir) |
 | Family | Megas — app 6, alongside SAAT, JADEITE, PARACHRON, INDIUM, RESONANCE |
 | What it is | A local, offline fuel and vehicle-cost journal — a curated subset of Fuelio's ideas plus the maker's own two spreadsheets, built precisely |
-| Platform | **Arch Linux exclusively** (desktop phase). Android follows later as a **full, separate rewrite** on its own branch |
+| Platform | **Arch Linux exclusively** (desktop phase) plus **Android** — a full, separate rewrite, its own Kotlin/Compose Gradle project under `android/` at the repo root, built and tagged directly on `main` |
 | Licence | **GPL-3.0-or-later** |
 | Distribution | `.pkg.tar.zst` → the maker's own `megas-xlr` pacman repo. **No AUR.** `.github/workflows/package.yml` builds the package in a container on a `v*` tag |
 | Attribution | No AI attribution anywhere: no commit trailers, no mentions in docs, code comments, or release notes |
@@ -37,6 +37,23 @@ on every tag rather than whenever it is remembered.
 **No key is stored on any server.** §9.3's "the maker signs packages himself"
 stands: the workflow attaches an unsigned package, and the signature is made on
 his machine.
+
+**Amendment — 19/08/2026.** The Platform row read "Android follows later as a
+**full, separate rewrite** on its own branch."
+
+The rewrite is still full and still separate — nothing about the app itself
+changes. What moves is *where it lives*: `sudo-megas/SAAT`, the family's own
+working precedent for exactly this kind of Android port, keeps its `android/`
+Gradle project directly on `master`. Checking its history found no surviving
+Android branch — the port was built and tagged in place, disambiguated from
+the desktop's own tags by an `android-v*` prefix rather than by a second
+branch. A branch that has to be reconciled back into `main` at the end of the
+phase is a merge day this project does not need when the prefix already does
+the same job continuously, from the first commit.
+
+`issues.md` I-36 records this as the document defect it is: §1 was written
+before Android was real, on the assumption a long-lived branch was the
+obvious shape, and the family's own shipped precedent said otherwise.
 
 ---
 
@@ -80,8 +97,9 @@ These are not preferences. Violating one is a bug.
    recurrence engine, no reminders, no "guessing game". (Derived statistics over
    existing data — averages, projections *as statistics* — are fine; creating or
    suggesting entries the user did not make is not.)
-4. **Plaintext, hand-editable storage.** A person with Neovim can read and repair
-   every byte of their data.
+4. **Plaintext, hand-editable storage on the desktop, and in every exported
+   bundle.** A person with Neovim can read and repair every byte of a
+   vehicle's record files, and of any bundle the phone has written.
 5. **The app opens no browser and follows no link.** Every address — About page,
    vendor URLs — is selectable text, never clickable.
 6. **No locale detection.** English on first launch, Turkish by manual switch,
@@ -90,6 +108,25 @@ These are not preferences. Violating one is a bug.
    sums — all computed at read time from the entered figures. One source of truth.
 8. **All entries are editable at any time.** The app warns about suspicious input
    (e.g. backwards odometer) and then accepts the user's word.
+
+**Amendment — 19/08/2026.** Principle 4 read "**Plaintext, hand-editable
+storage.** A person with Neovim can read and repair every byte of their
+data," written when "their data" meant one thing: files on an Arch machine.
+
+It is **literally impossible** for standard Android app-private storage on
+an unrooted phone — not a style choice AF1 is declining to make, a fact about
+the platform. Android's own `filesDir` is reachable by the app that owns it
+and nothing else without deliberately working around the OS; no text editor
+gets there by double-clicking a file.
+
+The guarantee is narrowed, not abandoned. The desktop copy is still exactly
+what it was — a file a person can open in Neovim — and so is any bundle the
+phone has exported (§4.4's format, frozen by F16). The phone's own on-device
+copy is TOML, parsed the same way and by the same reasoning, but it lives
+where only the app can reach it. `issues.md` I-36 records this the same way
+I-33 recorded §4.1's own collision with a milestone that needed a feature the
+constitution had ruled out: a clause written before the platform was real,
+corrected once the platform said what it actually required.
 
 ---
 
@@ -399,8 +436,35 @@ what running the application showed, and F16 gives the Android phase a format to
 write. "Finished" describes the milestone that was planned, not the last one that
 will exist.
 
-The Android phase (separate rewrite, branch **`android-port`**, milestones
-AF1, AF2, …) ends at **v1.0**.
+The Android phase (separate rewrite, `android/` at the repo root, built
+directly on `main`, milestones AF1, AF2, …) versions independently of the
+desktop line — the family's own precedent, `sudo-megas/SAAT`, ties its
+Android app to no line but its own. Each AF-milestone's `versionName` is its
+milestone number as a decimal — AF1 → `0.1`, AF2 → `0.2`, … — with no
+roll-at-ten; `versionCode` stays a monotonic integer, bumped only when a
+version is actually tagged. Most milestones build up **untagged**, sideloaded
+straight from the maker's own build, exactly as SAAT's debug builds were
+from AM3 onward. A milestone is tagged `android-v<versionName>` only when it
+is an actual release — the `android-` prefix is load-bearing, not decorative:
+git tags are global across branches in one repository, and `v0.1.0` already
+names F1 on `main`.
+
+**No AF-milestone may be called `v1.0` before the one that gives the phone
+F16's export path exists.** SAAT states the same rule about its own ZIP
+bridge in exactly these terms: "releasing an app that cannot export its data
+would betray everything [it] stands for." TRITIUM's phone is the same
+promise from the other direction — F16 built the desktop's import on the
+strength of a format the phone had not yet written a byte of, and shipping a
+`v1.0` that still cannot write it would be the promise broken at the only
+end that was ever going to be hard.
+
+**Amendment — 19/08/2026.** This paragraph read "The Android phase (separate
+rewrite, branch `android-port`, milestones AF1, AF2, …) ends at v1.0" — no
+versioning scheme, no export ordering, just a name and a destination. AF1
+resolved both against `sudo-megas/SAAT`, checked rather than assumed: its
+`android/` lives on `master`, not a branch, and its own milestone table
+(`AM1`–`AM12`) never reached `v1.0` before its export/import milestone did.
+`issues.md` I-36 records why the earlier sentence undersold both.
 
 ### 9.2 The PUTAG protocol
 

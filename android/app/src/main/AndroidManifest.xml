@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  THERE ARE NO <uses-permission> ENTRIES HERE, AND THERE NEVER WILL BE.
+
+  XTRITIUM §3 principle 1, "Zero network. Ever.", stated at the strongest
+  level Android can state it. Not INTERNET, not anything else. This is the
+  strongest privacy claim an Android app can make and, unlike a written
+  promise, anyone can verify it themselves by running `aapt dump permissions`
+  on the APK.
+
+  It is enforced rather than remembered: verifyDebugManifestPolicy and
+  verifyReleaseManifestPolicy (android/buildSrc, wired into app/build.gradle.kts)
+  parse the MERGED manifest — after the manifest merger has run, so a
+  dependency cannot smuggle one in — and fail the build if any permission
+  appears. Both are wired into `check`, so this is verified on every push,
+  including for the release variant, which is where an injected permission
+  would actually ship.
+
+  If a future dependency adds one, the build breaks. That is the desired
+  behaviour. Remove the dependency or override it with tools:node="remove";
+  never relax the check. (Pattern adopted directly from the family's sibling
+  Android port, sudo-megas/SAAT, whose own guardian caught exactly this from a
+  real dependency before this project ever needed to.)
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      androidx.core injects a self-defined signature permission,
+      <applicationId>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION, into every
+      merged manifest. It is not a platform capability — it grants access to
+      nothing, and exists so that ContextCompat.registerReceiver can emulate a
+      non-exported dynamic receiver on API levels below 33, where the platform
+      has no RECEIVER_NOT_EXPORTED flag.
+
+      Removed rather than tolerated, for one reason: the zero-permission
+      guarantee's value is that anyone can verify it with `aapt dump
+      permissions` on the released APK. A permission that needs explaining is
+      a permission that weakens the claim.
+
+      Safe only while this app registers no dynamic receiver with
+      RECEIVER_NOT_EXPORTED. AF1 registers none. If a future milestone ever
+      does, this removal must be reconsidered at that moment.
+    -->
+    <permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+    <uses-permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+
+    <application
+        android:name=".TritiumApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TRITIUM"
+        android:allowBackup="false">
+
+        <!--
+          allowBackup is false, deliberately, rather than decided. Whether the
+          Android copy of a vehicle's records should ride Android's OS-level
+          Auto Backup is a real decision — SAAT allows it for its own records,
+          calling it "pragmatism... by the owner's decision", and it is not an
+          app-initiated network call so XTRITIUM §3 principle 1 does not settle
+          it either way by itself. AF1 has nothing to back up yet (settings.toml
+          holds one key), so the decision is left to AF2, which is the
+          milestone that actually gives the phone something worth losing.
+        -->
+
+        <!--
+          No android:configChanges, deliberately. Suppressing recreation is how
+          a rotation bug gets "fixed" without being fixed, and this app's
+          Compose state is expected to survive rotation through the normal
+          Activity recreation path — a guarantee that is only real if the
+          Activity genuinely IS recreated.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.TRITIUM">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          Lets AppCompat apply a per-app locale on API levels below 33, where
+          the framework's own LocaleManager does not exist. XTRITIUM §3
+          principle 6 requires the app to choose its language explicitly rather
+          than follow the system locale, and this is the supported mechanism
+          for it across the whole minSdk 26 range.
+        -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="false" />
+        </service>
+    </application>
+
+</manifest>

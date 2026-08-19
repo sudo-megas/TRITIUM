@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  English default, per XTRITIUM §3 principle 6: English on first launch,
+  Turkish only by manual switch in Settings, nothing read from the OS.
+-->
+<resources>
+    <string name="app_name">TRITIUM</string>
+
+    <!-- Bottom navigation — AF1.md §2.1 decision 7: count and names provisional. -->
+    <string name="nav_home">Home</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home — a placeholder, not a "get started" screen (XTRITIUM §7). -->
+    <string name="home_placeholder_title">TRITIUM</string>
+    <string name="home_placeholder_body">Scaffold only — no data yet.</string>
+
+    <!-- Settings — AF1 ships the language switch only. -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_tr">Türkçe</string>
+
+    <!-- About — XTRITIUM §10, unchanged by platform: the mark, the maker,
+         version, source address, licence. "Released" is deliberately absent —
+         AF1 has no release date because it ships no tag (AF1.md §5). -->
+    <string name="about_title">About</string>
+    <string name="about_maker">Maker</string>
+    <string name="about_version">Version</string>
+    <string name="about_source">Source</string>
+    <string name="about_licence">Licence</string>
+    <string name="about_licence_title">Licence text</string>
+</resources>

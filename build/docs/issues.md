@@ -986,13 +986,48 @@ back.
 
 ---
 
+### I-36 · §3 principle 4 forbade what AF1 needed, the same shape as I-33
+**Status: FIXED in AF1** · found AF1 · in XTRITIUM since it was drafted
+
+`XTRITIUM.md` §3, hard principle 4, said: *"Plaintext, hand-editable storage.
+A person with Neovim can read and repair every byte of their data."*
+
+That sentence was written when "their data" meant one thing — files on an
+Arch machine — and it is **literally impossible** for standard Android
+app-private storage on an unrooted phone: `filesDir` is reachable by the app
+that owns it and nothing else, without deliberately working around the OS.
+Not a preference AF1 declined to honour. A fact about the platform the
+sentence was never tested against.
+
+This is I-33's shape again — a constitution clause that predates the thing
+it turns out to govern, found the moment that thing became real, not before.
+I-33 was §4.1 forbidding the import feature F16 was asked for; here it is §3
+forbidding the storage model Android actually has.
+
+**Fix:** amended, dated, narrow — the same discipline F16 used on §4.1.
+Principle 4 now reads "plaintext, hand-editable storage **on the desktop,
+and in every exported bundle**" (§3, `XTRITIUM.md`). The guarantee is
+narrowed rather than dropped: the desktop copy is unchanged, and so is any
+bundle the phone has written — F16's format — but the phone's own on-device
+copy is TOML in app-private storage, parsed the same way, not reachable by a
+text editor.
+
+**Why it wasn't caught earlier.** Nothing before AF1 ever had to satisfy
+principle 4 on a platform where "hand-editable" has a different meaning —
+sixteen desktop milestones ran entirely on Arch, where the sentence was
+simply true. The same lesson I-33 already named: a document's claim about
+itself can be wrong, and nothing before the thing it describes exists can
+catch that. Only building the thing can.
+
+---
+
 ## Final position
 
-Thirty-five issues. Thirty-three fixed, two accepted with reasons, **none open**.
+Thirty-six issues. Thirty-four fixed, two accepted with reasons, **none open**.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 · I-30 · I-31 · I-32 · I-33 · I-34 · I-35 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 · I-30 · I-31 · I-32 · I-33 · I-34 · I-35 · I-36 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
 | **OPEN** | — |
 
