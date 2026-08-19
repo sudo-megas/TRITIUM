@@ -738,13 +738,109 @@ gate is worth anything.
 
 ---
 
+<!-- F15, second pass. Found by the maker running the FIRST pass. -->
+
+### I-30 · The vehicle picker fell out of the tab bar
+**Status: FIXED in F15** · found F15 · introduced by F15's own type scale
+
+`.tabbar` sets `flex-wrap: wrap`, deliberately and with its reason written in:
+the target desktop is a tiling compositor that sets window widths itself and owes
+the 1280 minimum nothing, so wrapping is a better failure than pushing the
+vehicle picker off the edge or laying one control over another.
+
+Wrapping is the **failure** mode, not the resting state. F15's type scale took
+body text from 13px to 16px, every tab label widened with it, and the bar's
+contents — the mark, eight labels and the picker with its two buttons — came to
+roughly **1370px in a 1280px bar**. So it wrapped, exactly as designed, and the
+picker went and sat underneath the tabs.
+
+Nothing failed. No audit could object, no test looked, and the layout did
+precisely what it had been told to do. This is the milestone's own lesson
+recurring **inside the milestone**: a widening change was made and the one place
+where width, not legibility, is the binding constraint was not re-measured.
+
+**Fix:** the tab bar is chrome, so its labels take `--text-sm` and a narrower
+gutter, and the picker states a width instead of a floor — `.picker__select` had
+`min-width` (the same shape of bug as I-24) and inherited `.control`'s new
+`width: 100%`, which inside a flex row resolves against the whole bar. The row
+now measures about 1160px, leaving real room. `.tab:last-of-type` also drops its
+divider: with the picker pushed right by `margin-left: auto` and carrying a
+border of its own, two rules bracketed an empty stretch of bar that read as a
+ninth, blank tab.
+
+`geometry.spec.ts` now asserts every child of the bar shares one `top`. Two
+distinct tops is a wrap. Verified by putting the old sizing back and watching it
+fail.
+
+**Found by** the maker, again, and visible in the first screenshot he sent.
+
+---
+
+### I-31 · A stronger line is still only a line
+**Status: FIXED in F15** · found F15 · F15's own first pass was insufficient
+
+F15's first pass answered "separators look like thin fibers" by moving them to
+`--border-strong` at 2px. The maker's verdict on the result was **"still
+primitive"**, and he was right: a line of uniform colour is a line at any width.
+Thickness is not depth.
+
+What reads as depth is shading, and D4 had already said which kind was available:
+*"Depth comes from fill steps and borders. Outer shadow is forbidden; inset and
+bevel are not."* An outer shadow paints outside the border box and is the
+floating-above signal the layout law exists to refuse; an inset one paints
+strictly within and cannot reach a neighbour. `audit-overlap` enforces exactly
+that split, permitting `box-shadow` only when it carries `inset`.
+
+**Fix:** three of D4's instruments at once, none of which paints outside its own
+box.
+
+- Every structural separator gains a soft inset gradient rising off its own lower
+  edge — a groove rather than a rule.
+- The two panes stop being divided by a gap and become **planes**: the shell
+  ground is `--surface-sunken`, each pane is `--surface` with a strong border, a
+  radius and an inset highlight along its top inner edge. A fill step, a border
+  and a bevel, which is the maker's "outer border outline… floats and 2.5D
+  layered" without a single outer shadow.
+
+That last part changes a recorded decision — the edge was owned by the gap so
+that neither pane could paint over it, and it is now owned by each pane. It is
+safe only because both carry the same border, so the boundary is symmetrical, and
+it is written into the stylesheet rather than left to be discovered.
+
+**Cost, paid twice:** the borders and padding that make a pane look raised are
+width the tables were using. The costs and fuel lists went 3px and 10px over
+their panes. `--measure-prose` gave back another 16px and the table cell gutter
+went from 8px to 6px. Figure columns were not touched — a number that elides is a
+number that lies.
+
+---
+
+<!--
+  NOT AN ISSUE, recorded because it was reported as one and cost real time.
+
+  The maker reported that no add popup worked — every form window opened blank —
+  and that the About mark had become a broken image. Both were true on his screen
+  and neither was a defect in this application.
+
+  The dev server had been stopped while his app was still running. `npm run dev`
+  serves the renderer from Vite, so the already-painted main window kept what it
+  had, while every NEW window had nothing to load from and the assets it had not
+  yet fetched could not arrive. Blank forms and a broken image are exactly what
+  that looks like, and they are indistinguishable from catastrophe.
+
+  Verified rather than argued: the built application was launched and
+  screenshotted, and the vehicle form renders its two columns correctly while the
+  About mark decodes. Do not stop `electron-vite dev` while the app under
+  inspection is still open.
+-->
+
 ## Final position
 
-Twenty-nine issues. Twenty-seven fixed, two accepted with reasons, **none open**.
+Thirty-one issues. Twenty-nine fixed, two accepted with reasons, **none open**.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 · I-30 · I-31 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
 | **OPEN** | — |
 
@@ -778,7 +874,7 @@ argued with.
 
 ## Notes on method
 
-Six of the twenty-seven fixed issues (I-03, I-08, I-15, I-16, I-20, I-29) were
+Seven of the twenty-nine fixed issues (I-03, I-08, I-15, I-16, I-20, I-29, I-30) were
 found by **measuring something that had only been reasoned about**, and not one
 of them would have been caught by the suite as it stood. The miles rounding
 (I-15) is the clearest case: it was correct by argument and wrong on 37.9% of the

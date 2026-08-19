@@ -344,6 +344,37 @@ test('a heading is never smaller than the text it heads', async () => {
   expect(sizes.heading).toBeGreaterThan(sizes.body)
 })
 
+/*
+ * THE TAB BAR IS ONE ROW.
+ *
+ * .tabbar sets flex-wrap: wrap deliberately — the target desktop is a tiling
+ * compositor that sets window widths itself and owes the 1280 minimum nothing,
+ * and wrapping is a better failure than pushing the vehicle picker off the edge.
+ *
+ * But wrapping is the FAILURE mode, not the resting state, and at the minimum
+ * width it must not happen. F15's larger type spent the bar's width budget
+ * without anyone measuring it: eight labels, the mark and the picker wanted
+ * about 1370px in a 1280px bar, so the picker dropped onto a second row and sat
+ * under the tabs (issues.md I-30). Nothing failed — the layout did exactly what
+ * it was told — and no test looked.
+ */
+test('the tab bar stays on one row at 1280', async () => {
+  app = await launchApp(dataDir)
+  const shell = await windowWith(app, 'tab-summary')
+
+  const tops = await shell.evaluate(() => {
+    const bar = document.querySelector('.tabbar')
+    if (bar === null) return []
+    const ys = Array.from(bar.children).map((child) =>
+      Math.round(child.getBoundingClientRect().top)
+    )
+    return [...new Set(ys)]
+  })
+
+  // Every child of the bar starts at the same y. Two distinct tops means a wrap.
+  expect(tops).toHaveLength(1)
+})
+
 test('emptiness is the same layout holding nothing (§7)', async () => {
   rmSync(join(dataDir, 'tritium', 'vehicles'), { recursive: true, force: true })
   app = await launchApp(dataDir)

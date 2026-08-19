@@ -208,7 +208,7 @@ select,
   font-weight: 700;
   letter-spacing: var(--tracking-label);
   color: var(--accent);
-  border-right: var(--border-width) solid var(--border);
+  border-right: var(--border-width-strong) solid var(--border-strong);
 }
 
 .tabbar__icon {
@@ -225,17 +225,44 @@ select,
   height: var(--mark-size);
 }
 
+/* The tab dividers the maker named first, and they were the weakest lines in the
+ * application: one pixel of --border, immediately under a bar whose bottom rule
+ * F15 had already given the strong tier. A separator that is thinner than the
+ * edge it meets does not read as a separator (issues.md I-22's sibling
+ * complaint). Every vertical rule in this bar now matches the horizontal one. */
 .tab {
   appearance: none;
   border: 0;
-  border-right: var(--border-width) solid var(--border);
+  border-right: var(--border-width-strong) solid var(--border-strong);
   border-radius: var(--radius-none);
   background: transparent;
   color: var(--text-muted);
   font: inherit;
+  /*
+   * The bar is a fixed budget and F15 nearly spent it. Body type went 13px to
+   * 16px and every tab widened with it; eight labels, the mark and the vehicle
+   * picker then wanted about 1370px in a bar 1280px wide, so the picker wrapped
+   * onto a second row and sat under the tabs (issues.md I-30).
+   *
+   * A tab label is chrome, not body text, and it is the one place in this
+   * interface where the width of the container is the binding constraint rather
+   * than legibility. So the tabs take --text-sm and a narrower gutter, which
+   * brings the row to roughly 1160px and leaves real room to spare.
+   */
+  font-size: var(--text-sm);
   /* Tracking is allowed here: no column of figures aligns beneath a tab. */
   letter-spacing: var(--tracking-label);
-  padding: var(--space-0) var(--space-16);
+  padding: var(--space-0) var(--space-12);
+}
+
+/*
+ * The last tab drops its divider. The picker is pushed to the far right by
+ * margin-left: auto and carries a border-left of its own, so keeping this one
+ * left two rules with empty bar between them — which read as a ninth, blank
+ * tab. One boundary is enough to separate two things.
+ */
+.tab:last-of-type {
+  border-right: 0;
 }
 
 .tab:hover {
@@ -261,24 +288,39 @@ select,
 }
 
 /* ── the two big panes ───────────────────────────────────────────────────
- * The panes are separated by a gap that lets the border colour show through
- * from behind. It is a gap, not a drawn line on either pane, so neither pane
- * owns the edge and neither can paint over it.
+ * Each pane is a plane, and it is meant to read as one.
  *
- * F15 widened it to the strong tier. This is the most structural boundary in
- * the application — it is the line between the two halves of every screen — and
- * it was one pixel of the weakest colour the palettes define.
+ * Until F15's second pass the two were separated by a gap that let a border
+ * colour show through from behind — a line, and nothing else. The reasoning was
+ * sound as far as it went (neither pane owned the edge, so neither could paint
+ * over it) but the result was flat, and flat was the complaint.
+ *
+ * They now sit ON something instead of beside each other: the shell ground is
+ * --surface-sunken, each pane is --surface with a strong border and a radius,
+ * and each carries an inset highlight along its top inner edge. That is three
+ * of D4's own instruments at once — a fill step, a border, and a bevel — and
+ * not one of them paints outside its own box. There is still no outer shadow
+ * anywhere in this file.
+ *
+ * The edge is now owned by each pane rather than by the gap between them. That
+ * is a real change to the earlier decision and it is written here rather than
+ * left to be discovered: it is safe only because both panes carry the same
+ * border, so the boundary is symmetrical and neither can encroach on the other.
  */
 .panes {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--border-width-strong);
-  background: var(--border-strong);
+  gap: var(--gap-inside);
+  padding: var(--gap-inside);
+  background: var(--surface-sunken);
   min-height: 0;
 }
 
 .pane {
   background: var(--surface);
+  border: var(--border-width-strong) solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 var(--border-width-strong) 0 var(--surface-raised);
   padding: var(--gap-between);
   overflow: auto;
   min-height: 0;
@@ -351,6 +393,7 @@ select,
   gap: var(--gap-between);
   padding: var(--space-12) var(--space-0);
   border-bottom: var(--border-width-strong) solid var(--border-strong);
+  box-shadow: inset 0 var(--shade-rise) var(--shade-blur) var(--shade-spread) var(--border-strong);
   max-width: var(--measure-form);
 }
 
@@ -602,11 +645,13 @@ select,
   word-break: break-all;
 }
 
+/* The last weak full border in the file, and it takes the strong tier with the
+ * other containers — a box holding the entire GPL should look like a box. */
 .licence {
   white-space: pre-wrap;
   background: var(--surface-sunken);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius);
+  border: var(--border-width-strong) solid var(--border-strong);
+  border-radius: var(--radius-lg);
   padding: var(--gap-inside);
   margin: var(--space-0);
   font-size: var(--text-sm);
@@ -623,11 +668,20 @@ select,
   gap: var(--gap-inside);
   margin-left: auto;
   padding: var(--space-0) var(--space-12);
-  border-left: var(--border-width) solid var(--border);
+  /* The third separator in the tab bar, and it matches the other two. */
+  border-left: var(--border-width-strong) solid var(--border-strong);
 }
 
+/*
+ * The select is a WIDTH, not a floor, and not `width: 100%` inherited from
+ * .control either — inside a flex row that resolves against the whole bar and
+ * asks for far more than the picker's share. It states what it wants and yields
+ * the moment the bar is short of room (issues.md I-30).
+ */
 .picker__select {
-  min-width: var(--measure-picker);
+  width: var(--measure-picker);
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .picker__error {
@@ -812,7 +866,7 @@ select,
 .entries th {
   height: var(--row-height-head);
   text-align: right;
-  padding: var(--space-0) var(--space-8);
+  padding: var(--space-0) var(--space-6);
   border-bottom: var(--border-width) solid var(--border-strong);
   color: var(--text-muted);
   font-weight: normal;
@@ -848,7 +902,7 @@ select,
 .entries td {
   height: var(--row-height);
   text-align: right;
-  padding: var(--space-0) var(--space-8);
+  padding: var(--space-0) var(--space-6);
   border-bottom: var(--border-width) solid var(--border);
   white-space: nowrap;
 }
@@ -1033,6 +1087,7 @@ select,
   align-items: baseline;
   padding: var(--space-12) var(--space-0);
   border-bottom: var(--border-width-strong) solid var(--border-strong);
+  box-shadow: inset 0 var(--shade-rise) var(--shade-blur) var(--shade-spread) var(--border-strong);
 }
 
 .detail__key {
@@ -1207,6 +1262,7 @@ select,
   gap: var(--gap-between);
   padding-bottom: var(--gap-inside);
   border-bottom: var(--border-width-strong) solid var(--border-strong);
+  box-shadow: inset 0 var(--shade-rise) var(--shade-blur) var(--shade-spread) var(--border-strong);
   margin-bottom: var(--gap-between);
 }
 
@@ -1297,6 +1353,7 @@ select,
 .stat {
   padding: var(--gap-between) var(--space-0);
   border-bottom: var(--border-width-strong) solid var(--border-strong);
+  box-shadow: inset 0 var(--shade-rise) var(--shade-blur) var(--shade-spread) var(--border-strong);
 }
 
 .stat__value {
@@ -1349,6 +1406,7 @@ select,
   gap: var(--gap-inside);
   padding: var(--space-12) var(--space-0);
   border-bottom: var(--border-width-strong) solid var(--border-strong);
+  box-shadow: inset 0 var(--shade-rise) var(--shade-blur) var(--shade-spread) var(--border-strong);
 }
 
 .methods__name {

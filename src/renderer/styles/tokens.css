@@ -150,10 +150,31 @@
    * gets hard to track back. They live here for the same reason the ladder
    * does — so the same decision is not made twice with two different answers.
    */
+  /* ---- Depth --------------------------------------------------------------
+   * F15's second pass. A 2px border made the separators STRONGER without making
+   * them look like anything: the maker's word for the result was "still
+   * primitive", and he is right — a line of uniform colour is a line, at any
+   * width.
+   *
+   * What reads as depth is shading, and D4 says exactly which kind is available:
+   * "Outer shadow is forbidden; inset and bevel are not." An outer shadow paints
+   * outside the border box and is the "floating above" signal the whole layout
+   * law exists to refuse; an inset one paints strictly within and cannot reach a
+   * neighbour. audit-overlap enforces that split by name, allowing box-shadow
+   * only when it carries `inset`.
+   *
+   * So a separator gets a soft gradient rising off its own lower edge — a
+   * groove — and a raised plane gets a highlight along its upper inner edge.
+   * Both are inside their own boxes. Nothing floats over anything.
+   */
+  --shade-rise: -4px; /* an inset shadow lifted off the lower edge */
+  --shade-blur: 6px;
+  --shade-spread: -4px; /* pulled back in, so it shades rather than fills */
+
   --measure-label: 176px; /* the label column of a field row */
   --measure-key: 160px; /* the key column of the About list */
   --measure-control: 224px; /* the narrowest a control may be */
-  --measure-picker: 192px; /* the vehicle picker's select */
+  --measure-picker: 168px; /* the vehicle picker's select, which shares a fixed bar */
   --measure-form: 640px; /* how far a field row runs before it stops */
   --measure-cell: 176px; /* the narrowest an empty cell may be */
   /* The widest a prose column runs before it elides.
@@ -166,7 +187,7 @@
    * The figure columns are not negotiable: a number that elides is a number that
    * lies. The prose column already elides by design, so it is the one that gives
    * way, which is the same mechanism I-08 used to fix this the first time. */
-  --measure-prose: 176px;
+  --measure-prose: 160px;
   --chart-height: 260px; /* a plot in the stack of seven */
   --chart-height-full: 620px; /* the same plot, alone on the tab */
   /* A palette card holds a picture of the application under that palette, its
