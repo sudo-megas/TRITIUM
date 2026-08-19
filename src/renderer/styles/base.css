@@ -641,9 +641,10 @@ select,
 }
 
 /* ── the entry list ──────────────────────────────────────────────────────
- * PROVISIONAL as data: F7 replaces this with the dense TanStack table and the
- * time-range chips XTRITIUM §7 settles. What it is NOT provisional about is the
- * treatment, which F7 inherits:
+ * Written in F4 for a list that called itself provisional, and inherited whole
+ * by F7's dense TanStack table — which is what the note here used to promise
+ * and what F7 delivered. The lists are no longer provisional; the treatment
+ * never was, and it is this:
  *
  *   Rows are 32px — the band dense financial tools use, not the 56px a consumer
  *   list would take. One light rule under each row and no zebra striping: every

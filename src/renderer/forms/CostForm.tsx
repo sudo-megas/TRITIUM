@@ -151,10 +151,11 @@ export function CostForm({ slug, entry }: { slug: string; entry?: string }): JSX
         </label>
 
         {/*
-         * The one control that changes shape in F5. §6.2's other adaptation —
-         * Periyodik Bakım's part / odometer / vendor — writes service.toml and
-         * is F6's; the money shape is what İLK ALIŞ, TEKRAR EDEN and MANUAL all
-         * wear, so the fields below are the same for the three of them.
+         * The one control that changes shape on this form. §6.2's other
+         * adaptation — Periyodik Bakım's part / odometer / vendor — writes
+         * service.toml, and F6 built it on the SERVICE tab where it belongs.
+         * The money shape is what İLK ALIŞ, TEKRAR EDEN and MANUAL all wear, so
+         * the fields below are the same for the three of them.
          */}
         <label className="field">
           <span className="field__label">{t('costs.fields.category')}</span>

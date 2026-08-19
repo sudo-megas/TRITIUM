@@ -391,6 +391,42 @@ down once, and now cannot occur a third time.
 
 ---
 
+### I-19 · Comments promising work that had already been done
+**Status: FIXED in F14** · severity: a document out of date with its own code
+
+F14's sweep read the tree with the fourteen milestone documents beside it and
+found two comments still written in the future tense about work that had shipped:
+
+- `base.css` still opened the entry-list block with *"PROVISIONAL as data: F7
+  replaces this…"* — F7 had replaced it, and inherited exactly the treatment the
+  comment went on to describe.
+- `CostForm.tsx` said Periyodik Bakım's shape *"is F6's"* — F6 built it.
+
+Neither changed what the code did, and both are recorded because in this project
+the comments are part of the record: XTRITIUM says code and document must not
+drift, and a comment that describes a plan the code has outgrown is the smallest
+version of that drift.
+
+Both now read in the tense the work is in.
+
+---
+
+## Final position
+
+Nineteen issues. Sixteen fixed, two accepted with reasons, one open.
+
+| | Count |
+|---|---|
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 |
+| **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
+| **OPEN** | **I-10 — XTRITIUM §9.1's version table.** The maker's pen, by §0's own rule that amendments are his, with a dated note, never silent drift. |
+
+**I-10 is the only thing this project knows to be wrong and has not changed**,
+and it has been open since F4b on purpose: it is an amendment to the
+constitution, and the constitution says who makes those.
+
+---
+
 ## Notes on method
 
 Two of the eight fixed issues (I-03, I-08) were found by **measuring something
