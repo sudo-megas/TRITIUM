@@ -156,7 +156,7 @@ for (const tab of ['fuel', 'costs', 'service']) {
   })
 }
 
-for (const tab of ['summary', 'charts']) {
+for (const tab of ['summary', 'charts', 'statistics']) {
   test(`the ${tab} tab does not scroll sideways at 1280 x 720`, async () => {
     // Added when those tabs were built (F9, F8) rather than after they broke:
     // I-08 was found by measuring a claim that had only been reasoned about,
