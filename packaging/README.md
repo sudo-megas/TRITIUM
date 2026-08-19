@@ -91,9 +91,8 @@ someone reads when they are about to build.
 - **`extra-x86_64-build`.** It is `devtools`, needs root, and **fetches the tag
   from the remote** — so it cannot work until the tag has been pushed. That is
   §9.3's own procedure and it belongs on your machine, after `PUTAGREL`.
-- **`namcap`.** Not installed where F13 was built. It is the tool that will tell
-  you whether `depends` is over- or under-specified, and it is worth reading
-  before the first release rather than after it.
+- ~~**`namcap`.** Not installed where F13 was built.~~ **Run, at v0.2.6-2, and
+  it earned its place — see §5.**
 - **Installing the package and launching it from a desktop.** TRITIUM has been
   run from a checkout in every milestone. Running it from `/usr/bin` after
   `pacman -U`, with the compositor drawing the decorations and the launcher
@@ -129,17 +128,74 @@ against the host's own packages instead of a clean chroot. Every dependency the
 PKGBUILD names happened to be present — which is exactly the condition under which
 a missing `depends` entry stays invisible.
 
-So the package is real and it runs. **It is not yet proof that the dependency list
-is complete**, and only the chroot can give that:
+So the package is real and it runs.
 
-```sh
-sudo pacman -S devtools namcap
-cd packaging && extra-x86_64-build
-namcap tritium-0.2.6-1-x86_64.pkg.tar.zst
+### 5.1 namcap, and the dependency it was right about for the wrong reason
+
+The maker installed `namcap` and ran it on `0.2.6-1`. Setting aside the noise —
+`libpthread`/`libdl` "unused" on modern glibc, where both are empty compat stubs,
+and twenty libraries "detected and implicitly satisfied" — it made exactly one
+actionable finding, three times:
+
+```
+tritium W: Dependency included, but may not be needed ('libnotify')
+tritium W: Dependency included, but may not be needed ('libxss')
+tritium W: Dependency included, but may not be needed ('libxtst')
 ```
 
-The tag is on the remote now, so the first of those finally can run — which is the
-one sentence in §4 that has stopped being true.
+**All three are gone at `pkgrel=2`, and one of them namcap could not actually
+see.**
+
+- **`libxss`, `libxtst`** — not in the binary's `NEEDED` list, and the strings
+  `libXss` and `libXtst` do not occur *anywhere in the packaged tree*. Arch's own
+  `electron43` does not declare them. Four checks, one answer.
+- **`libnotify`** — not linked either, but it is **`dlopen`'d**: the binary
+  carries `libnotify.so.1`, `.so.4` and `.so.5` as strings. namcap reads ELF
+  headers, so a `dlopen` is invisible to it, and on this one **its verdict was
+  right by luck rather than by evidence.** Dropping it on namcap's word alone
+  would have been the correct action taken for a reason that does not hold. It is
+  dropped on a reason that does: TRITIUM never raises a notification — §7 has no
+  tray and no autostart, and nothing anywhere calls the Notification API — and
+  Chromium degrades quietly when the `dlopen` fails.
+
+The twenty "implicitly satisfied" libraries are **deliberately not added**. Every
+one arrives through `gtk3`, `nss`, `at-spi2-core` or `libcups`, and Arch does not
+list transitively satisfied dependencies; taking namcap's advice literally would
+also have meant declaring `glibc` and `bash`, which is declaring `base`.
+
+`namcap` on `0.2.6-2` now reports **one** warning, and it is the deliberate one:
+
+```
+tritium W: File (usr/lib/tritium/chrome-sandbox) is setuid or setgid.
+```
+
+The rebuilt package was extracted and run again: still up, still writing a valid
+`settings.toml`, still silent on stderr.
+
+### 5.2 What is STILL not proved
+
+**The clean chroot has not run.** `extra-x86_64-build` needs a password on a real
+terminal and refused a non-interactive one:
+
+```
+sudo: a terminal is required to read the password
+```
+
+That matters, and trimming the dependency list has just made it matter more: the
+list is now shorter, so the margin for a missing entry is thinner, and this
+machine has every library installed regardless of what the package declares. **A
+build here cannot detect an under-specified `depends` — only a chroot can**, which
+is precisely why §9.3 asks for one.
+
+Run it in your own terminal:
+
+```sh
+cd packaging && extra-x86_64-build
+namcap tritium-0.2.6-2-x86_64.pkg.tar.zst
+```
+
+Installing it and launching from the desktop, rather than from an extracted tree,
+also remains unproved.
 
 ---
 

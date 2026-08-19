@@ -12,7 +12,7 @@
 
 pkgname=tritium
 pkgver=0.2.6
-pkgrel=1
+pkgrel=2
 pkgdesc='Fuel logging and maintenance tracking for any ICE vehicle'
 arch=('x86_64')
 url='https://github.com/sudo-megas/TRITIUM'
@@ -20,14 +20,36 @@ license=('GPL-3.0-or-later')
 
 # Electron's own shared objects ship inside the package; what is needed from the
 # system is the desktop stack they link against.
+#
+# Trimmed at pkgrel=2 after namcap was finally run on a real package. It reported
+# libnotify, libxss and libxtst as "included, but may not be needed", and the
+# binary agrees — but namcap was only two-thirds right, and the third is the
+# interesting one.
+#
+#   libxss, libxtst — gone. Not in the binary's NEEDED list, and the strings
+#   `libXss` and `libXtst` do not occur ANYWHERE in the packaged tree. Arch's own
+#   electron43 does not declare them either. Four independent checks agree.
+#
+#   libnotify — also gone, but namcap could not have known: it is not linked, it
+#   is dlopen'd, and the binary carries `libnotify.so.1`, `.so.4` and `.so.5` as
+#   strings. namcap reads ELF headers, so a dlopen is invisible to it and its
+#   verdict here was right by luck rather than by evidence. It is dropped because
+#   TRITIUM never raises a notification — §7 has no tray and no autostart and
+#   nothing anywhere calls the Notification API — and Chromium degrades quietly
+#   when the dlopen fails. Arch's electron43 does not declare it either.
+#
+# The list below is what the bundled Electron links directly and cannot get from
+# another entry. namcap also reports about twenty libraries as "detected and
+# implicitly satisfied" — glib2, cairo, pango, libx11, expat, mesa and the rest.
+# Those are deliberately NOT listed: every one arrives through gtk3, nss,
+# at-spi2-core or libcups, and Arch does not list transitively satisfied
+# dependencies. Naming glibc and bash as well, which namcap also suggests, would
+# be listing `base`.
 depends=(
   'alsa-lib'
   'at-spi2-core'
   'gtk3'
   'libcups'
-  'libnotify'
-  'libxss'
-  'libxtst'
   'nss'
 )
 
