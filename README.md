@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="Arch Linux"    src="https://img.shields.io/badge/Arch%20Linux-~97%20MiB-1793D1?style=for-the-badge&logo=archlinux&logoColor=white">
+  <img alt="Arch Linux"    src="https://img.shields.io/badge/Arch%20Linux-~136%20MiB-1793D1?style=for-the-badge&logo=archlinux&logoColor=white">
 </p>
 
 <p align="center"><strong>Fuel Logging / Maintenance Tracking for any ICE Vehicle</strong></p>
@@ -73,7 +73,7 @@ and install it:
 sudo pacman -U tritium-0.2.6-3-x86_64.pkg.tar.zst
 ```
 
-97 MiB to download, 397 MiB installed. Electron's own runtime ships inside the
+136 MiB to download, 397 MiB installed. Electron's own runtime ships inside the
 package rather than being pulled from the system, which is where the size goes.
 
 To build that same package yourself instead of downloading it — from the tag, in
