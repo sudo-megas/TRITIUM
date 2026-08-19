@@ -17,7 +17,6 @@ import { SETTINGS_ARG, type Settings } from '../shared/settings.js'
 export const MIN_WIDTH = 1280
 export const MIN_HEIGHT = 720
 
-/** Sizes chosen to fit the form, not to fill the screen. */
 /**
  * How big each form window is, in CONTENT pixels — see useContentSize below.
  *

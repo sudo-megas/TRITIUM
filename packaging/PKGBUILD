@@ -11,7 +11,7 @@
 # tooling, touches that repository or references a key. See packaging/README.md.
 
 pkgname=tritium
-pkgver=0.2.4
+pkgver=0.2.5
 pkgrel=1
 pkgdesc='Fuel logging and maintenance tracking for any ICE vehicle'
 arch=('x86_64')
