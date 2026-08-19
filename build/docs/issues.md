@@ -524,22 +524,251 @@ does not get to hand-derive its last entry.
 
 ---
 
+<!-- F15. Seven defects the maker found by RUNNING the finished application,
+     after the desktop phase had been declared complete on a green suite. -->
+
+### I-22 · A section heading two pixels smaller than the label beneath it
+**Status: FIXED in F15** · found F15 · pre-existing since F4b
+
+`.section__title` set `font-size: var(--text-xs)` — 11px. `.field__label` set no
+size at all and inherited `body`'s `--text-base` — 13px. So in Settings, the
+heading **PALETTE** rendered smaller than the field label **Palette** directly
+under it, and the same inversion ran through every section on the tab.
+
+The scale was not missing. `tokens.css` has carried a derived eight-step ramp
+since F4b and every `font-size` in `base.css` consumes a token — there is not one
+bare pixel value in the file. What was wrong was which step this rule reached
+for, and the codebase contained its own control group: **`.form__title` does the
+identical visual job** — an uppercase, tracked eyebrow above a group of fields —
+and correctly used `--text-md`, the step `tokens.css`'s own comment labels
+"section headings". `.section__title` was the sole outlier in its own stylesheet.
+
+The comment above it defended the choice: tracking, not size, is what separates a
+heading from body text "without spending a second weight". That is Material's
+smaller-and-softer header, and **D9 had already ruled it unavailable here** —
+Material pays for it with a medium weight, and the vendored font ships regular,
+italic, bold and bold-italic with no medium among them. F4b saw that route close;
+this rule walked through it anyway.
+
+**Fix:** `.section__title` takes `--text-md`, and the ramp's upper steps grew so
+the intervals can be seen across a pane — 26 / 22 / 18 / 16, against table cells
+and meta text deliberately **held** at 14 and 12 so §7.1's "all visible at once"
+and D12's dense rows survive at the 1280 × 720 minimum.
+
+**Found by** the maker running the application and reading one screen.
+
+---
+
+### I-23 · Eleven palettes, no names
+**Status: FIXED in F15** · found F15 · pre-existing since F4b
+
+The palette picker was eleven 56 × 36 buttons, each holding three empty `<span>`s
+— a bar, and two lines standing in for text. No palette's name appeared anywhere
+near it. Choosing one meant clicking and looking.
+
+The names existed the whole time, in both catalogues under `palettes.*`, and were
+already passed to each button as `aria-label`. So a screen reader could announce
+"Kanagawa Lotus" while the man holding the mouse had to guess — which is an
+unusual way round for an accessibility affordance to fail.
+
+**Fix:** each palette is a card carrying the swatch, its name, and a **LIGHT** or
+**DARK** tag. `PALETTE_SCHEMES` in `src/shared/settings.ts` records the
+classification F4b made when it chose them ("Six dark, four light", plus
+Aubergine) and `palettes.css` had noted per block without ever showing.
+
+The obvious cheap fix — a `title` attribute — is **banned by
+`audit-overlap.mjs`**, because a native tooltip draws over whatever is beneath
+it. A caption is in flow and owns its own space. That is the same rule pointing
+the other way, and it produced the better answer.
+
+`data-palette` moved from the card to the swatch inside it, so the preview still
+renders in the palette it stands for while the name stays legible in the palette
+actually in force. The redundant `<select>` above the grid is gone: it listed the
+same eleven names and was a second control for one decision.
+
+---
+
+### I-24 · Every form window was too narrow for its own layout
+**Status: FIXED in F15** · found F15 · pre-existing since F3 · the maker's "BLACK CRITICAL"
+
+`.form__grid` is `repeat(2, minmax(0, 1fr))`. `.field` inside it was
+`176px | 1fr` with a 16px gap, and `.control` declared
+`min-width: var(--measure-control)` — 224px. **A field therefore needed
+176 + 16 + 224 = 416px**, and not one form window gave it that:
+
+| Form | Window | − padding | ÷ 2 columns | Needs | Short by |
+|---|---:|---:|---:|---:|---:|
+| `fuel-quick` | 480 | 416 | 200 | 416 | **216px** |
+| `fuel` | 620 | 556 | 270 | 416 | **146px** |
+| `cost` | 680 | 616 | 300 | 416 | **116px** |
+| `service` | 680 | 616 | 300 | 416 | **116px** |
+| `vehicle` | 760 | 696 | 340 | 416 | **76px** |
+| `currency` | 460 | 396 | — | 416 | **20px** |
+
+An author's explicit `min-width` overrides a grid item's automatic minimum, so
+the control was immune to the `minmax(0, 1fr)` everything else relies on. It
+refused to fit and — nothing in the chain sets `overflow` — painted over its
+neighbour instead. Later DOM siblings paint over earlier ones, so column two's
+label landed on column one's spilling input.
+
+Row-major placement predicts the maker's screenshot exactly. `VehicleForm` pairs
+`name|make`, `model|engine`, `plate|vin`, `year|fuel_spec`,
+`tank_capacity|purchase_price` — and the screenshot shows Make over Name's input,
+Engine over Model's, VIN over Plate's, Fuel over Year's, and Purchase price over
+the Tank capacity row. **Five predictions, five hits.**
+
+`currency` escaped visible overlap only because it has no second column to spill
+into. It was short by twenty pixels regardless, so "all popups are dead" was
+literally true.
+
+**Fix:** a field inside `.form__grid` stacks its label above its control, so a
+column need only be as wide as its control and no window width can over-commit a
+track again. `FORM_SIZES` re-derived from the corrected layout, and
+**`useContentSize: true`** so those numbers describe the web page rather than the
+outer frame — without it the renderer got less room than the numbers claimed, by
+an amount that varied with whichever decorations the compositor drew.
+
+**Found by** the maker opening a form. Nine e2e specs opened these same windows
+and none of them looked at one.
+
+---
+
+### I-25 · The Settings add-a-method row, overlapping by forty pixels
+**Status: FIXED in F15** · found F15 · pre-existing since F11
+
+`.field--inline` declared `flex-direction: row` on an element that `.field` makes
+`display: grid`. **`flex-direction` does nothing to a grid container** — it is
+dead CSS that reads like a layout. So the row stayed `176px | 1fr`, the text
+input landed in the 176px track, `.control`'s 224px floor refused to shrink into
+it, and the Add button — auto-placed in column two, starting at 184px — was
+painted across by about **forty pixels**.
+
+Same root cause as I-24, in a second place. One declaration, two visible defects.
+
+**Fix:** `.field--inline` declares the `display: flex` it always meant, and
+`.control`'s `min-width` becomes `0` with `width: 100%` — a control takes the
+width it is given. `--measure-control` survives as a preferred width, never a
+floor.
+
+---
+
+### I-26 · Two more variants broken by the same mistake, and a hint under the wrong column
+**Status: FIXED in F15** · found F15 · pre-existing
+
+Found while proving I-24 rather than reported:
+
+- **`.field--check`** carries the identical inert `flex-direction` as
+  `.field--inline`. Both meant flex; neither said it.
+- **`.field__hint` is a third child of a two-column grid**, so auto-placement
+  dropped it into row two, column **one** — under the *label* rather than under
+  the input it explains. That is the stranded hint text visible in the maker's
+  Quick add screenshot, below "Total".
+
+**Fix:** `display: flex` on the variant, and `grid-column: 1 / -1` on the hint.
+
+---
+
+### I-27 · Nothing a maker could click was rounded
+**Status: FIXED in F15** · found F15 · pre-existing since F4b
+
+`.button` was 24px tall with 12px text and a **2px** radius; `.chip` the same.
+`--radius-lg` (8px) existed in `tokens.css` and had **exactly one consumer in the
+whole stylesheet — the scrollbar thumb**. Nothing interactive used it.
+
+**Fix:** controls grew by half through the tokens — `--control-height-sm` 24 → 36,
+`--control-height` 28 → 42 — and buttons and chips take `--radius-lg`. No bare
+pixel entered a component rule, which is F4b's own acceptance criterion 8.
+
+**The tab bar keeps radius 0**, and that is not an oversight: D11 fixes it from
+Fluent, with the rule that corners are not rounded where two elements abut or
+meet a screen edge. The tab bar does both.
+
+The old note in `tokens.css` said controls are kept shorter than a row "so a
+control inside a row does not push it taller". That was checked before growing
+them: **no button is rendered inside a table cell anywhere in the application**,
+and the table's only control is the sort button in its header, which takes the
+header's height rather than setting its own. The two measurements are
+independent.
+
+---
+
+### I-28 · Seven charts speaking in a different typeface
+**Status: FIXED in F15** · found F15 · pre-existing since F8
+
+`Chart.tsx` bridged colour from CSS custom properties into ECharts — carefully,
+with a test behind it — and never bridged the **font**. A canvas inherits no CSS,
+so every axis label, legend and tooltip in all seven charts rendered in ECharts'
+own default sans at its own default size, inside an application whose §8 says
+CaskaydiaCove Nerd Font Mono is the font of the **whole UI**.
+
+Nobody wrote that exception down. It was simply never bridged, the way colour
+already had been.
+
+**Fix:** `readChartPalette()` also reads `--font-ui` and a step of the ramp, and
+the option builder hands both to the root `textStyle` and to the tooltip and axis
+labels that override it.
+
+---
+
+### I-29 · A geometry gate that passed against the build it was written to fail
+**Status: FIXED in F15** · found F15 · a defect in a test
+
+`geometry.spec.ts` was written to catch I-24. Its first version walked the DOM
+comparing **siblings** — every pair of child boxes under each parent — and it
+passed, cleanly, against a build with I-24 deliberately reintroduced.
+
+The reason is the shape of the defect. The label that sat on top of an input was
+**not that input's sibling**: `.form__grid` held one `.field` per column, and the
+overflowing control in column one ran under the label of the field in column
+**two** — a cousin, two subtrees apart. A sibling-only walk cannot see it.
+
+It would have shipped as a passing gate over a broken property, which is worse
+than no gate, because a green suite is read as evidence.
+
+**Fix:** every pair of laid-out boxes is compared, excluding only true ancestry.
+It now names the defect precisely — `input[fuel-odometer_km].control overlaps
+span.field__label`, and `input[method-input].control overlaps
+button[method-add].button`.
+
+**Found by** reintroducing the original defect and checking the new test failed,
+before trusting that it passed. It did not fail, on the first attempt. This is
+I-03's lesson — a test that passes for the wrong reason is worse than no test —
+arriving a second time, and the practice that caught it is the only reason the
+gate is worth anything.
+
+---
+
 ## Final position
 
-Twenty-one issues. Nineteen fixed, two accepted with reasons, **none open**.
+Twenty-nine issues. Twenty-seven fixed, two accepted with reasons, **none open**.
 
 | | Count |
 |---|---|
-| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 |
+| **FIXED** | I-01 · I-02 · I-03 · I-04 · I-05 · I-06 · I-07 · I-08 · I-09 · I-10 · I-13 · I-14 · I-15 · I-16 · I-17 · I-18 · I-19 · I-20 · I-21 · I-22 · I-23 · I-24 · I-25 · I-26 · I-27 · I-28 · I-29 |
 | **ACCEPTED** | I-11 (bundle size) · I-12 (chart tooltip vs the layout law) |
 | **OPEN** | — |
 
-**I-10 was the last of them, and it was open for the wrong reason.** From F4b to
-F14 it was carried as a thing that "wants the maker's pen," and every milestone
-inherited that phrase without checking it against the rule it cited. §0 sets out
-a **procedure** for amendments — an edit with a dated note — not a **person** who
-owns them. §9.1 was amended on 19/08/2026, on the maker's direction, and the
-table now prints what fifteen tags had been saying all along.
+**I-10 was open for the wrong reason.** From F4b to F14 it was carried as a thing
+that "wants the maker's pen," and every milestone inherited that phrase without
+checking it against the rule it cited. §0 sets out a **procedure** for
+amendments — an edit with a dated note — not a **person** who owns them. §9.1 was
+amended on 19/08/2026, on the maker's direction, and the table now prints what
+fifteen tags had been saying all along.
+
+**I-22 through I-29 are the ones that should trouble this project most**, and it
+is worth stating why rather than filing them. All eight were in the application
+when the desktop phase was declared complete. That declaration rested on a green
+suite — seven audits, both tsconfigs under `strict`, 336 units and 112
+end-to-end tests, every one of them passing — and the maker found seven defects
+by opening the application and looking at it, one of which had broken **all six**
+of the windows he types into.
+
+Not one of the gates was wrong about what it checked. `audit-overlap` proved no
+source line reached for an overlay mechanism, and none did. `overflow.spec.ts`
+proved six panes did not scroll sideways, and they did not. The suite was honest
+and the application was broken, because **what nothing measured was where two
+boxes actually landed** — and the six form windows, the surface a maker touches
+most, had no geometry assertion of any kind against them.
 
 The two ACCEPTED entries are the honest remainder: understood, measured, and
 deliberately not changed, each with its reason written out where it can be
@@ -549,12 +778,12 @@ argued with.
 
 ## Notes on method
 
-Five of the nineteen fixed issues (I-03, I-08, I-15, I-16, I-20) were found by
-**measuring something that had only been reasoned about**, and not one of them
-would have been caught by the suite as it stood. The miles rounding (I-15) is the
-clearest case: it was correct by argument and wrong on 37.9% of the values in
-range, which only walking all 300,001 of them showed. Each now has a test that
-fails if the property is lost again.
+Six of the twenty-seven fixed issues (I-03, I-08, I-15, I-16, I-20, I-29) were
+found by **measuring something that had only been reasoned about**, and not one
+of them would have been caught by the suite as it stood. The miles rounding
+(I-15) is the clearest case: it was correct by argument and wrong on 37.9% of the
+values in range, which only walking all 300,001 of them showed. Each now has a
+test that fails if the property is lost again.
 
 Two (I-01, I-02) were the same defect in two places, found because F4's decision
 was written down as a decision rather than only implemented: the second one was
@@ -578,7 +807,21 @@ of this file and read at every milestone for ten milestones running; I-21 was a
 noise every single time. One closed because the maker asked why it was still
 there, the other because a status output was finally read instead of skimmed.
 
-So the register ends on a caveat about itself. A gate catches what it was written
-to catch. Nothing here was ever going to catch a thing that was seen constantly
-and had simply stopped being looked at — and the honest reading of twenty-one
-issues is that this project's real failure mode was never a missing test.
+Four (I-24, I-25, I-26 and, at one remove, I-22) are **one declaration met four
+times**. `.control`'s 224px `min-width` broke six form windows and a settings
+row; `flex-direction` on a grid container was dead CSS in two variants. F15's
+whole repair of the worst-ranked defect in the project is three rules in
+`base.css`, because all six form windows load one byte-identical stylesheet. The
+size of a defect's effect says nothing about the size of its cause.
+
+So the register ends on a caveat about itself, and F15 sharpened it rather than
+softening it. A gate catches what it was written to catch. Nothing here was ever
+going to catch a thing that was seen constantly and had stopped being looked at
+(I-10, I-21), and nothing here was going to catch a thing **nobody had ever
+looked at at all** — which is what the six form windows were, through eleven
+milestones and 112 passing tests.
+
+The honest reading of twenty-nine issues is that this project's failure mode was
+never a missing test. It was a missing look. I-29 is the proof that the two are
+not the same: a test written specifically to catch I-24 passed against I-24, and
+only failed once someone put the defect back and checked.
