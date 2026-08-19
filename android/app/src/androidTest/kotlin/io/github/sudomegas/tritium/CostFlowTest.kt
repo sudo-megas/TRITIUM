@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -71,6 +72,7 @@ class CostFlowTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Kapora").performClick()
         composeRule.waitForIdle()
+        composeRule.onNodeWithTag("costAmount").performTextClearance()
         composeRule.onNodeWithTag("costAmount").performTextInput("1000")
         composeRule.onNodeWithTag("costSave").performClick()
         composeRule.waitForIdle()
@@ -84,6 +86,7 @@ class CostFlowTest {
         composeRule.onNodeWithText("Add cost").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("costCategoryTyped").performTextInput("Lastik")
+        composeRule.onNodeWithTag("costAmount").performTextClearance()
         composeRule.onNodeWithTag("costAmount").performTextInput("500")
         composeRule.onNodeWithTag("costIncomeCheckbox").performClick()
         composeRule.onNodeWithTag("costSave").performClick()
