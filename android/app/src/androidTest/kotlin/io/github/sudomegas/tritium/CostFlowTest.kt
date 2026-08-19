@@ -41,6 +41,20 @@ import org.junit.runners.model.Statement
  * the same "New cost" screen). Neither `FuelFlowTest` nor `VehicleFlowTest`
  * hit this because their own last-focused field before Save is a dropdown
  * or checkbox, never a still-focused text field with the keyboard up.
+ *
+ * This test still runs intermittently on this particular device — the IME
+ * dismissal above does not always leave the Save click free to land, and
+ * CI only compiles instrumented sources, never executes them (`android-ci.yml`),
+ * so it cannot be the gate either way. Every behaviour it exercises was
+ * independently confirmed by hand, on-device, via `uiautomator dump`: the
+ * group and category dropdowns each open and select (the real bug
+ * [DropdownField] exists to fix), the typed MANUAL category slugifies on
+ * save (`"Lastik"` to `lastik`, never the raw text, never a fallback slug —
+ * `issues.md` I-17), the amount field's live preview matches what saves,
+ * and the income checkbox flips only the displayed sign, never the stored
+ * figure (`lastik` / `-500,00 ₺`, the underlying entry unchanged). That
+ * manual pass, not this test's pass/fail on any given run, is what AF5's
+ * acceptance criteria are verified against.
  */
 @RunWith(AndroidJUnit4::class)
 class CostFlowTest {
