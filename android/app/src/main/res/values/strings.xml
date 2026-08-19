@@ -85,4 +85,43 @@
     <string name="fuel_field_price_per_litre">Price per</string>
     <string name="fuel_field_fuel_type">Fuel</string>
     <string name="fuel_field_full_tank">Full tank</string>
+
+    <!-- Costs — AF5. Wording matches the desktop's own costs.* keys exactly. -->
+    <string name="nav_costs">Costs</string>
+    <string name="costs_add">Add cost</string>
+    <string name="costs_add_title">New cost</string>
+    <string name="costs_edit_title">Edit cost</string>
+    <string name="costs_save">Save</string>
+    <string name="costs_empty">No costs yet.</string>
+    <string name="costs_income_hint">A payout or a refund. The amount is stored as entered; only its sign changes where it is shown.</string>
+    <string name="costs_typed_category_hint">MANUAL takes a category of your own. It is stored as a key, so Lastik and lastik are one category.</string>
+    <string name="costs_field_date">Date</string>
+    <string name="costs_field_group">Group</string>
+    <string name="costs_field_category">Category</string>
+    <string name="costs_field_title">Title</string>
+    <string name="costs_field_amount">Amount</string>
+    <string name="costs_field_income">Negative cost (income)</string>
+    <string name="costs_field_payment_method">Payment method</string>
+    <string name="costs_field_bank">Bank</string>
+    <string name="costs_field_instalment">Instalment</string>
+    <string name="costs_field_note">Note</string>
+
+    <string name="costs_group_ilk_alis">İLK ALIŞ</string>
+    <string name="costs_group_tekrar_eden">TEKRAR EDEN</string>
+    <string name="costs_group_manual">MANUAL</string>
+
+    <string name="costs_category_kapora">Kapora</string>
+    <string name="costs_category_arac_bedeli">Araç Bedeli</string>
+    <string name="costs_category_noter_ruhsat">Noter (Ruhsat)</string>
+    <string name="costs_category_plaka_noter">Plaka (Noter)</string>
+    <string name="costs_category_plaka_so">Plaka (Ş.O)</string>
+    <string name="costs_category_periyodik_bakim">Periyodik Bakım</string>
+    <string name="costs_category_mtv_1">MTV 1</string>
+    <string name="costs_category_mtv_2">MTV 2</string>
+    <string name="costs_category_trafik_sigortasi">Trafik Sigortası</string>
+    <string name="costs_category_kasko">Kasko</string>
+
+    <string name="costs_method_eft">EFT</string>
+    <string name="costs_method_kredi_karti">Kredi Kartı</string>
+    <string name="costs_method_banka_karti">Banka Kartı</string>
 </resources>

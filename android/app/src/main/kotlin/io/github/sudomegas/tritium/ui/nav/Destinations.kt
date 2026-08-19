@@ -47,11 +47,19 @@ object FuelQuickAddRoute
 @Serializable
 data class FuelFormRoute(val entryId: String? = null)
 
+@Serializable
+object CostsRoute
+
+/** No slug, same reasoning as [FuelFormRoute] — acts on whichever vehicle is active. */
+@Serializable
+data class CostFormRoute(val entryId: String? = null)
+
 enum class TopLevelDestination(
     val route: Any,
     @param:StringRes val labelRes: Int,
 ) {
     HOME(HomeRoute, R.string.nav_home),
     FUEL(FuelRoute, R.string.nav_fuel),
+    COSTS(CostsRoute, R.string.nav_costs),
     SETTINGS(SettingsRoute, R.string.nav_settings),
 }

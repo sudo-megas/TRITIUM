@@ -28,7 +28,7 @@ android {
         // same shape SAAT's own versionCode held at 1 through AM1..AM10, only
         // moving once AM11 became a real release.
         versionCode = 1
-        versionName = "0.4"
+        versionName = "0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
