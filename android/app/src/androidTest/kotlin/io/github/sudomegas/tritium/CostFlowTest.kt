@@ -75,7 +75,14 @@ class CostFlowTest {
         composeRule.onNodeWithTag("costAmount").performTextClearance()
         composeRule.onNodeWithTag("costAmount").performTextInput("1000")
         composeRule.onNodeWithTag("costSave").performClick()
-        composeRule.waitForIdle()
+        // "Add cost" exists only on CostScreen, never on CostFormScreen — a
+        // definitive signal the pop-back-stack navigation has actually
+        // settled, unlike a bare waitForIdle() here, which can return while
+        // the outgoing form (still showing its own "Kapora"/"1.000,00 ₺")
+        // and the incoming list are both mid-transition.
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Add cost").fetchSemanticsNodes().size == 1
+        }
 
         composeRule.onAllNodesWithText("Kapora").assertCountEquals(1)
         composeRule.onAllNodesWithText("1.000,00 ₺").assertCountEquals(1)
@@ -90,7 +97,9 @@ class CostFlowTest {
         composeRule.onNodeWithTag("costAmount").performTextInput("500")
         composeRule.onNodeWithTag("costIncomeCheckbox").performClick()
         composeRule.onNodeWithTag("costSave").performClick()
-        composeRule.waitForIdle()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Add cost").fetchSemanticsNodes().size == 1
+        }
 
         // Stored under the slug, shown negative — the checkbox never touches
         // the figure written to disk, only the sign shown for it.
