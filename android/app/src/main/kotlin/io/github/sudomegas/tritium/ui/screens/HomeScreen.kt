@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import io.github.sudomegas.tritium.ui.HomeViewModel
  * it is still there, offering only "Add" — never a "get started" screen
  * (XTRITIUM §7; AF3.md's empty-state decision).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel, onAddVehicle: () -> Unit, onEditVehicle: (String) -> Unit) {
     LaunchedEffect(Unit) { viewModel.refresh() }
