@@ -12,6 +12,24 @@ class ScaledTest {
     }
 
     @Test
+    fun `fuelTotal matches XTRITIUM §5_1's own worked example exactly`() {
+        // 29.990 l × 73.380 ₺/l → 2.200,67 ₺
+        val litres = Scaled.toPump(29.990)
+        val price = Scaled.toPump(73.380)
+        val total = Scaled.fuelTotal(litres, price)
+        assertEquals(220067L, total)
+        assertEquals("2200.67", Scaled.formatMoney(total))
+    }
+
+    @Test
+    fun `fuelTotal rounds rather than truncates`() {
+        // 1.000 l x 0.005 -> 0.005, which rounds to 0.01 rather than 0.00.
+        val litres = Scaled.toPump(1.000)
+        val price = Scaled.toPump(0.005)
+        assertEquals(1L, Scaled.fuelTotal(litres, price))
+    }
+
+    @Test
     fun `pump figures keep three decimals`() {
         assertEquals(29990L, Scaled.toPump(29.990))
         assertEquals("29.990", Scaled.formatPump(29990L))

@@ -30,10 +30,28 @@ object SettingsRoute
 @Serializable
 data class VehicleFormRoute(val slug: String? = null)
 
+@Serializable
+object FuelRoute
+
+/**
+ * Both fuel entry screens act on the active vehicle, read live from
+ * [io.github.sudomegas.tritium.ui.FuelViewModel]'s own `activeVehicleSlug`
+ * (AF4.md decision 5) — no slug travels with these routes, unlike
+ * [VehicleFormRoute]'s, which names a specific vehicle to edit rather than
+ * "whichever one is active right now."
+ */
+@Serializable
+object FuelQuickAddRoute
+
+/** `entryId == null` is add, mirroring [VehicleFormRoute]'s own add/edit shape. */
+@Serializable
+data class FuelFormRoute(val entryId: String? = null)
+
 enum class TopLevelDestination(
     val route: Any,
     @param:StringRes val labelRes: Int,
 ) {
     HOME(HomeRoute, R.string.nav_home),
+    FUEL(FuelRoute, R.string.nav_fuel),
     SETTINGS(SettingsRoute, R.string.nav_settings),
 }

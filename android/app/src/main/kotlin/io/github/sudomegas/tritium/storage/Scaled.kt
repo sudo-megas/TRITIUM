@@ -73,4 +73,23 @@ object Scaled {
 
     fun toTank(value: Double): Long = toScaled(value, TANK_DECIMALS)
     fun formatTank(scaled: Long): String = formatScaled(scaled, TANK_DECIMALS)
+
+    /**
+     * `litres × price/litre`, both already scaled ×1000 (`PUMP_DECIMALS`),
+     * rescaled to money's ×100 — XTRITIUM §5.1's live total, AF4.md §2.1
+     * decision 3. Two scaled `Long`s multiply to a ×1,000,000 figure;
+     * dividing by 10,000 brings it to ×100, with the rounding folded into
+     * the division so a `Double` is never formed at all — the same
+     * discipline `toScaled` uses rounding for, applied where two already-
+     * scaled figures meet instead of where one float figure gets scaled.
+     *
+     * Checked against §5.1's own worked example:
+     * `29.990 l × 73.380 ₺/l → 2.200,67 ₺` is
+     * `29990 × 73380 = 2,200,666,200`, `(2,200,666,200 + 5000) / 10000 = 220067`,
+     * `formatMoney(220067) = "2200.67"`.
+     */
+    fun fuelTotal(litresScaled: Long, pricePerLitreScaled: Long): Long {
+        val rescale = scaleOf(PUMP_DECIMALS * 2 - MONEY_DECIMALS)
+        return (litresScaled * pricePerLitreScaled + rescale / 2) / rescale
+    }
 }

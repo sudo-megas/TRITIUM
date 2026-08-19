@@ -44,4 +44,27 @@
     <string name="vehicle_field_purchase_price">Alış fiyatı</string>
     <string name="vehicle_field_registration_date">Tescil tarihi</string>
     <string name="vehicle_field_inspection_due">Muayene tarihi</string>
+
+    <string name="nav_fuel">Yakıt</string>
+    <string name="fuel_quick_add">Hızlı ekle</string>
+    <string name="fuel_full_add">Tüm alanlar</string>
+    <string name="fuel_quick_title">Hızlı ekle</string>
+    <string name="fuel_add_title">Yeni yakıt kaydı</string>
+    <string name="fuel_edit_title">Yakıt kaydını düzenle</string>
+    <string name="fuel_save">Kaydet</string>
+    <string name="fuel_edit">Düzenle</string>
+    <string name="fuel_total">Tutar</string>
+    <string name="fuel_consumption">l/100km</string>
+    <string name="fuel_full">Dolu</string>
+    <string name="fuel_partial">Kısmi</string>
+    <string name="fuel_empty">Henüz yakıt kaydı yok.</string>
+    <string name="fuel_previous_odometer">Önceki: %1$s km</string>
+    <string name="fuel_backwards">Bu değer öncekinden (%1$s km) küçük. Yazıldığı gibi kaydedilecek.</string>
+    <string name="fuel_quick_defaults">%1$s tarihine, dolu depo olarak, %2$s yakıtıyla kaydedilir. Tümü tüm alanlar formundan düzenlenebilir.</string>
+    <string name="fuel_field_date">Tarih</string>
+    <string name="fuel_field_odometer">Sayaç</string>
+    <string name="fuel_field_litres">Hacim</string>
+    <string name="fuel_field_price_per_litre">Birim fiyat</string>
+    <string name="fuel_field_fuel_type">Yakıt</string>
+    <string name="fuel_field_full_tank">Dolu depo</string>
 </resources>

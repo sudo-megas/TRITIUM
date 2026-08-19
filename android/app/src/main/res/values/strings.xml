@@ -59,4 +59,30 @@
     <string name="vehicle_field_purchase_price">Purchase price</string>
     <string name="vehicle_field_registration_date">Registration date</string>
     <string name="vehicle_field_inspection_due">Inspection due</string>
+
+    <!-- Fuel — AF4. Wording matches the desktop's own fuel.* keys exactly,
+         except where AF4 has no unit setting yet to interpolate (odometer
+         readings are always km until AF9). -->
+    <string name="nav_fuel">Fuel</string>
+    <string name="fuel_quick_add">Quick add</string>
+    <string name="fuel_full_add">Full form</string>
+    <string name="fuel_quick_title">Quick add</string>
+    <string name="fuel_add_title">New fill-up</string>
+    <string name="fuel_edit_title">Edit fill-up</string>
+    <string name="fuel_save">Save</string>
+    <string name="fuel_edit">Edit</string>
+    <string name="fuel_total">Total</string>
+    <string name="fuel_consumption">l/100km</string>
+    <string name="fuel_full">Full</string>
+    <string name="fuel_partial">Partial</string>
+    <string name="fuel_empty">No fill-ups yet.</string>
+    <string name="fuel_previous_odometer">Previous: %1$s km</string>
+    <string name="fuel_backwards">This reading is lower than the previous one (%1$s km). It will be saved as typed.</string>
+    <string name="fuel_quick_defaults">Filed on %1$s, as a full tank, %2$s. All of it editable in the full form.</string>
+    <string name="fuel_field_date">Date</string>
+    <string name="fuel_field_odometer">Odometer</string>
+    <string name="fuel_field_litres">Volume</string>
+    <string name="fuel_field_price_per_litre">Price per</string>
+    <string name="fuel_field_fuel_type">Fuel</string>
+    <string name="fuel_field_full_tank">Full tank</string>
 </resources>
