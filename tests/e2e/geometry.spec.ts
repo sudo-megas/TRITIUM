@@ -362,17 +362,34 @@ test('the tab bar stays on one row at 1280', async () => {
   app = await launchApp(dataDir)
   const shell = await windowWith(app, 'tab-summary')
 
-  const tops = await shell.evaluate(() => {
+  /*
+   * Measured by CENTRES, not by tops.
+   *
+   * The first version of this compared `top` and required one distinct value,
+   * which was right while the bar stretched every child to its own height. The
+   * tabs are centred buttons now and are deliberately shorter than the mark
+   * beside them, so their tops differ by design and a top-based test would fail
+   * on a bar that is perfectly fine.
+   *
+   * A wrap is a child on another LINE, and the thing that survives both layouts
+   * is that every child on one line shares the line's centre. So: the spread of
+   * centres has to stay well inside one row's height. A second row puts a centre
+   * a full row away, which no amount of differing heights can imitate.
+   */
+  const spread = await shell.evaluate(() => {
     const bar = document.querySelector('.tabbar')
-    if (bar === null) return []
-    const ys = Array.from(bar.children).map((child) =>
-      Math.round(child.getBoundingClientRect().top)
-    )
-    return [...new Set(ys)]
+    if (bar === null) return { centres: 0, tallest: 0 }
+    const boxes = Array.from(bar.children).map((child) => child.getBoundingClientRect())
+    const centres = boxes.map((box) => box.top + box.height / 2)
+    return {
+      centres: Math.max(...centres) - Math.min(...centres),
+      tallest: Math.max(...boxes.map((box) => box.height))
+    }
   })
 
-  // Every child of the bar starts at the same y. Two distinct tops means a wrap.
-  expect(tops).toHaveLength(1)
+  // Same line ⇒ centres agree to within a pixel or two of rounding. A second
+  // line ⇒ they differ by at least the height of the tallest thing in the bar.
+  expect(spread.centres).toBeLessThan(spread.tallest / 2)
 })
 
 test('emptiness is the same layout holding nothing (§7)', async () => {

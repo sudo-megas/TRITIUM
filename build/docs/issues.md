@@ -877,6 +877,23 @@ stay one row at 1280 (I-30). The tabs' horizontal padding paid for it, and
 milestone that a width change was made with a gate already watching instead of
 being discovered afterwards.
 
+**One thing the tabs kept from being regions**, and the maker caught it the
+moment he saw them: `align-items: stretch` made every tab exactly as tall as the
+bar. That is correct for a tab which *is* a slice of the bar, and wrong for a
+button — a button reaching both edges of what contains it has no edges of its own
+to speak of. They are centred now, at `--control-height-sm`, the same figure
+every other button in the interface is built to, with air above and below saying
+they sit **in** the bar rather than being cut from it.
+
+That change broke this milestone's own one-row gate, which is worth recording
+because the gate was right to break. It compared each bar child's `top` and
+demanded a single value — sound while every child was stretched to one height,
+and wrong the moment they were deliberately different heights. It now compares
+**centres**: children on one line share that line's centre whatever their
+heights, and a second line puts a centre a full row away. Verified by forcing a
+real wrap and watching the numbers — 63px of spread against a 36px threshold —
+rather than by assuming the rewrite still worked.
+
 ---
 
 ## Final position
