@@ -14,6 +14,9 @@ import {
   addServiceEntry,
   listVehicleSlugs,
   loadVehicle,
+  removeCostEntry,
+  removeFuelEntry,
+  removeServiceEntry,
   saveCosts,
   saveFuel,
   saveService,
@@ -333,6 +336,31 @@ function registerIpc(): void {
     const changed = updateServiceEntry(String(slug), { ...readServiceInput(entry), id })
     if (changed) broadcast('vehicles:changed')
     return changed
+  })
+
+  /*
+   * Removal (F7), one record at a time and by id — the rate at which a maker
+   * regrets one. F4, F5 and F6 each deferred this to the milestone where the
+   * list lives. The file is rewritten through the atomic helper with one entry
+   * gone; a deleted id is never reallocated, because `nextId` counts from the
+   * highest present rather than from the number of entries.
+   */
+  ipcMain.handle('fuel:remove', (_event, slug: unknown, id: unknown) => {
+    const removed = removeFuelEntry(String(slug), String(id))
+    if (removed) broadcast('vehicles:changed')
+    return removed
+  })
+
+  ipcMain.handle('cost:remove', (_event, slug: unknown, id: unknown) => {
+    const removed = removeCostEntry(String(slug), String(id))
+    if (removed) broadcast('vehicles:changed')
+    return removed
+  })
+
+  ipcMain.handle('service:remove', (_event, slug: unknown, id: unknown) => {
+    const removed = removeServiceEntry(String(slug), String(id))
+    if (removed) broadcast('vehicles:changed')
+    return removed
   })
 
   // Form windows (XTRITIUM §5.1). The renderer asks; this process decides.

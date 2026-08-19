@@ -157,6 +157,36 @@ export function updateFuelEntry(slug: string, entry: FuelEntry): boolean {
   return true
 }
 
+/**
+ * Remove one fill-up by id (F7).
+ *
+ * F4, F5 and F6 each deferred removal to the milestone where the list lives.
+ * The whole file is rewritten through the atomic helper with one entry gone and
+ * everything else — including the unknown keys `entryRest` carries — untouched.
+ *
+ * Nothing is renumbered. `nextId` allocates from the highest id present rather
+ * than from a count, which F2 chose so a hand-deleted middle entry could not
+ * produce a duplicate — deleting through the app is the same situation and gets
+ * the same answer.
+ *
+ * Deleting the HIGHEST entry does free its number for the next one. That is not
+ * an oversight: it is what already happens when the maker deletes the last
+ * entry in Neovim, and nothing outside the file ever refers to an id. What the
+ * storage layer guarantees is uniqueness within the file, not a number that
+ * only ever climbs.
+ */
+export function removeFuelEntry(slug: string, id: string): boolean {
+  const files = vehicleFiles(slug)
+  const document = readFuel(files.fuel)
+  const index = document.entries.findIndex((existing) => existing.id === id)
+  if (index < 0) return false
+
+  document.entries.splice(index, 1)
+  writeFuel(files.fuel, document)
+
+  return true
+}
+
 export function saveCosts(slug: string, document: CostDocument): void {
   writeCosts(vehicleFiles(slug).costs, document)
 }
@@ -198,6 +228,19 @@ export function updateCostEntry(slug: string, entry: CostEntry): boolean {
   return true
 }
 
+/** Remove one cost by id (F7). `removeFuelEntry`'s shape and its reasoning. */
+export function removeCostEntry(slug: string, id: string): boolean {
+  const files = vehicleFiles(slug)
+  const document = readCosts(files.costs)
+  const index = document.entries.findIndex((existing) => existing.id === id)
+  if (index < 0) return false
+
+  document.entries.splice(index, 1)
+  writeCosts(files.costs, document)
+
+  return true
+}
+
 export function saveService(slug: string, document: ServiceDocument): void {
   writeService(vehicleFiles(slug).service, document)
 }
@@ -226,6 +269,19 @@ export function updateServiceEntry(slug: string, entry: ServiceEntry): boolean {
   if (index < 0) return false
 
   document.entries[index] = entry
+  writeService(files.service, document)
+
+  return true
+}
+
+/** Remove one service record by id (F7). `removeFuelEntry`'s shape. */
+export function removeServiceEntry(slug: string, id: string): boolean {
+  const files = vehicleFiles(slug)
+  const document = readService(files.service)
+  const index = document.entries.findIndex((existing) => existing.id === id)
+  if (index < 0) return false
+
+  document.entries.splice(index, 1)
   writeService(files.service, document)
 
   return true

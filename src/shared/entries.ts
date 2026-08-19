@@ -6,6 +6,21 @@
 // wrong shape for a fact neither of them owns — the same move `slugFor` and
 // `todayIso` made in F5. The second caller is what promotes a helper.
 
+/**
+ * Two `YYYY-MM-DD` dates, compared. Fixed-width and zero-padded, so lexical
+ * order is chronological order and no Date object is built to ask a calendar
+ * question.
+ *
+ * It exists as a named function rather than inline in each caller because the
+ * three panes each sort by date, and because an inline `a.date < b.date` inside
+ * a one-line arrow reads to `audit-strings` as JSX text between a `>` and a `<`.
+ * Better a helper the three of them share than a gate taught to look away.
+ */
+export function compareDate(left: string, right: string): number {
+  if (left === right) return 0
+  return left > right ? 1 : -1
+}
+
 /** The least an entry must have to be ordered or hinted from. */
 export interface DatedEntry {
   id: string

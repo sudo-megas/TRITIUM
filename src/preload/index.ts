@@ -113,6 +113,15 @@ const api = {
   updateService: (slug: string, entry: unknown): Promise<boolean> =>
     ipcRenderer.invoke('service:update', slug, entry),
 
+  // F7 — removal, one record at a time, by id. The three lists are the only
+  // place it is offered, which is where F4, F5 and F6 each said it belonged.
+  removeFuel: (slug: string, id: string): Promise<boolean> =>
+    ipcRenderer.invoke('fuel:remove', slug, id),
+  removeCost: (slug: string, id: string): Promise<boolean> =>
+    ipcRenderer.invoke('cost:remove', slug, id),
+  removeService: (slug: string, id: string): Promise<boolean> =>
+    ipcRenderer.invoke('service:remove', slug, id),
+
   // Form windows. The renderer asks the main process to open one; window.open
   // is still refused, which is the point of asking.
   openForm: (kind: string, slug?: string, entry?: string): Promise<void> =>
