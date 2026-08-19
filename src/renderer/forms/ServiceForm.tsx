@@ -10,9 +10,11 @@
 import { useEffect, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { highestOdometer } from '../../shared/entries.js'
-import { formatFigure, parseDate, parseInput } from '../../shared/format.js'
+import { parseDate, parseInput } from '../../shared/format.js'
 import type { VehicleBundle } from '../../shared/records.js'
 import { MONEY_DECIMALS } from '../../shared/scaled.js'
+import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
 import {
   emptyServiceDraft,
   serviceDraftOf,
@@ -23,6 +25,8 @@ import {
 
 export function ServiceForm({ slug, entry }: { slug: string; entry?: string }): JSX.Element {
   const { t } = useTranslation()
+  const units = useUnits()
+  const prefs = { distance: useSettings((s) => s.distance), volume: useSettings((s) => s.volume) }
   const [draft, setDraft] = useState<ServiceDraft>(() => emptyServiceDraft())
   const [previous, setPrevious] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
@@ -45,7 +49,7 @@ export function ServiceForm({ slug, entry }: { slug: string; entry?: string }): 
             ? undefined
             : bundle.service.entries.find((candidate) => candidate.id === entry)
 
-        if (existing !== undefined) setDraft(serviceDraftOf(existing))
+        if (existing !== undefined) setDraft(serviceDraftOf(existing, prefs))
       } catch (cause) {
         setFailure(String(cause))
       }
@@ -63,7 +67,13 @@ export function ServiceForm({ slug, entry }: { slug: string; entry?: string }): 
   // and a form that demanded a part would have refused it.
   const ready = slug.length > 0 && amount !== null && amount > 0 && !saving
 
-  const backwards = serviceGoesBackwards(draft, previous)
+  // Both sides in the same units: the field holds what was typed and
+  // `highestOdometer` returns kilometres.
+  const backwards = serviceGoesBackwards(
+    draft,
+    previous === null ? null : units.distanceValue(previous),
+    prefs
+  )
   const badDate = draft.date.trim().length > 0 && parseDate(draft.date) === null
 
   async function save(): Promise<void> {
@@ -71,7 +81,7 @@ export function ServiceForm({ slug, entry }: { slug: string; entry?: string }): 
     setSaving(true)
 
     try {
-      const record = serviceEntryOf(draft)
+      const record = serviceEntryOf(draft, prefs)
       if (entry === undefined) await window.tritium.addService(slug, record)
       else await window.tritium.updateService(slug, { ...record, id: entry })
       await window.tritium.closeForm()
@@ -119,7 +129,9 @@ export function ServiceForm({ slug, entry }: { slug: string; entry?: string }): 
         </label>
 
         <label className="field">
-          <span className="field__label">{t('service.fields.odometer_km')}</span>
+          <span className="field__label">
+            {`${t('service.fields.odometer_km')} (${units.distanceSymbol})`}
+          </span>
           <input
             className="control"
             type="text"
@@ -131,7 +143,10 @@ export function ServiceForm({ slug, entry }: { slug: string; entry?: string }): 
           <span className="field__hint" data-testid="service-odometer-hint">
             {previous === null
               ? ''
-              : t('fuel.previousOdometer', { value: formatFigure(previous, 0) })}
+              : t('fuel.previousOdometer', {
+                  value: units.distance(previous),
+                  unit: units.distanceSymbol
+                })}
           </span>
         </label>
 
@@ -173,7 +188,10 @@ export function ServiceForm({ slug, entry }: { slug: string; entry?: string }): 
 
       {backwards && (
         <p className="form__warning" data-testid="service-odometer-warning">
-          {t('fuel.backwards', { value: formatFigure(previous ?? 0, 0) })}
+          {t('fuel.backwards', {
+            value: units.distance(previous ?? 0),
+            unit: units.distanceSymbol
+          })}
         </p>
       )}
 

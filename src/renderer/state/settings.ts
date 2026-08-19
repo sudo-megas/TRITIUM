@@ -4,7 +4,15 @@
 // process — there is no other write path (XTRITIUM §4.1).
 
 import { create } from 'zustand'
-import { DEFAULT_SETTINGS, type Language, type Palette, type Settings } from '../../shared/settings.js'
+import {
+  DEFAULT_SETTINGS,
+  type ConsumptionUnit,
+  type DistanceUnit,
+  type Language,
+  type Palette,
+  type Settings,
+  type VolumeUnit
+} from '../../shared/settings.js'
 import { applyLanguage, applyWindowTitle } from '../i18n/index.js'
 
 interface SettingsStore extends Settings {
@@ -12,6 +20,15 @@ interface SettingsStore extends Settings {
   setPalette: (palette: Palette) => void
   setActiveVehicle: (slug: string) => void
   setCurrency: (currency: string) => void
+  // F11. Each sends the WHOLE record for the same reason setLanguage does:
+  // Settings has been more than two keys since F2, and rebuilding it from one
+  // would hand the main process a record with the rest missing.
+  setDistance: (unit: DistanceUnit) => void
+  setVolume: (unit: VolumeUnit) => void
+  setConsumption: (unit: ConsumptionUnit) => void
+  setDecimalsConsumption: (decimals: number) => void
+  setDecimalsCostPerKm: (decimals: number) => void
+  setPaymentMethods: (methods: string[]) => void
 }
 
 export function applyToDocument(settings: Settings): void {
@@ -40,8 +57,28 @@ function currentSettings(store: SettingsStore): Settings {
     consumption: store.consumption,
     decimals_consumption: store.decimals_consumption,
     decimals_cost_per_km: store.decimals_cost_per_km,
+    payment_methods: store.payment_methods,
     palette: store.palette
   }
+}
+
+/**
+ * One field changed, the WHOLE record sent.
+ *
+ * The same reasoning `setLanguage` gives: Settings has been more than two keys
+ * since F2, and rebuilding it from the one field that changed would hand the
+ * main process a record with the rest missing. The main process merges anyway,
+ * so this is belt and braces — and the braces are what stopped a palette click
+ * from erasing the currency in F1.
+ */
+function write(
+  set: (partial: Partial<SettingsStore>) => void,
+  get: () => SettingsStore,
+  change: Partial<Settings>
+): void {
+  const next: Settings = { ...currentSettings(get()), ...change }
+  set(next)
+  void window.tritium.writeSettings(next)
 }
 
 export const useSettings = create<SettingsStore>((set, get) => ({
@@ -63,6 +100,18 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     set(next)
     void window.tritium.writeSettings(next)
   },
+
+  /*
+   * F11's settings. None of them touches the document — units and precision
+   * change what figures SAY, not how the interface is painted, so unlike the
+   * palette and the language there is nothing to re-apply to the root element.
+   */
+  setDistance: (distance) => write(set, get, { distance }),
+  setVolume: (volume) => write(set, get, { volume }),
+  setConsumption: (consumption) => write(set, get, { consumption }),
+  setDecimalsConsumption: (decimals_consumption) => write(set, get, { decimals_consumption }),
+  setDecimalsCostPerKm: (decimals_cost_per_km) => write(set, get, { decimals_cost_per_km }),
+  setPaymentMethods: (payment_methods) => write(set, get, { payment_methods }),
 
   // These two send ONE field, not the record. Both can be called from a form
   // window, whose copy of the settings was taken when it opened; sending the

@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next'
 import { parseDate, parseInput } from '../../shared/format.js'
 import {
   COST_GROUPS,
-  PAYMENT_METHODS,
   isCostGroup,
   pickableCategories,
   takesTypedCategory,
@@ -22,6 +21,7 @@ import {
 } from '../../shared/records.js'
 import { MONEY_DECIMALS } from '../../shared/scaled.js'
 import { categorySlug } from '../../shared/slug.js'
+import { useSettings } from '../state/settings.js'
 import {
   costDraftOf,
   costEntryOf,
@@ -68,18 +68,19 @@ export function CostForm({ slug, entry }: { slug: string; entry?: string }): JSX
   const categories = pickableCategories(draft.group)
 
   /**
-   * The shipped methods, plus whatever this entry already carries.
+   * The MAKER'S methods, plus whatever this entry already carries.
    *
-   * §4.4 calls the list editable and F11 owns settings whole, so F5 ships the
-   * three fixed. But a value typed into the file by hand must survive an edit of
-   * the same entry: dropping it would be the app overruling the maker's own
-   * editor, which §3.8 forbids.
+   * §4.4 calls the list editable; F5 shipped the three fixed and said F11 would
+   * make it so, and F11 did — the list now comes from `settings.toml`.
+   *
+   * The second half has not changed and is what makes editing the list safe: a
+   * value that is not in it survives an edit of the same entry. That covers a
+   * method typed into the file by hand AND one the maker has since removed from
+   * his list — dropping either would be the app overruling him (§3.8).
    */
+  const offered = useSettings((s) => s.payment_methods)
   const stored = draft.payment_method
-  const methods =
-    stored.length > 0 && !(PAYMENT_METHODS as readonly string[]).includes(stored)
-      ? [...PAYMENT_METHODS, stored]
-      : [...PAYMENT_METHODS]
+  const methods = stored.length > 0 && !offered.includes(stored) ? [...offered, stored] : [...offered]
 
   const amount = parseInput(draft.amount, MONEY_DECIMALS)
   const ready =

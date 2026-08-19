@@ -16,7 +16,6 @@
 import { useMemo, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { EChartsCoreOption } from 'echarts/core'
-import { consumptionAt } from '../../shared/consumption.js'
 import { formatDate, formatFigure, formatMoneyText } from '../../shared/format.js'
 import { filterByBounds, type DateBounds } from '../../shared/range.js'
 import type { VehicleBundle } from '../../shared/records.js'
@@ -33,6 +32,7 @@ import {
   type MonthPoint
 } from '../../shared/series.js'
 import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
 import { useVehicles } from '../state/vehicles.js'
 import { Chart, readChartPalette, type ChartPalette } from './Chart.js'
 import { RangeChips, useRangeFilter } from './RangeChips.js'
@@ -120,8 +120,7 @@ function ChartCard({
 }): JSX.Element {
   const { t } = useTranslation()
   const currency = useSettings((s) => s.currency)
-  const consumptionDecimals = useSettings((s) => s.decimals_consumption)
-  const costPerKmDecimals = useSettings((s) => s.decimals_cost_per_km)
+  const units = useUnits()
   const palette = useSettings((s) => s.palette)
 
   const filter = useRangeFilter()
@@ -135,23 +134,44 @@ function ChartCard({
     [id, bundle, filter.bounds]
   )
 
-  /** How a figure on this chart is read. Nothing is formatted twice. */
+  /**
+   * How a figure on this chart is read — through the unit boundary, so a chart
+   * says miles when the lists say miles (F11).
+   */
   const show = (value: number): string => {
-    if (id === 'consumption') {
-      return formatFigure(consumptionAt(value, consumptionDecimals), consumptionDecimals)
-    }
-    if (id === 'gasPrice') return formatFigure(value, PUMP_DECIMALS)
-    if (id === 'odometer' || id === 'monthlyDistance') return formatFigure(value, 0)
-    if (id === 'costPerKm') return formatFigure(shiftTo(value, costPerKmDecimals), costPerKmDecimals)
+    if (id === 'consumption') return units.consumption(value) ?? ''
+    if (id === 'gasPrice') return units.pricePerVolume(value)
+    if (id === 'odometer' || id === 'monthlyDistance') return units.distance(value)
+    if (id === 'costPerKm') return units.costPerDistance(value)
     return formatMoneyText(value, currency ?? '')
+  }
+
+  /**
+   * And the same conversion applied to the PLOTTED value, not only its label.
+   * An axis drawn from kilometres under a label reading miles would be a chart
+   * that lies quietly — the exact failure mode F7 was built around.
+   */
+  const convert = (value: number): number => {
+    if (id === 'consumption') return units.consumptionValue(value) ?? 0
+    if (id === 'gasPrice') return units.pricePerVolumeValue(value)
+    if (id === 'odometer' || id === 'monthlyDistance') return units.distanceValue(value)
+    if (id === 'costPerKm') return units.costPerDistanceValue(value)
+    return value
   }
 
   // Rebuilt when the palette changes: the colours are read from the cascade at
   // this moment, so a palette switch produces a new option and the chart
   // repaints with the rest of the interface (§8).
   const option = useMemo(
-    () => buildOption(points, readChartPalette(), bar, mode, show),
-    [points, bar, mode, palette, currency, consumptionDecimals, costPerKmDecimals]
+    () =>
+      buildOption(
+        points.map((point) => ({ ...point, value: convert(point.value) })),
+        readChartPalette(),
+        bar,
+        mode,
+        (value) => showConverted(id, value, units, currency ?? '')
+      ),
+    [points, bar, mode, palette, currency, units, id]
   )
 
   return (
@@ -231,12 +251,25 @@ function ChartCard({
   )
 }
 
-/** A ×1000 figure re-scaled to the decimals the maker asked to see. */
-function shiftTo(scaled: number, decimals: number): number {
-  const shift = 3 - decimals
-  if (shift <= 0) return scaled
-  const divisor = 10 ** shift
-  return Math.round(scaled / divisor)
+/**
+ * A value that has ALREADY been converted, formatted for an axis or a tooltip.
+ *
+ * The plotted numbers are converted once, before the option is built, so this
+ * only has to add the separators and the decimals — converting again here would
+ * turn miles into miles-of-miles.
+ */
+function showConverted(
+  id: ChartId,
+  value: number,
+  units: ReturnType<typeof useUnits>,
+  currency: string
+): string {
+  if (id === 'consumption') return formatFigure(value, units.consumptionDecimals)
+  if (id === 'gasPrice') return formatFigure(value, PUMP_DECIMALS)
+  if (id === 'odometer' || id === 'monthlyDistance')
+    return formatFigure(value, units.distanceDecimals)
+  if (id === 'costPerKm') return formatFigure(value, units.costDecimals)
+  return formatMoneyText(value, currency)
 }
 
 /**

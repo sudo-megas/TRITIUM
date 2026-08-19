@@ -12,9 +12,7 @@
 
 import { type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consumptionAt } from '../../shared/consumption.js'
 import { formatDate, formatFigure, formatMoneyText } from '../../shared/format.js'
-import { PUMP_DECIMALS } from '../../shared/scaled.js'
 import {
   MINIMUM_PROJECTION_DAYS,
   bestTank,
@@ -27,14 +25,14 @@ import {
   type Figure
 } from '../../shared/statistics.js'
 import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
 import { useVehicles } from '../state/vehicles.js'
 
 export function StatisticsPane(): JSX.Element {
   const { t } = useTranslation()
   const bundle = useVehicles((s) => s.bundle)
   const currency = useSettings((s) => s.currency)
-  const consumptionDecimals = useSettings((s) => s.decimals_consumption)
-  const costPerKmDecimals = useSettings((s) => s.decimals_cost_per_km)
+  const units = useUnits()
 
   const fuel = bundle?.fuel.entries ?? []
   const costs = bundle?.costs.entries ?? []
@@ -51,11 +49,7 @@ export function StatisticsPane(): JSX.Element {
 
   const money = (value: number): string => formatMoneyText(value, currency ?? '')
 
-  const perKmText = (value: number): string => {
-    const shift = 3 - costPerKmDecimals
-    const scaled = shift <= 0 ? value : Math.round(value / 10 ** shift)
-    return formatFigure(scaled, costPerKmDecimals)
-  }
+  const perKmText = (value: number): string => units.costPerDistance(value)
 
   /** Why a figure is absent, said in words rather than shown as a zero. */
   const reason = (figure: Figure<unknown>): string => {
@@ -85,15 +79,11 @@ export function StatisticsPane(): JSX.Element {
         <Stat
           label={t('statistics.bestTank')}
           testId="stat-best"
-          value={
-            best.value === null
-              ? null
-              : formatFigure(consumptionAt(best.value.l100km, consumptionDecimals), consumptionDecimals)
-          }
+          value={best.value === null ? null : (units.consumption(best.value.l100km) ?? null)}
           detail={
             best.value === null
               ? ''
-              : `${formatFigure(best.value.distance_km, 0)} km · ${formatFigure(best.value.litres, PUMP_DECIMALS)} l`
+              : `${units.distanceWith(best.value.distance_km)} · ${units.volumeWith(best.value.litres)}`
           }
           window={window(best)}
           reason={reason(best)}
@@ -102,18 +92,11 @@ export function StatisticsPane(): JSX.Element {
         <Stat
           label={t('statistics.worstTank')}
           testId="stat-worst"
-          value={
-            worst.value === null
-              ? null
-              : formatFigure(
-                  consumptionAt(worst.value.l100km, consumptionDecimals),
-                  consumptionDecimals
-                )
-          }
+          value={worst.value === null ? null : (units.consumption(worst.value.l100km) ?? null)}
           detail={
             worst.value === null
               ? ''
-              : `${formatFigure(worst.value.distance_km, 0)} km · ${formatFigure(worst.value.litres, PUMP_DECIMALS)} l`
+              : `${units.distanceWith(worst.value.distance_km)} · ${units.volumeWith(worst.value.litres)}`
           }
           window={window(worst)}
           reason={reason(worst)}
@@ -130,9 +113,15 @@ export function StatisticsPane(): JSX.Element {
         <h2 className="section__title">{t('statistics.use')}</h2>
 
         <Stat
-          label={t('statistics.kmPerDay')}
+          label={`${t('statistics.kmPerDay')} (${units.distanceSymbol})`}
           testId="stat-km-per-day"
-          value={perDay.value === null ? null : formatFigure(perDay.value, 2)}
+          value={
+            perDay.value === null
+              ? null
+              // The figure is km/day ×100; the distance conversion applies to
+              // the whole of it, and the ×100 rides through unchanged.
+              : formatFigure(units.distanceValue(perDay.value), 2 + units.distanceDecimals)
+          }
           detail=""
           window={window(perDay)}
           reason={reason(perDay)}
@@ -157,7 +146,7 @@ export function StatisticsPane(): JSX.Element {
         />
 
         <Stat
-          label={t('statistics.runningCostPerKm')}
+          label={`${t('statistics.runningCostPerKm')} ${units.distanceSymbol}`}
           testId="stat-running-cost"
           value={running.value === null ? null : perKmText(running.value)}
           detail=""
@@ -168,7 +157,7 @@ export function StatisticsPane(): JSX.Element {
         {/* §7.3's "true cost per km including purchase price" — the only place
             in the application that spends `purchase_price`. */}
         <Stat
-          label={t('statistics.trueCostPerKm')}
+          label={`${t('statistics.trueCostPerKm')} ${units.distanceSymbol}`}
           testId="stat-true-cost"
           value={trueCost.value === null ? null : perKmText(trueCost.value)}
           detail={

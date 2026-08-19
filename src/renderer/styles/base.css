@@ -1173,3 +1173,46 @@ select,
   font-size: var(--text-xs);
   color: var(--text-subtle);
 }
+
+/* ── the editable payment-method list (F11) ──────────────────────────────
+ * XTRITIUM §4.4 calls it an editable list and names three. F5 shipped them
+ * fixed; this is where the maker gets to change them.
+ */
+.methods {
+  list-style: none;
+  margin: var(--space-0) var(--space-0) var(--gap-inside);
+  padding: var(--space-0);
+  display: flex;
+  flex-direction: column;
+}
+
+.methods__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-inside);
+  padding: var(--space-6) var(--space-0);
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+.methods__name {
+  font-size: var(--text-sm);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A field whose control and button sit on one line, for adding to a list. */
+.field--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gap-inside);
+}
+
+/* A setting that is shown and cannot be changed reads as disabled, because it
+ * is — §4.4 fixes the currency at first launch and forever. */
+.control:disabled {
+  color: var(--text-subtle);
+  border-color: var(--border);
+}

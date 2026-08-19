@@ -18,18 +18,13 @@
 import { useMemo, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ColumnDef } from '@tanstack/react-table'
-import {
-  consumptionAt,
-  consumptionById,
-  entryTotal,
-  sortByOdometer
-} from '../../shared/consumption.js'
-import { formatDate, formatFigure, formatMoneyText } from '../../shared/format.js'
+import { consumptionById, entryTotal, sortByOdometer } from '../../shared/consumption.js'
+import { formatDate, formatMoneyText } from '../../shared/format.js'
 import { compareDate } from '../../shared/entries.js'
 import { filterByBounds } from '../../shared/range.js'
 import type { FuelEntry } from '../../shared/records.js'
-import { PUMP_DECIMALS } from '../../shared/scaled.js'
 import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
 import { useVehicles } from '../state/vehicles.js'
 import { EntryTable } from './EntryTable.js'
 import { RangeChips, useRangeFilter } from './RangeChips.js'
@@ -41,7 +36,7 @@ export function FuelPane(): JSX.Element {
   const bundle = useVehicles((s) => s.bundle)
   const refresh = useVehicles((s) => s.refresh)
   const currency = useSettings((s) => s.currency)
-  const decimals = useSettings((s) => s.decimals_consumption)
+  const units = useUnits()
 
   const filter = useRangeFilter()
   const [selected, setSelected] = useState<string | null>(null)
@@ -56,9 +51,11 @@ export function FuelPane(): JSX.Element {
     [entries, filter.bounds]
   )
 
+  // Converted from the §5.2 figure, never recomputed (F11.md decision 2).
   const consumptionText = (entry: FuelEntry): string => {
     const point = points[entry.id]
-    return point === undefined ? '' : formatFigure(consumptionAt(point.l100km, decimals), decimals)
+    if (point === undefined) return ''
+    return units.consumption(point.l100km) ?? ''
   }
 
   const columns = useMemo<ColumnDef<FuelEntry, string>[]>(
@@ -71,14 +68,14 @@ export function FuelPane(): JSX.Element {
       },
       {
         id: 'odometer_km',
-        header: t('fuel.fields.odometer_km'),
-        accessorFn: (entry) => formatFigure(entry.odometer_km, 0),
+        header: `${t('fuel.fields.odometer_km')} (${units.distanceSymbol})`,
+        accessorFn: (entry) => units.distance(entry.odometer_km),
         sortingFn: (a, b) => a.original.odometer_km - b.original.odometer_km
       },
       {
         id: 'litres',
-        header: t('fuel.fields.litres'),
-        accessorFn: (entry) => formatFigure(entry.litres, PUMP_DECIMALS),
+        header: `${t('fuel.fields.litres')} (${units.volumeSymbol})`,
+        accessorFn: (entry) => units.volume(entry.litres),
         sortingFn: (a, b) => a.original.litres - b.original.litres
       },
       {
@@ -89,14 +86,14 @@ export function FuelPane(): JSX.Element {
       },
       {
         id: 'consumption',
-        header: t('fuel.consumption'),
+        header: units.consumptionSymbol,
         accessorFn: consumptionText,
         sortingFn: (a, b) =>
           (points[a.original.id]?.l100km ?? 0) - (points[b.original.id]?.l100km ?? 0)
       }
     ],
     // consumptionText closes over points and decimals; both are in the list.
-    [t, currency, decimals, points]
+    [t, currency, units, points]
   )
 
   const record = rows.find((entry) => entry.id === selected) ?? null
@@ -109,17 +106,17 @@ export function FuelPane(): JSX.Element {
           {
             id: 'odometer_km',
             key: t('fuel.fields.odometer_km'),
-            value: formatFigure(record.odometer_km, 0)
+            value: units.distanceWith(record.odometer_km)
           },
           {
             id: 'litres',
             key: t('fuel.fields.litres'),
-            value: formatFigure(record.litres, PUMP_DECIMALS)
+            value: units.volumeWith(record.litres)
           },
           {
             id: 'price_per_litre',
-            key: t('fuel.fields.price_per_litre'),
-            value: formatFigure(record.price_per_litre, PUMP_DECIMALS)
+            key: `${t('fuel.fields.price_per_litre')} ${units.volumeSymbol}`,
+            value: units.pricePerVolume(record.price_per_litre)
           },
           {
             id: 'total',
@@ -132,7 +129,7 @@ export function FuelPane(): JSX.Element {
             value: record.full_tank ? t('fuel.full') : t('fuel.partial')
           },
           { id: 'fuel_type', key: t('fuel.fields.fuel_type'), value: record.fuel_type },
-          { id: 'consumption', key: t('fuel.consumption'), value: consumptionText(record) }
+          { id: 'consumption', key: units.consumptionSymbol, value: consumptionText(record) }
         ]
 
   function open(kind: 'fuel-quick' | 'fuel', entry?: string): void {

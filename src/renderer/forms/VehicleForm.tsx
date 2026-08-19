@@ -20,6 +20,8 @@ import {
 import { MONEY_DECIMALS, TANK_DECIMALS } from '../../shared/scaled.js'
 import { formatDate, formatMoneyText, parseDate, parseInput, toInput } from '../../shared/format.js'
 import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
+import { METRIC, readVolume, showVolume, type UnitPrefs } from '../../shared/units.js'
 
 /** The form's own state: every field as the text the maker sees. */
 interface Draft {
@@ -38,7 +40,7 @@ interface Draft {
   inspection_due: string
 }
 
-function draftOf(vehicle: Vehicle): Draft {
+function draftOf(vehicle: Vehicle, units: UnitPrefs = METRIC): Draft {
   return {
     name: vehicle.name,
     make: vehicle.make,
@@ -48,8 +50,12 @@ function draftOf(vehicle: Vehicle): Draft {
     fuel_spec: vehicle.fuel_spec,
     plate: vehicle.plate,
     vin: vehicle.vin,
+    // The file holds litres (§4.4's own key name); the field shows whatever
+    // the maker asked for (F11.md decision 1).
     tank_capacity_l:
-      vehicle.tank_capacity_l > 0 ? toInput(vehicle.tank_capacity_l, TANK_DECIMALS) : '',
+      vehicle.tank_capacity_l > 0
+        ? toInput(showVolume(vehicle.tank_capacity_l, units.volume), TANK_DECIMALS)
+        : '',
     purchase_date: formatDate(vehicle.purchase_date),
     purchase_price: vehicle.purchase_price > 0 ? toInput(vehicle.purchase_price, MONEY_DECIMALS) : '',
     registration_date: formatDate(vehicle.registration_date),
@@ -62,7 +68,7 @@ function draftOf(vehicle: Vehicle): Draft {
  * record already uses for "not entered" — never a guess, and never a refusal
  * that would lose the rest of what was typed.
  */
-function vehicleOf(draft: Draft): Vehicle {
+function vehicleOf(draft: Draft, units: UnitPrefs = METRIC): Vehicle {
   return {
     name: draft.name.trim(),
     make: draft.make.trim(),
@@ -72,7 +78,7 @@ function vehicleOf(draft: Draft): Vehicle {
     fuel_spec: draft.fuel_spec,
     plate: draft.plate.trim(),
     vin: draft.vin.trim(),
-    tank_capacity_l: parseInput(draft.tank_capacity_l, TANK_DECIMALS) ?? 0,
+    tank_capacity_l: readVolume(parseInput(draft.tank_capacity_l, TANK_DECIMALS) ?? 0, units.volume),
     purchase_date: parseDate(draft.purchase_date) ?? '',
     purchase_price: parseInput(draft.purchase_price, MONEY_DECIMALS) ?? 0,
     registration_date: parseDate(draft.registration_date) ?? '',
@@ -86,6 +92,8 @@ const DATE_FIELDS = ['purchase_date', 'registration_date', 'inspection_due'] as 
 export function VehicleForm({ slug }: { slug?: string }): JSX.Element {
   const { t } = useTranslation()
   const currency = useSettings((s) => s.currency)
+  const units = useUnits()
+  const prefs = { distance: useSettings((s) => s.distance), volume: useSettings((s) => s.volume) }
   const [draft, setDraft] = useState<Draft>(() => draftOf(EMPTY_VEHICLE))
   const [carried, setCarried] = useState<VehicleDocument['rest']>({})
   const [saving, setSaving] = useState(false)
@@ -99,7 +107,7 @@ export function VehicleForm({ slug }: { slug?: string }): JSX.Element {
       try {
         const bundle = (await window.tritium.loadVehicle(slug)) as VehicleBundle
         if (bundle.vehicle !== null) {
-          setDraft(draftOf(bundle.vehicle.vehicle))
+          setDraft(draftOf(bundle.vehicle.vehicle, prefs))
           // Keys this milestone does not know travel back out untouched.
           setCarried(bundle.vehicle.rest)
         }
@@ -127,7 +135,7 @@ export function VehicleForm({ slug }: { slug?: string }): JSX.Element {
 
     const document: VehicleDocument = {
       schemaVersion: RECORD_SCHEMA_VERSION,
-      vehicle: vehicleOf(draft),
+      vehicle: vehicleOf(draft, prefs),
       rest: carried
     }
 
@@ -197,7 +205,9 @@ export function VehicleForm({ slug }: { slug?: string }): JSX.Element {
         </label>
 
         <label className="field">
-          <span className="field__label">{t('vehicles.fields.tank_capacity_l')}</span>
+          <span className="field__label">
+            {`${t('vehicles.fields.tank_capacity_l')} (${units.volumeSymbol})`}
+          </span>
           <input
             className="control"
             type="text"

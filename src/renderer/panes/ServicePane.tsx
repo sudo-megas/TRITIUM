@@ -9,10 +9,11 @@ import { useMemo, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ColumnDef } from '@tanstack/react-table'
 import { compareDate, sortByDateDesc } from '../../shared/entries.js'
-import { formatDate, formatFigure, formatMoneyText } from '../../shared/format.js'
+import { formatDate, formatMoneyText } from '../../shared/format.js'
 import { filterByBounds } from '../../shared/range.js'
 import type { ServiceEntry } from '../../shared/records.js'
 import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
 import { useVehicles } from '../state/vehicles.js'
 import { EntryTable } from './EntryTable.js'
 import { RangeChips, useRangeFilter } from './RangeChips.js'
@@ -24,6 +25,7 @@ export function ServicePane(): JSX.Element {
   const bundle = useVehicles((s) => s.bundle)
   const refresh = useVehicles((s) => s.refresh)
   const currency = useSettings((s) => s.currency)
+  const units = useUnits()
 
   const filter = useRangeFilter()
   const [selected, setSelected] = useState<string | null>(null)
@@ -49,8 +51,8 @@ export function ServicePane(): JSX.Element {
       },
       {
         id: 'odometer_km',
-        header: t('service.fields.odometer_km'),
-        accessorFn: (entry) => (entry.odometer_km > 0 ? formatFigure(entry.odometer_km, 0) : ''),
+        header: `${t('service.fields.odometer_km')} (${units.distanceSymbol})`,
+        accessorFn: (entry) => (entry.odometer_km > 0 ? units.distance(entry.odometer_km) : ''),
         sortingFn: (a, b) => a.original.odometer_km - b.original.odometer_km
       },
       {
@@ -60,7 +62,7 @@ export function ServicePane(): JSX.Element {
         sortingFn: (a, b) => a.original.amount - b.original.amount
       }
     ],
-    [t, currency]
+    [t, currency, units]
   )
 
   const record = rows.find((entry) => entry.id === selected) ?? null
@@ -74,7 +76,7 @@ export function ServicePane(): JSX.Element {
           {
             id: 'odometer_km',
             key: t('service.fields.odometer_km'),
-            value: record.odometer_km > 0 ? formatFigure(record.odometer_km, 0) : ''
+            value: record.odometer_km > 0 ? units.distanceWith(record.odometer_km) : ''
           },
           {
             id: 'amount',

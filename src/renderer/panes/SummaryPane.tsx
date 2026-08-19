@@ -13,10 +13,8 @@
 
 import { type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consumptionAt } from '../../shared/consumption.js'
 import { formatDate, formatFigure, formatMoneyText, todayIso } from '../../shared/format.js'
 import { boundsFor } from '../../shared/range.js'
-import { PUMP_DECIMALS } from '../../shared/scaled.js'
 import {
   costPerKmSeries,
   monthlyCostSeries,
@@ -37,6 +35,7 @@ import {
   type Comparison
 } from '../../shared/summary.js'
 import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
 import { useVehicles } from '../state/vehicles.js'
 
 const RECENT_LIMIT = 8
@@ -47,8 +46,7 @@ export function SummaryPane(): JSX.Element {
   const names = useVehicles((s) => s.names)
   const active = useVehicles((s) => s.active)
   const currency = useSettings((s) => s.currency)
-  const consumptionDecimals = useSettings((s) => s.decimals_consumption)
-  const costPerKmDecimals = useSettings((s) => s.decimals_cost_per_km)
+  const units = useUnits()
 
   const fuel = bundle?.fuel.entries ?? []
   const costs = bundle?.costs.entries ?? []
@@ -98,15 +96,9 @@ export function SummaryPane(): JSX.Element {
   const odometer = latestOdometer(fuel, service)
 
   const consumptionText = (value: number | null): string =>
-    value === null
-      ? nothing
-      : formatFigure(consumptionAt(value, consumptionDecimals), consumptionDecimals)
+    value === null ? nothing : (units.consumption(value) ?? nothing)
 
-  const perKmText = (value: number): string => {
-    const shift = 3 - costPerKmDecimals
-    const scaled = shift <= 0 ? value : Math.round(value / 10 ** shift)
-    return formatFigure(scaled, costPerKmDecimals)
-  }
+  const perKmText = (value: number): string => units.costPerDistance(value)
 
   const span = (from: string | null, to: string | null): string =>
     `${from === null ? '' : formatDate(from)} – ${to === null ? '' : formatDate(to)}`
@@ -123,7 +115,7 @@ export function SummaryPane(): JSX.Element {
             {active === null ? t('vehicles.none') : (names[active] ?? active)}
           </h2>
           <p className="summary__odometer" data-testid="summary-odometer">
-            {odometer === null ? nothing : `${formatFigure(odometer, 0)} km`}
+            {odometer === null ? nothing : units.distanceWith(odometer)}
           </p>
         </header>
 
@@ -143,7 +135,7 @@ export function SummaryPane(): JSX.Element {
             value={
               price === null
                 ? nothing
-                : `${formatFigure(price.price, PUMP_DECIMALS)} · ${formatDate(price.date)}`
+                : `${units.pricePerVolume(price.price)} · ${formatDate(price.date)}`
             }
             testId="summary-last-price"
           />
@@ -175,12 +167,12 @@ export function SummaryPane(): JSX.Element {
           />
           <Row
             label={t('summary.totalDistance')}
-            value={`${formatFigure(lifetimeDistance(fuel, service), 0)} km`}
+            value={units.distanceWith(lifetimeDistance(fuel, service))}
             testId="summary-total-distance"
           />
           <Row
             label={t('summary.totalLitres')}
-            value={formatFigure(lifetimeLitres(fuel), PUMP_DECIMALS)}
+            value={units.volumeWith(lifetimeLitres(fuel))}
             testId="summary-total-litres"
           />
         </Card>
@@ -200,7 +192,7 @@ export function SummaryPane(): JSX.Element {
           <Trend
             label={t('summary.monthlyDistance')}
             comparison={distance}
-            show={(value) => `${formatFigure(value, 0)} km`}
+            show={(value) => units.distanceWith(value)}
             testId="trend-distance"
           />
           <Trend

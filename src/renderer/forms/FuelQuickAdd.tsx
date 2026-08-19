@@ -9,10 +9,11 @@
 
 import { useEffect, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
-import { formatFigure, formatMoneyText, parseInput } from '../../shared/format.js'
+import { formatMoneyText, parseInput } from '../../shared/format.js'
 import type { VehicleBundle } from '../../shared/records.js'
 import { PUMP_DECIMALS } from '../../shared/scaled.js'
 import { useSettings } from '../state/settings.js'
+import { useUnits } from '../state/units.js'
 import {
   draftTotal,
   emptyDraft,
@@ -25,6 +26,11 @@ import {
 export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
   const { t } = useTranslation()
   const currency = useSettings((s) => s.currency)
+  const units = useUnits()
+  // Read once and handed to the boundary, exactly as the full form does.
+  const distanceUnit = useSettings((s) => s.distance)
+  const volumeUnit = useSettings((s) => s.volume)
+  const prefs = { distance: distanceUnit, volume: volumeUnit }
   const [draft, setDraft] = useState<FuelDraft>(() => emptyDraft(''))
   const [previous, setPrevious] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
@@ -62,14 +68,18 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
   const ready = slug.length > 0 && odometer !== null && odometer > 0 && litres !== null && litres > 0
 
   // A warning, not a refusal (§5.1, §3.8) — typos in old entries must be fixable.
-  const backwards = goesBackwards(draft, previous)
+  const backwards = goesBackwards(
+    draft,
+    previous === null ? null : units.distanceValue(previous),
+    prefs
+  )
 
   async function save(): Promise<void> {
     if (!ready || saving) return
     setSaving(true)
 
     try {
-      await window.tritium.addFuel(slug, entryOf(draft))
+      await window.tritium.addFuel(slug, entryOf(draft, prefs))
       await window.tritium.closeForm()
     } catch (cause) {
       setFailure(String(cause))
@@ -89,7 +99,9 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
 
       <div className="form__grid">
         <label className="field">
-          <span className="field__label">{t('fuel.fields.odometer_km')}</span>
+          <span className="field__label">
+            {`${t('fuel.fields.odometer_km')} (${units.distanceSymbol})`}
+          </span>
           <input
             className="control"
             type="text"
@@ -99,12 +111,19 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
             onChange={(event) => set('odometer_km', event.target.value)}
           />
           <span className="field__hint" data-testid="fuel-odometer-hint">
-            {previous === null ? '' : t('fuel.previousOdometer', { value: formatFigure(previous, 0) })}
+            {previous === null
+              ? ''
+              : t('fuel.previousOdometer', {
+                  value: units.distance(previous),
+                  unit: units.distanceSymbol
+                })}
           </span>
         </label>
 
         <label className="field">
-          <span className="field__label">{t('fuel.fields.litres')}</span>
+          <span className="field__label">
+            {`${t('fuel.fields.litres')} (${units.volumeSymbol})`}
+          </span>
           <input
             className="control"
             type="text"
@@ -116,7 +135,9 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
         </label>
 
         <label className="field">
-          <span className="field__label">{t('fuel.fields.price_per_litre')}</span>
+          <span className="field__label">
+            {`${t('fuel.fields.price_per_litre')} ${units.volumeSymbol}`}
+          </span>
           <input
             className="control"
             type="text"
@@ -145,7 +166,10 @@ export function FuelQuickAdd({ slug }: { slug: string }): JSX.Element {
 
       {backwards && (
         <p className="form__warning" data-testid="fuel-odometer-warning">
-          {t('fuel.backwards', { value: formatFigure(previous ?? 0, 0) })}
+          {t('fuel.backwards', {
+            value: units.distance(previous ?? 0),
+            unit: units.distanceSymbol
+          })}
         </p>
       )}
 
