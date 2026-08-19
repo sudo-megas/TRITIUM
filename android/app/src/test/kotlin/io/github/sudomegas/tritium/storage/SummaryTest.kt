@@ -65,7 +65,7 @@ class SummaryTest {
     fun `latestOdometer is the highest reading across both files`() {
         val fuel = listOf(full("f-0001", 1000, 30000))
         val service = listOf(service("s-0001", "2026-01-02", 15100))
-        assertEquals(1000, Summary.latestOdometer(fuel, service))
+        assertEquals(15100, Summary.latestOdometer(fuel, service))
     }
 
     @Test
