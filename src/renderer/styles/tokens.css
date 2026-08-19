@@ -48,20 +48,38 @@
    * and bold-italic; a fifth face would cost about 2.8 MB, so hierarchy is
    * built from size, position and the text-tone ladder instead of from weight.
    *
-   * The ramp tightens at the small end because 11, 12 and 13 are each genuinely
+   * The ramp tightens at the small end because 12 and 14 are each genuinely
    * useful here, and opens up above the body size where a step has to be seen
    * across a whole pane.
+   *
+   * F15 raised the top of this ramp and held the bottom, because the two ends
+   * answer different questions.
+   *
+   * The ramp was never missing — every font-size in base.css has consumed one of
+   * these tokens since F4b, and not one bare pixel value exists. What was missing
+   * was INTERVAL. A heading has to be seen as a heading from across a pane, and
+   * with two weights (D9) size is the only instrument left: bold is reserved, and
+   * Material's smaller-and-softer header treatment is closed off precisely
+   * because it pays for itself with a medium weight this font does not ship.
+   *
+   * So the steps that carry hierarchy grew, and the two that carry DENSITY did
+   * not. Table cells and meta text stay where they are on purpose: §7.1 requires
+   * Summary's trend cards "all visible at once", D12 fixes dense rows at 32-36px,
+   * and F4b measured 1366 x 768 as clearing the 720 floor by fourteen pixels.
+   * Growing the chrome is what was asked for. Growing the table would spend a
+   * budget §7.1 has already committed.
    */
   --font-ui: 'CaskaydiaCove Nerd Font Mono', monospace;
 
-  --text-micro: 10px; /* units and qualifiers riding beside a number */
-  --text-xs: 11px; /* column units, dense meta */
-  --text-sm: 12px; /* table cells, secondary text */
-  --text-base: 13px; /* body, fields, tabs */
-  --text-md: 15px; /* section headings */
-  --text-lg: 19px; /* pane titles */
-  --text-xl: 24px; /* the mark in the tab bar */
-  --text-2xl: 31px; /* the mark on the About pane */
+  --text-micro: 11px; /* units and qualifiers riding beside a number */
+  --text-xs: 12px; /* column units, dense meta — held for density */
+  --text-sm: 14px; /* table cells, secondary text — held for density */
+  --text-base: 16px; /* body, fields, tabs */
+  --text-card: 18px; /* a card's own figure, a sub-heading */
+  --text-md: 22px; /* section headings */
+  --text-lg: 26px; /* pane titles */
+  --text-xl: 30px; /* the mark in the tab bar */
+  --text-2xl: 38px; /* the mark on the About pane */
 
   /* Unitless, so a nested element inherits a ratio and not a resolved height. */
   --leading-tight: 1.25; /* headings and single-line labels */
@@ -76,13 +94,22 @@
 
   /* ---- Density ------------------------------------------------------------
    * Row heights sit in the band dense financial tools use, not the consumer
-   * default. Controls are shorter than a row so a control inside a row does not
-   * push it taller.
+   * default, and F15 left them exactly where D12 put them: 32-36px, one light
+   * rule, no zebra. The table is the one place in this application that is
+   * supposed to be tight.
+   *
+   * The CONTROLS grew by half, which is what was asked for. The old note here
+   * said controls are kept shorter than a row "so a control inside a row does
+   * not push it taller" — that constraint was checked before this change and no
+   * button is rendered inside a table cell anywhere in the application. The
+   * table's only control is the sort button in its header, which takes the
+   * header's height rather than setting its own. So the two measurements are
+   * independent, and a bigger button costs the table nothing.
    */
   --row-height: 32px;
   --row-height-head: 36px;
-  --control-height: 28px;
-  --control-height-sm: 24px;
+  --control-height: 42px;
+  --control-height-sm: 36px;
   --tab-height: 36px;
 
   /*
@@ -129,10 +156,24 @@
   --measure-picker: 192px; /* the vehicle picker's select */
   --measure-form: 640px; /* how far a field row runs before it stops */
   --measure-cell: 176px; /* the narrowest an empty cell may be */
-  --measure-prose: 200px; /* the widest a prose column runs before it elides */
+  /* The widest a prose column runs before it elides.
+   *
+   * This is the elastic column in a dense table, and F15 spent 24px of it. Table
+   * cells went from 12px to 14px, which widened every figure column by about a
+   * glyph, and the costs list — the widest of the three — then cleared its pane
+   * by 13 pixels and put a scrollbar under it (the defect I-08 was written for).
+   *
+   * The figure columns are not negotiable: a number that elides is a number that
+   * lies. The prose column already elides by design, so it is the one that gives
+   * way, which is the same mechanism I-08 used to fix this the first time. */
+  --measure-prose: 176px;
   --chart-height: 260px; /* a plot in the stack of seven */
   --chart-height-full: 620px; /* the same plot, alone on the tab */
-  --measure-swatch: 56px; /* a palette swatch: a small picture of the app */
+  /* A palette card holds a picture of the application under that palette, its
+   * name, and whether it is light or dark. The minimum is set by the longest
+   * name the catalogues carry — "Catppuccin Macchiato", twenty characters — so
+   * that no palette's name is the one that wraps (F15). */
+  --measure-palette: 216px;
 
   /* ---- Edges --------------------------------------------------------------
    * Radius nests: an inner radius is the outer one minus the padding between

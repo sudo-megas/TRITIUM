@@ -18,21 +18,42 @@ export const MIN_WIDTH = 1280
 export const MIN_HEIGHT = 720
 
 /** Sizes chosen to fit the form, not to fill the screen. */
+/**
+ * How big each form window is, in CONTENT pixels — see useContentSize below.
+ *
+ * F15 re-derived every one of these. The old numbers were chosen for a layout
+ * that did not fit in them: a field was a 176px label column plus a 16px gap
+ * plus a control that refused to go below 224px, so each one needed 416px, and
+ * .form__grid gave every form two of them side by side. Not one window was wide
+ * enough. Quick-add was short by 216 pixels and the vehicle form by 76, which is
+ * why every label sat on top of the input beside it (issues.md I-24).
+ *
+ * The layout was fixed rather than the windows widened — a form field now stacks
+ * its label above its control, so a column has to be as wide as its control and
+ * nothing more. These widths then only have to clear the longest LABEL, which is
+ * Turkish: "Negatif gider (gelir)", twenty-one characters, about 202px at the
+ * 16px body size. Every width below leaves a column near 300px.
+ *
+ * Heights are capped near 700 on purpose. F4b measured the target laptop at
+ * 1366 x 768, and a form taller than the screen cannot be dismissed by a maker
+ * who cannot reach its buttons. `.form` scrolls internally, so a tall form loses
+ * nothing by being asked to scroll; a form taller than the display loses the
+ * Save button.
+ */
 const FORM_SIZES: Record<FormRequest['kind'], { width: number; height: number }> = {
-  vehicle: { width: 760, height: 700 },
-  currency: { width: 460, height: 300 },
+  vehicle: { width: 720, height: 700 },
+  currency: { width: 520, height: 320 },
   // Quick-add is three fields and a total (§5.1); the full form is every field
   // of §4.4's fuel.toml. Neither is the main window and neither fills a screen.
-  'fuel-quick': { width: 480, height: 480 },
-  fuel: { width: 620, height: 660 },
-  // The tallest of the entry forms: §6.2 gives the money categories three
-  // fields the others do not have, and the window is sized for the shape it
-  // wears most often rather than resizing as the group changes under it.
-  cost: { width: 680, height: 780 },
-  // Five fields, one of which — the vendor address — is long. Wider than it is
-  // tall for that reason, and shorter than the cost form because §4.4's
-  // service.toml holds half as many keys.
-  service: { width: 680, height: 560 }
+  'fuel-quick': { width: 640, height: 520 },
+  fuel: { width: 700, height: 700 },
+  // §6.2 gives the money categories three fields the others do not have, and the
+  // window is sized for the shape it wears most often rather than resizing as
+  // the group changes under it.
+  cost: { width: 700, height: 700 },
+  // Five fields, one of which — the vendor address — is long. Shorter than the
+  // cost form because §4.4's service.toml holds half as many keys.
+  service: { width: 700, height: 600 }
 }
 
 /**
@@ -153,6 +174,15 @@ export function openFormWindow(
   const window = new BrowserWindow({
     ...size,
     ...(modal && parent !== undefined ? { parent, modal: true } : {}),
+    // FORM_SIZES describes the web page, not the window around it.
+    //
+    // Without this, width and height include whatever frame the compositor
+    // draws, so the renderer got less room than the numbers claimed and the
+    // shortfall varied by desktop — the same build laying out differently under
+    // kwin and under GNOME. §7 hands the decorations to the compositor, which
+    // means their size is not ours to know; asking for content pixels is how a
+    // layout stays the layout that was measured (F15).
+    useContentSize: true,
     // Fixed size, and that is what makes a form float on a tiling desktop.
     //
     // A scrolling tiler decides for itself whether a new window joins the
