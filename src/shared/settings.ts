@@ -40,6 +40,32 @@ export const PALETTES = [
 ] as const
 export type Palette = (typeof PALETTES)[number]
 
+/**
+ * Whether each palette is a light or a dark one (F15).
+ *
+ * F4b settled this when it chose them — "Six dark, four light" of the ten
+ * ported, plus Aubergine — and palettes.css records it per block, but nothing
+ * ever put it on screen. The picker showed eleven unlabelled rectangles and the
+ * maker had to guess which was which, and whether a given one would turn the
+ * application light or dark before clicking it.
+ *
+ * It lives beside PALETTES rather than in the catalogue because it is a fact
+ * about the palette, not a translation of one: Nord is dark in every language.
+ */
+export const PALETTE_SCHEMES: Readonly<Record<Palette, 'light' | 'dark'>> = {
+  'default-light': 'light',
+  'default-dark': 'dark',
+  noctalia: 'dark',
+  'catppuccin-latte': 'light',
+  'catppuccin-frappe': 'dark',
+  'catppuccin-macchiato': 'dark',
+  'catppuccin-mocha': 'dark',
+  'rose-pine-dawn': 'light',
+  nord: 'dark',
+  'kanagawa-lotus': 'light',
+  aubergine: 'dark'
+}
+
 /** XTRITIUM §4.4 [units] — each independent of language, each persisted. */
 export const DISTANCE_UNITS = ['km', 'mi'] as const
 export type DistanceUnit = (typeof DISTANCE_UNITS)[number]

@@ -249,6 +249,10 @@
     "from": "Başlangıç",
     "to": "Bitiş"
   },
+  "schemes": {
+    "light": "Açık",
+    "dark": "Koyu"
+  },
   "palettes": {
     "default-light": "Varsayılan Açık",
     "default-dark": "Varsayılan Koyu",

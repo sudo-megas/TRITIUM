@@ -15,11 +15,11 @@ import {
   DISTANCE_UNITS,
   LANGUAGES,
   PALETTES,
+  PALETTE_SCHEMES,
   VOLUME_UNITS,
   isConsumptionUnit,
   isDistanceUnit,
   isLanguage,
-  isPalette,
   isVolumeUnit
 } from '../../shared/settings.js'
 import { categorySlug } from '../../shared/slug.js'
@@ -231,51 +231,51 @@ export function SettingsPane(): JSX.Element {
       <section className="pane">
         <h2 className="section__title">{t('settings.palette')}</h2>
 
-        <Field label={t('settings.palette')} id="palette">
-          <select
-            className="control"
-            aria-labelledby="label-palette"
-            data-testid="palette-select"
-            value={settings.palette}
-            onChange={(event) => {
-              if (isPalette(event.target.value)) settings.setPalette(event.target.value)
-            }}
-          >
-            {PALETTES.map((id) => (
-              <option key={id} value={id}>
-                {t(`palettes.${id}`)}
-              </option>
-            ))}
-          </select>
-        </Field>
-
         <p className="field__hint">{t('settings.paletteHint')}</p>
 
         {/*
-         * Each swatch carries its own data-palette, and palettes.css selects on
-         * that attribute rather than on the root alone — so the tokens inside a
-         * swatch resolve to the palette it stands for, not the one in force.
-         * That makes every swatch a small picture of the application under that
-         * palette: bar, accent rule, ground, and two lines of text. All eleven
-         * can be compared without switching to any of them.
+         * A palette card: the picture, the name, and whether choosing it makes
+         * the application light or dark (F15, issues.md I-23).
+         *
+         * Until F15 this was eleven unlabelled rectangles. The names existed —
+         * in both catalogues, and passed here as aria-label — so a screen reader
+         * could read out "Kanagawa Lotus" while the man holding the mouse had to
+         * guess. A native tooltip is not the way out: audit-overlap bans the
+         * title attribute by name, because it draws over whatever is beneath it.
+         * A caption is in flow and owns its own space, which is the same rule
+         * pointing the other way.
+         *
+         * data-palette sits on the SWATCH, not on the card. palettes.css selects
+         * on that attribute rather than on the root alone, so the tokens inside
+         * a swatch resolve to the palette it stands for — bar, accent rule,
+         * ground, two lines of text — while the card's own name and tag stay in
+         * the palette actually in force, and stay readable. All eleven can be
+         * compared without switching to any of them.
+         *
+         * The select that used to sit above this grid is gone. It listed the
+         * same eleven names as text and was the only place they appeared; with
+         * the cards carrying their own names it was a second control for one
+         * decision.
          */}
-        <div className="swatches">
+        <div className="palettes">
           {PALETTES.map((id) => (
             <button
               type="button"
               key={id}
-              className="swatch"
-              data-palette={id}
+              className="palette"
               data-testid={`swatch-${id}`}
               aria-pressed={id === settings.palette}
-              aria-label={t(`palettes.${id}`)}
               onClick={() => settings.setPalette(id)}
             >
-              <span className="swatch__bar" />
-              <span className="swatch__body">
-                <span className="swatch__line" />
-                <span className="swatch__line swatch__line--short" />
+              <span className="swatch" data-palette={id}>
+                <span className="swatch__bar" />
+                <span className="swatch__body">
+                  <span className="swatch__line" />
+                  <span className="swatch__line swatch__line--short" />
+                </span>
               </span>
+              <span className="palette__name">{t(`palettes.${id}`)}</span>
+              <span className="palette__scheme">{t(`schemes.${PALETTE_SCHEMES[id]}`)}</span>
             </button>
           ))}
         </div>

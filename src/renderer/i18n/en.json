@@ -249,6 +249,10 @@
     "from": "From",
     "to": "To"
   },
+  "schemes": {
+    "light": "Light",
+    "dark": "Dark"
+  },
   "palettes": {
     "default-light": "Default Light",
     "default-dark": "Default Dark",
