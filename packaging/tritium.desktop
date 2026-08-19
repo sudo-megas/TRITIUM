@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=TRITIUM
+GenericName=Fuel Log
+Comment=Fuel logging and maintenance tracking for any ICE vehicle
+Exec=tritium
+Icon=tritium
+Terminal=false
+Categories=Utility;
+Keywords=fuel;fuel log;consumption;vehicle;car;maintenance;
+StartupNotify=true
+StartupWMClass=tritium

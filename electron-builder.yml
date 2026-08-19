@@ -1,0 +1,33 @@
+# electron-builder — the `dir` target and nothing else (F13).
+#
+# XTRITIUM §9.3 ships a `.pkg.tar.zst` built by makepkg in a clean chroot. What
+# electron-builder is for here is the step before that: taking `out/` and the
+# production dependencies and laying them out as an unpacked Electron tree that
+# `packaging/PKGBUILD` copies into /usr/lib/tritium.
+#
+# No AppImage, no flatpak, no snap, no installer. On a distribution whose whole
+# argument is that it tracks what it installs, shipping a second copy of a
+# runtime inside a bundle is the wrong answer.
+
+appId: tritium
+productName: TRITIUM
+
+# electron-vite has already written out/. This stage only collects.
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+
+linux:
+  target:
+    - dir
+  category: Utility
+  executableName: tritium
+
+# The maker signs packages himself and places them in his own repository
+# (§9.3). Nothing here publishes, and there is no key referenced anywhere in
+# this repository.
+publish: null

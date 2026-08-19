@@ -1,0 +1,93 @@
+# Maintainer: sudo-megas
+#
+# TRITIUM — fuel logging and maintenance tracking for any ICE vehicle.
+#
+# XTRITIUM §9.3: this file lives in the repository, builds FROM A GIT TAG, and
+# produces tritium-<ver>.pkg.tar.zst. It is built in a clean chroot
+# (extra-x86_64-build) so that stray host dependencies cannot sneak in.
+#
+# The maker signs the package himself and places it into his own megas-xlr
+# repository himself. Nothing in this file, and nothing anywhere in TRITIUM's
+# tooling, touches that repository or references a key. See packaging/README.md.
+
+pkgname=tritium
+pkgver=0.2.3
+pkgrel=1
+pkgdesc='Fuel logging and maintenance tracking for any ICE vehicle'
+arch=('x86_64')
+url='https://github.com/sudo-megas/TRITIUM'
+license=('GPL-3.0-or-later')
+
+# Electron's own shared objects ship inside the package; what is needed from the
+# system is the desktop stack they link against.
+depends=(
+  'alsa-lib'
+  'at-spi2-core'
+  'gtk3'
+  'libcups'
+  'libnotify'
+  'libxss'
+  'libxtst'
+  'nss'
+)
+
+# Node and npm BUILD the thing; they are not needed to run it.
+makedepends=('git' 'nodejs' 'npm')
+
+# From the tag, so a package can always be traced back to a commit (§9.3).
+source=("git+$url.git#tag=v$pkgver")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$srcdir/TRITIUM"
+  # `ci`, never `install`. A clean chroot exists to keep stray state out, and
+  # resolving from anything but the lockfile would let it back in.
+  npm ci
+}
+
+build() {
+  cd "$srcdir/TRITIUM"
+
+  # The project's own gates run as part of this: five audits, the storage
+  # audit, prettier, both tsconfigs under strict, then the bundle. A package
+  # that would not pass them is not built.
+  npm run build
+
+  # electron-builder collects out/ and the production dependencies into an
+  # unpacked Electron tree. `dir` and nothing else — see electron-builder.yml.
+  npx electron-builder --linux dir
+}
+
+package() {
+  cd "$srcdir/TRITIUM"
+
+  install -dm755 "$pkgdir/usr/lib/$pkgname"
+  cp -a release/linux-unpacked/. "$pkgdir/usr/lib/$pkgname/"
+
+  # Chromium's setuid sandbox helper. Arch's own electron package ships this
+  # mode, and without it the sandbox cannot start and the app falls back to
+  # running without one — which is a worse trade than a setuid helper that has
+  # been in Chromium for fifteen years.
+  chmod 4755 "$pkgdir/usr/lib/$pkgname/chrome-sandbox"
+
+  # Two lines, so /usr/bin holds a launcher and not a 200 MB binary.
+  install -dm755 "$pkgdir/usr/bin"
+  printf '#!/bin/sh\nexec /usr/lib/%s/%s "$@"\n' "$pkgname" "$pkgname" \
+    > "$pkgdir/usr/bin/$pkgname"
+  chmod 755 "$pkgdir/usr/bin/$pkgname"
+
+  # No MIME type is installed and none is declared: there is no custom file
+  # format to claim (§9.3).
+  install -Dm644 packaging/tritium.desktop \
+    "$pkgdir/usr/share/applications/$pkgname.desktop"
+
+  # The maker's own artwork, at the sizes a desktop actually reads. The 1024,
+  # 2048 and 4096 files in build/icons/ are for other purposes; no icon theme
+  # looks for a 4096-pixel launcher.
+  for size in 48 64 128 256 512; do
+    install -Dm644 "build/icons/$size.png" \
+      "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/$pkgname.png"
+  done
+
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
