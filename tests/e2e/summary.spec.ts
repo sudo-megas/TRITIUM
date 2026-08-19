@@ -189,7 +189,9 @@ test('the lifetime totals exclude the purchase price', async () => {
   // 30 + 40 + 10 litres at 73,380 = 5.870,40, plus 1.400,00 of costs.
   await expect(shell.getByTestId('summary-total-spend')).toHaveText('7.270,40 ₺')
   await expect(shell.getByTestId('summary-total-distance')).toHaveText('900 km')
-  await expect(shell.getByTestId('summary-total-litres')).toHaveText('80,000')
+  // F11 gave the figure its unit: the volume is a setting now, so a bare
+  // number on a card would not say what it was counting.
+  await expect(shell.getByTestId('summary-total-litres')).toHaveText('80,000 l')
 
   // 2.160.000,00 is on the vehicle record and is §7.3's business, not this
   // page's (F9.md decision 4). If it ever leaks in, this fails loudly.
