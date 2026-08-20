@@ -40,7 +40,9 @@ import io.github.sudomegas.tritium.storage.pickableCategories
 import io.github.sudomegas.tritium.storage.slugify
 import io.github.sudomegas.tritium.storage.takesTypedCategory
 import io.github.sudomegas.tritium.ui.CostViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The one adaptive form (AF5.md §1.2 — "one form, not two"): the category
@@ -269,7 +271,11 @@ private fun CostFormBody(
                     } else {
                         viewModel.updateCostEntry(entry)
                     }
-                    if (saved) onSaved() else saveFailed = true
+                    // Explicit hop back to Main before the Navigation call —
+                    // see FuelFormScreen's own comment on the same pattern.
+                    withContext(Dispatchers.Main.immediate) {
+                        if (saved) onSaved() else saveFailed = true
+                    }
                 }
             },
         ) {

@@ -35,7 +35,9 @@ import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.ServiceEntry
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.ServiceViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The form (AF6.md §2.1 decision 5): `service.toml`'s entire shape — date,
@@ -229,7 +231,11 @@ private fun ServiceFormBody(
                     } else {
                         viewModel.updateServiceEntry(entry)
                     }
-                    if (saved) onSaved() else saveFailed = true
+                    // Explicit hop back to Main before the Navigation call —
+                    // see FuelFormScreen's own comment on the same pattern.
+                    withContext(Dispatchers.Main.immediate) {
+                        if (saved) onSaved() else saveFailed = true
+                    }
                 }
             },
         ) {

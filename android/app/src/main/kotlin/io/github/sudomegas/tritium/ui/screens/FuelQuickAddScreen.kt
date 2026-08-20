@@ -29,7 +29,9 @@ import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.FuelViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * XTRITIUM §5.1: "odometer, litres, price/litre — done. Everything else
@@ -138,7 +140,9 @@ fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, unitFormat: 
                             fuelType = defaults.fuelType,
                         )
                     }
-                    onSaved()
+                    // Explicit hop back to Main before the Navigation call —
+                    // see FuelFormScreen's own comment on the same pattern.
+                    withContext(Dispatchers.Main.immediate) { onSaved() }
                 }
             },
         ) {

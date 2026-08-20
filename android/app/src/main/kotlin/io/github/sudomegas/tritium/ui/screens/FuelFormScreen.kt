@@ -37,7 +37,9 @@ import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.FuelViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The full form (AF4.md §1.2 decision "Full form"): every `fuel.toml`
@@ -219,7 +221,17 @@ private fun FuelFormBody(
                     } else {
                         viewModel.updateFuelEntry(entry)
                     }
-                    if (saved) onSaved() else saveFailed = true
+                    // Explicit hop back to Main before the Navigation call —
+                    // withContext(Dispatchers.IO) inside addFuelEntry/
+                    // updateFuelEntry is meant to restore the caller's own
+                    // dispatcher on return, but popBackStack's own internal
+                    // LifecycleRegistry.setCurrentState enforces the REAL
+                    // Android main thread specifically, which an unconfined
+                    // resume cannot be assumed to land back on. AF12 audit
+                    // finding, found running this for real on-device.
+                    withContext(Dispatchers.Main.immediate) {
+                        if (saved) onSaved() else saveFailed = true
+                    }
                 }
             },
         ) {

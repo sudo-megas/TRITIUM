@@ -34,7 +34,9 @@ import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.storage.Vehicle
 import io.github.sudomegas.tritium.ui.HomeViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * One screen serving both add and edit — `slug == null` is add, mirroring
@@ -171,7 +173,9 @@ private fun VehicleFormBody(
                         viewModel.saveVehicle(slug, vehicle)
                         slug
                     }
-                    onSaved(savedSlug)
+                    // Explicit hop back to Main before the Navigation call —
+                    // see FuelFormScreen's own comment on the same pattern.
+                    withContext(Dispatchers.Main.immediate) { onSaved(savedSlug) }
                 }
             },
         ) {
