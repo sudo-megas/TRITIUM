@@ -5,17 +5,19 @@
 <h1 align="center">TRITIUM</h1>
 
 <p align="center">
-  <img alt="Version"      src="https://img.shields.io/badge/version-v0.2.6-3A6B9C?style=for-the-badge">
-  <img alt="Release date" src="https://img.shields.io/badge/released-19--08--2026-3A6B9C?style=for-the-badge">
-  <img alt="Licence"      src="https://img.shields.io/badge/licence-GPL--3.0--or--later-6E7B8B?style=for-the-badge">
+  <img alt="Arch Linux"    src="https://img.shields.io/badge/Arch%20Linux-136%20MB-1793D1?style=for-the-badge&logo=archlinux&logoColor=white">
+  <img alt="Android APK"   src="https://img.shields.io/badge/Android-9.56%20MB-3DDC84?style=for-the-badge&logo=android&logoColor=white">
 </p>
 
 <p align="center">
-  <img alt="Arch Linux"    src="https://img.shields.io/badge/Arch%20Linux-~136%20MiB-1793D1?style=for-the-badge&logo=archlinux&logoColor=white">
+  <img alt="Version"      src="https://img.shields.io/badge/desktop version-v0.2.6-3A6B9C?style=for-the-badge">
+  <img alt="Version"      src="https://img.shields.io/badge/android version-v1.2-3A6B9C?style=for-the-badge">
+  <img alt="Release date" src="https://img.shields.io/badge/released-19--08--2026-A4D8FF?style=for-the-badge">
+  <img alt="Licence"      src="https://img.shields.io/badge/licence-GPL--3.0--or--later-1A202F?style=for-the-badge">
 </p>
 
-<p align="center"><strong>Fuel Logging / Maintenance Tracking for any ICE Vehicle</strong></p>
-<p align="center"><strong>Her İçten Yanmalı Araç için Yakıt Kaydı / Bakım Takibi</strong></p>
+<p align="center"><strong>Fuel Logging and Maintenance Tracking for any ICE Vehicle.</strong></p>
+<p align="center"><strong>Petrol Araçlar için Yakıt ve Bakım Takibi.</strong></p>
 
 
 
