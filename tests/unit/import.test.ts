@@ -271,3 +271,89 @@ fuel_type = "Kurşunsuz 95"
     expect(kept).not.toContain('f-0002')
   })
 })
+
+describe('AF12: path traversal and duplicate-slug hardening', () => {
+  it('refuses a slug containing a path separator, writing nothing outside vehicles', () => {
+    const result = importBundle(
+      bundleFile(`
+format = "tritium-export"
+format_version = 1
+exported = 2026-08-20
+
+[[vehicle]]
+slug = "../evil"
+name = "Evil"
+
+[[vehicle.fuel]]
+date = 2026-08-01
+odometer_km = 100
+litres = 10.000
+price_per_litre = 40.000
+full_tank = true
+`)
+    )
+
+    expect(result.vehicles).toHaveLength(0)
+    expect(existsSync(join(home, 'tritium', 'evil'))).toBe(false)
+  })
+
+  it('refuses a slug this app would never itself produce, the same way', () => {
+    const result = importBundle(
+      bundleFile(`
+format = "tritium-export"
+format_version = 1
+exported = 2026-08-20
+
+[[vehicle]]
+slug = "Not A Slug!"
+name = "Whatever"
+`)
+    )
+
+    expect(result.vehicles).toHaveLength(0)
+  })
+
+  it('merges two [[vehicle]] tables for the same slug, losing neither table\'s entries', () => {
+    const result = importBundle(
+      bundleFile(`
+format = "tritium-export"
+format_version = 1
+exported = 2026-08-20
+
+[[vehicle]]
+slug = "sportage"
+name = "SPORTAGE"
+
+[[vehicle.fuel]]
+date = 2026-08-01
+odometer_km = 100
+litres = 10.000
+price_per_litre = 40.000
+full_tank = true
+
+[[vehicle]]
+slug = "sportage"
+name = "SPORTAGE"
+
+[[vehicle.fuel]]
+date = 2026-08-15
+odometer_km = 200
+litres = 12.000
+price_per_litre = 41.000
+full_tank = true
+`)
+    )
+
+    // One tally for the slug, not two, and it reports what actually landed.
+    expect(result.vehicles).toHaveLength(1)
+    expect(result.vehicles[0]?.added.fuel).toBe(2)
+
+    const onDisk = readFileSync(vehicleFiles('sportage').fuel, 'utf8')
+    expect(onDisk).toContain('odometer_km = 100')
+    expect(onDisk).toContain('odometer_km = 200')
+    // Neither table's own id — the receiving file allocates its own, and a
+    // duplicate slug's second table must not restart the count.
+    const ids = [...onDisk.matchAll(/id = "(f-\d+)"/g)].map((m) => m[1])
+    expect(ids).toEqual(['f-0001', 'f-0002'])
+  })
+})

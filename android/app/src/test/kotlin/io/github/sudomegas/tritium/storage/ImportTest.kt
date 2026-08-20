@@ -399,4 +399,136 @@ class ImportTest {
         repository.importBundle(secondBundle)
         assertTrue(paths().backupsDir.isDirectory)
     }
+
+    // -- AF12: path traversal and duplicate-slug hardening -------------------
+
+    @Test
+    fun `a slug containing a path separator is refused, not written outside vehicles`() {
+        val repository = repository()
+        val bundle = """
+            format = "tritium-export"
+            format_version = 1
+            exported = 2026-08-20
+            source = "android"
+
+            [[vehicle]]
+            slug = "../evil"
+            name = "Evil"
+
+            [[vehicle.fuel]]
+            date = 2026-08-01
+            odometer_km = 100
+            litres = 10.000
+            price_per_litre = 40.000
+            full_tank = true
+        """.trimIndent()
+
+        val result = repository.importBundle(bundle)
+        assertTrue(result.vehicles.isEmpty())
+        assertTrue(repository.listVehicleSlugs().isEmpty())
+        assertFalse(File(tmp.root, "evil").exists())
+    }
+
+    @Test
+    fun `a slug this build would never itself produce is refused the same way`() {
+        val repository = repository()
+        val bundle = """
+            format = "tritium-export"
+            format_version = 1
+            exported = 2026-08-20
+            source = "android"
+
+            [[vehicle]]
+            slug = "Not A Slug!"
+            name = "Whatever"
+        """.trimIndent()
+
+        val result = repository.importBundle(bundle)
+        assertTrue(result.vehicles.isEmpty())
+        assertTrue(repository.listVehicleSlugs().isEmpty())
+    }
+
+    @Test
+    fun `two vehicle tables for the same slug merge into one, losing neither's entries`() {
+        val repository = repository()
+        val bundle = """
+            format = "tritium-export"
+            format_version = 1
+            exported = 2026-08-20
+            source = "android"
+
+            [[vehicle]]
+            slug = "sportage"
+            name = "SPORTAGE 1.6 T-GDI"
+
+            [[vehicle.fuel]]
+            date = 2026-08-01
+            odometer_km = 100
+            litres = 10.000
+            price_per_litre = 40.000
+            full_tank = true
+
+            [[vehicle]]
+            slug = "sportage"
+            name = "SPORTAGE 1.6 T-GDI"
+
+            [[vehicle.fuel]]
+            date = 2026-08-15
+            odometer_km = 200
+            litres = 12.000
+            price_per_litre = 41.000
+            full_tank = true
+        """.trimIndent()
+
+        val result = repository.importBundle(bundle)
+
+        // One tally for the slug, not two — and it reports what actually landed.
+        assertEquals(1, result.vehicles.size)
+        val tally = result.vehicles.single()
+        assertEquals(2, tally.added.fuel)
+
+        val onDisk = paths().fuelToml("sportage").readText()
+        assertTrue("odometer_km = 100" in onDisk)
+        assertTrue("odometer_km = 200" in onDisk)
+    }
+
+    @Test
+    fun `a duplicate slug's second table never mints an id the first table already used`() {
+        val repository = repository()
+        val bundle = """
+            format = "tritium-export"
+            format_version = 1
+            exported = 2026-08-20
+            source = "android"
+
+            [[vehicle]]
+            slug = "sportage"
+            name = "SPORTAGE 1.6 T-GDI"
+
+            [[vehicle.fuel]]
+            date = 2026-08-01
+            odometer_km = 100
+            litres = 10.000
+            price_per_litre = 40.000
+            full_tank = true
+
+            [[vehicle]]
+            slug = "sportage"
+            name = "SPORTAGE 1.6 T-GDI"
+
+            [[vehicle.fuel]]
+            date = 2026-08-15
+            odometer_km = 200
+            litres = 12.000
+            price_per_litre = 41.000
+            full_tank = true
+        """.trimIndent()
+
+        repository.importBundle(bundle)
+
+        val ids = Regex("id = \"(f-\\d+)\"").findAll(paths().fuelToml("sportage").readText())
+            .map { it.groupValues[1] }
+            .toList()
+        assertEquals(listOf("f-0001", "f-0002"), ids)
+    }
 }

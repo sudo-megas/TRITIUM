@@ -56,6 +56,7 @@ import {
   vehicleFiles
 } from './repository.js'
 import { SERVICE_SPEC } from './service-file.js'
+import { slugify } from '../../shared/slug.js'
 import { asTable, asTableArray, readString, type TomlTable } from './toml.js'
 import { readVehicleTable } from './vehicle-file.js'
 
@@ -189,30 +190,38 @@ export function importBundle(file: string, now: Date = new Date()): ImportResult
 
   const document = readBundle(readFileSync(file, 'utf8'))
   const known = new Set(listVehicleSlugs())
-  const planned: PlannedVehicle[] = []
+
+  // Keyed by slug, not a flat list: a bundle carrying the same slug in two
+  // [[vehicle]] tables (concatenated exports — a hand-editable format
+  // invites exactly that) must merge into ONE plan, threading the running
+  // fuel/costs/service documents forward so the second table's mergeEntries
+  // call sees what the first just added. Planning both against disk
+  // independently would let the second table's write silently overwrite the
+  // first's, losing its entries while still reporting them as added.
+  const planned = new Map<string, PlannedVehicle>()
 
   // ── plan ────────────────────────────────────────────────────────────────
   // Everything is computed here, against what is on disk now, and nothing is
   // written. A throw anywhere in this loop leaves the data directory untouched.
   for (const raw of asTableArray(document['vehicle'])) {
     const slug = readString(raw['slug'])
-    if (slug.length === 0) continue
+    // Empty, or not already its own slug: a bundle's slug identifies a
+    // vehicle, never a name to derive one from, and it becomes a directory
+    // name verbatim (vehicleDir(slug), repository.ts) — so anything
+    // containing `..` or `/` must never reach it. Refused outright rather
+    // than resanitised: two different unsafe slugs could resanitise to the
+    // same safe one and silently merge into the wrong vehicle.
+    if (slug.length === 0 || slug !== slugify(slug)) continue
 
-    const create = !known.has(slug)
-    const bundle = create
+    const prior = planned.get(slug)
+    const create = prior?.create ?? !known.has(slug)
+    const bundle = prior ?? (create
       ? {
           fuel: emptyOf<FuelEntry>(),
           costs: emptyOf<CostEntry>(),
           service: emptyOf<ServiceEntry>()
         }
-      : loadVehicle(slug)
-
-    const tally: ImportTally = {
-      slug,
-      vehicleCreated: create,
-      added: { fuel: 0, costs: 0, service: 0 },
-      skipped: { fuel: 0, costs: 0, service: 0 }
-    }
+      : loadVehicle(slug))
 
     const fuel = bundle.fuel
     const costs = bundle.costs
@@ -228,10 +237,33 @@ export function importBundle(file: string, now: Date = new Date()): ImportResult
       'service'
     )
 
-    tally.added = { fuel: f.added, costs: c.added, service: s.added }
-    tally.skipped = { fuel: f.skipped, costs: c.skipped, service: s.skipped }
+    const priorTally = prior?.tally
+    const tally: ImportTally = {
+      slug,
+      vehicleCreated: create,
+      added: {
+        fuel: (priorTally?.added.fuel ?? 0) + f.added,
+        costs: (priorTally?.added.costs ?? 0) + c.added,
+        service: (priorTally?.added.service ?? 0) + s.added
+      },
+      skipped: {
+        fuel: (priorTally?.skipped.fuel ?? 0) + f.skipped,
+        costs: (priorTally?.skipped.costs ?? 0) + c.skipped,
+        service: (priorTally?.skipped.service ?? 0) + s.skipped
+      }
+    }
 
-    planned.push({ slug, create, vehicleTable: raw, fuel, costs, service, tally })
+    planned.set(slug, {
+      slug,
+      create,
+      // The first occurrence's own table, always — a repeat's vehicle
+      // fields are structure duplication, not a second vehicle.
+      vehicleTable: prior?.vehicleTable ?? raw,
+      fuel,
+      costs,
+      service,
+      tally
+    })
   }
 
   // ── back up ─────────────────────────────────────────────────────────────
@@ -239,7 +271,7 @@ export function importBundle(file: string, now: Date = new Date()): ImportResult
   // not exist yet are skipped by backupFiles — a vehicle being created has
   // nothing to preserve.
   const touching: string[] = []
-  for (const plan of planned) {
+  for (const plan of planned.values()) {
     if (plan.tally.added.fuel + plan.tally.added.costs + plan.tally.added.service === 0) {
       continue
     }
@@ -252,7 +284,7 @@ export function importBundle(file: string, now: Date = new Date()): ImportResult
   // One write per file, atomically, through the same helpers every other path
   // uses. A vehicle that is already here keeps its own vehicle.toml: a bundle
   // adds entries to a vehicle, it does not rewrite the vehicle.
-  for (const plan of planned) {
+  for (const plan of planned.values()) {
     if (plan.create)
       saveVehicleRecord(plan.slug, readVehicleTable(vehicleTableOf(plan.vehicleTable)))
     if (plan.tally.added.fuel > 0) saveFuel(plan.slug, plan.fuel)
@@ -260,7 +292,7 @@ export function importBundle(file: string, now: Date = new Date()): ImportResult
     if (plan.tally.added.service > 0) saveService(plan.slug, plan.service)
   }
 
-  return { vehicles: planned.map((plan) => plan.tally) }
+  return { vehicles: Array.from(planned.values(), (plan) => plan.tally) }
 }
 
 function emptyOf<T>(): EntryDocument<T> {

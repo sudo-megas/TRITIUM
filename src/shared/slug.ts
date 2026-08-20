@@ -40,7 +40,7 @@ export const EMPTY_SLUG = 'vehicle'
  * Kept separate from `slugFor` because the fallback is the caller's decision
  * and not the transliteration's. F12 found out why the hard way: see below.
  */
-function slugify(name: string): string {
+export function slugify(name: string): string {
   let mapped = ''
   for (const character of name) mapped += TRANSLITERATIONS[character] ?? character
 

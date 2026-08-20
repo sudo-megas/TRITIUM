@@ -253,37 +253,78 @@ class VehicleRepository(private val paths: TritiumPaths) {
             val tally: ImportTally,
         )
 
-        val planned = mutableListOf<Planned>()
+        // Keyed by slug, not a flat list: a bundle carrying the same slug in
+        // two [[vehicle]] tables (concatenated exports — a hand-editable
+        // format invites exactly that) must merge into ONE plan, threading
+        // the running fuel/costs/service documents forward so the second
+        // table's mergeEntries call sees what the first just added — the
+        // same reason a hand-edited fuel.toml is read fresh before every
+        // write, applied within one bundle instead of across two calls.
+        // Planning against disk twice for one slug would silently drop
+        // whichever table's write lost the race.
+        val planned = LinkedHashMap<String, Planned>()
 
         for (raw in asTableArray(document["vehicle"])) {
             val slug = readString(raw, "slug")
-            if (slug.isEmpty()) continue
+            // Empty, or not already its own slug: a bundle's slug identifies
+            // a vehicle, never a name to derive one from (readVehicleTable
+            // handles the name), and it becomes a directory name verbatim —
+            // TritiumPaths.vehicleDir(slug) — so anything containing `..` or
+            // `/` must never reach it. Refused outright rather than
+            // resanitised: two different unsafe slugs could resanitise to
+            // the same safe one and silently merge into the wrong vehicle.
+            if (slug.isEmpty() || slug != slugify(slug)) continue
 
-            val create = slug !in known
+            val prior = planned[slug]
+            val create = prior?.create ?: (slug !in known)
             // A file this build cannot parse throws CorruptRecordException
             // here, before anything is written — the "nothing
             // half-applied" property the desktop's own importBundle keeps.
-            val bundle = if (create) emptyBundle(slug) else loadVehicle(slug)
+            val fuelBase: FuelDocument
+            val costsBase: CostDocument
+            val serviceBase: ServiceDocument
+            if (prior != null) {
+                fuelBase = prior.fuel
+                costsBase = prior.costs
+                serviceBase = prior.service
+            } else {
+                val bundle = if (create) emptyBundle(slug) else loadVehicle(slug)
+                fuelBase = bundle.fuel
+                costsBase = bundle.costs
+                serviceBase = bundle.service
+            }
 
             val (fuelDoc, fuelCounts) =
-                mergeEntries(bundle.fuel, asTableArray(raw["fuel"]), FuelSpec, ::fuelKey, RecordKind.FUEL)
+                mergeEntries(fuelBase, asTableArray(raw["fuel"]), FuelSpec, ::fuelKey, RecordKind.FUEL)
             val (costsDoc, costsCounts) =
-                mergeEntries(bundle.costs, asTableArray(raw["costs"]), CostSpec, ::costKey, RecordKind.COST)
+                mergeEntries(costsBase, asTableArray(raw["costs"]), CostSpec, ::costKey, RecordKind.COST)
             val (serviceDoc, serviceCounts) =
-                mergeEntries(bundle.service, asTableArray(raw["service"]), ServiceSpec, ::serviceKey, RecordKind.SERVICE)
+                mergeEntries(serviceBase, asTableArray(raw["service"]), ServiceSpec, ::serviceKey, RecordKind.SERVICE)
 
-            planned += Planned(
+            val priorTally = prior?.tally
+            planned[slug] = Planned(
                 slug = slug,
                 create = create,
-                vehicleTable = raw,
+                // The first occurrence's own table, always — a repeat's
+                // vehicle fields are structure duplication, not a second
+                // vehicle, and readVehicleTable only ever runs once per slug.
+                vehicleTable = prior?.vehicleTable ?: raw,
                 fuel = fuelDoc,
                 costs = costsDoc,
                 service = serviceDoc,
                 tally = ImportTally(
                     slug = slug,
                     vehicleCreated = create,
-                    added = Counts(fuelCounts.added, costsCounts.added, serviceCounts.added),
-                    skipped = Counts(fuelCounts.skipped, costsCounts.skipped, serviceCounts.skipped),
+                    added = Counts(
+                        fuel = (priorTally?.added?.fuel ?: 0) + fuelCounts.added,
+                        costs = (priorTally?.added?.costs ?: 0) + costsCounts.added,
+                        service = (priorTally?.added?.service ?: 0) + serviceCounts.added,
+                    ),
+                    skipped = Counts(
+                        fuel = (priorTally?.skipped?.fuel ?: 0) + fuelCounts.skipped,
+                        costs = (priorTally?.skipped?.costs ?: 0) + costsCounts.skipped,
+                        service = (priorTally?.skipped?.service ?: 0) + serviceCounts.skipped,
+                    ),
                 ),
             )
         }
@@ -292,19 +333,19 @@ class VehicleRepository(private val paths: TritiumPaths) {
         // does — a vehicle being created or entirely skip-wins-deduped has
         // nothing to preserve and gets no round (backupFiles already skips
         // a file that does not exist).
-        val touching = planned.filter { it.tally.totalAdded() > 0 }.flatMap { vehicleFiles(it.slug) }
+        val touching = planned.values.filter { it.tally.totalAdded() > 0 }.flatMap { vehicleFiles(it.slug) }
         Backup.backupFiles(paths, touching, now)
 
         // One write per file. A vehicle already here keeps its own
         // vehicle.toml — a bundle adds entries to a vehicle, it never
         // rewrites the vehicle (F16 §2.2).
-        for (plan in planned) {
+        for (plan in planned.values) {
             if (plan.create) saveVehicleRecord(plan.slug, readVehicleTable(vehicleTableOf(plan.vehicleTable)))
             if (plan.tally.added.fuel > 0) saveFuel(plan.slug, plan.fuel)
             if (plan.tally.added.costs > 0) saveCosts(plan.slug, plan.costs)
             if (plan.tally.added.service > 0) saveService(plan.slug, plan.service)
         }
 
-        return ImportResult(planned.map { it.tally })
+        return ImportResult(planned.values.map { it.tally })
     }
 }
