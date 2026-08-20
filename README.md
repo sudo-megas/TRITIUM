@@ -11,8 +11,8 @@
 
 <p align="center">
   <img alt="Version"      src="https://img.shields.io/badge/desktop version-v0.2.6-3A6B9C?style=for-the-badge">
-  <img alt="Version"      src="https://img.shields.io/badge/android version-v1.2-3A6B9C?style=for-the-badge">
-  <img alt="Release date" src="https://img.shields.io/badge/released-19--08--2026-A4D8FF?style=for-the-badge">
+  <img alt="Version"      src="https://img.shields.io/badge/android version-v1.3-3A6B9C?style=for-the-badge">
+  <img alt="Release date" src="https://img.shields.io/badge/released-20--08--2026-A4D8FF?style=for-the-badge">
   <img alt="Licence"      src="https://img.shields.io/badge/licence-GPL--3.0--or--later-1A202F?style=for-the-badge">
 </p>
 

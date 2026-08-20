@@ -28,13 +28,20 @@ android {
         // held at 1 through AM1..AM10. AF11 was the first tagged release
         // ("1.0", AF1.md's own decision table). AF12's audit found real
         // findings and fixed all of them (build/docs/AF12.md), moving this to
-        // "1.1". This move to "1.2" carries two maker-requested fixes with no
-        // AF doc of their own — the real launcher icon (build/icons/ finally
-        // reaching Android) and AF1.md §2.1 decision 7's placeholder window
-        // background — both real behavioural changes reaching the shipped
-        // APK, same reasoning as AF12's own bump.
-        versionCode = 4
-        versionName = "1.2"
+        // "1.1". "1.2" carried two maker-requested fixes with no AF doc of
+        // their own — the real launcher icon (build/icons/ finally reaching
+        // Android) and AF1.md §2.1 decision 7's placeholder window background.
+        // This move to "1.3" is 1.2's own launcher icon fix corrected: the
+        // adaptive icon (mipmap-anydpi-v26) was the only launcher icon
+        // resource, and some OEM launchers (reported: Honor/MagicOS) render
+        // apps with no legacy mipmap-<density>/ic_launcher(_round).png
+        // fallback with a blank icon and blank label in the app drawer,
+        // even on API 26+. Added the flat PNG fallback at all five densities,
+        // generated from the same build/icons/1024.png source and the same
+        // one-image treatment (no separate foreground) 1.2's adaptive icon
+        // already used.
+        versionCode = 5
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
