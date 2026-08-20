@@ -54,8 +54,21 @@ class FuelViewModel(private val app: TritiumApplication) : ViewModel() {
             ?: ""
     }
 
-    /** Looked up from the last [refresh] — the form's edit-mode load, no second disk read. */
-    fun entry(id: String): FuelEntry? = fuelEntries.value.firstOrNull { it.id == id }
+    /**
+     * The form's edit-mode load — a one-off read, not the [fuelEntries]
+     * snapshot: this ViewModel may be freshly recreated (process death)
+     * while a form sits on top of the back stack, with nothing in
+     * [fuelEntries] yet because [FuelScreen]'s own `refresh()` never
+     * composed. Falling back to "not found" there silently discarded a
+     * real edit while [FuelFormScreen] still reported success. AF12 audit
+     * finding — CRITICAL.
+     */
+    fun entry(id: String): FuelEntry? {
+        val slug = activeVehicleSlug.value ?: return null
+        return runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }
+            .getOrDefault(emptyList())
+            .firstOrNull { it.id == id }
+    }
 
     /**
      * The highest odometer reading across both `fuel.toml` and

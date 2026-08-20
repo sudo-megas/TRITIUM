@@ -41,8 +41,18 @@ class CostViewModel(private val app: TritiumApplication) : ViewModel() {
         }
     }
 
-    /** Looked up from the last [refresh] — the form's edit-mode load, no second disk read. */
-    fun entry(id: String): CostEntry? = costEntries.value.firstOrNull { it.id == id }
+    /**
+     * The form's edit-mode load — a one-off read, not the [costEntries]
+     * snapshot: this ViewModel may be freshly recreated (process death)
+     * with nothing in it yet, and falling back to "not found" there would
+     * make a real edit save as a silent no-op. AF12 audit finding.
+     */
+    fun entry(id: String): CostEntry? {
+        val slug = activeVehicleSlug.value ?: return null
+        return runCatching { app.vehicleRepository.loadVehicle(slug).costs.entries }
+            .getOrDefault(emptyList())
+            .firstOrNull { it.id == id }
+    }
 
     /** Add-only path. Allocates the id in the repository, as F5's own `costs:add` does. */
     fun addCostEntry(entry: (id: String) -> CostEntry): CostEntry? {

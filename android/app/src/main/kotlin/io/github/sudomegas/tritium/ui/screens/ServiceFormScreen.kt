@@ -60,6 +60,7 @@ fun ServiceFormScreen(
     }
     var amountText by rememberSaveable { mutableStateOf(Format.toInput(initial.amount, Scaled.MONEY_DECIMALS)) }
     var vendor by rememberSaveable { mutableStateOf(initial.vendor) }
+    var saveFailed by rememberSaveable { mutableStateOf(false) }
 
     val odometer = unitFormat.parseDistance(odometerText)
     val backwards = odometer != null && FuelDraft.goesBackwards(odometer, previousOdometer)
@@ -136,6 +137,13 @@ fun ServiceFormScreen(
         )
         Text(stringResource(R.string.service_vendor_hint), style = MaterialTheme.typography.bodySmall)
 
+        if (saveFailed) {
+            Text(
+                text = stringResource(R.string.entry_save_failed),
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
         Button(
             enabled = canSave,
             modifier = Modifier.testTag("serviceSave"),
@@ -148,12 +156,16 @@ fun ServiceFormScreen(
                     amount = amount ?: 0L,
                     vendor = vendor,
                 )
-                if (entryId == null) {
-                    viewModel.addServiceEntry { id -> entry.copy(id = id) }
+                // entryId == null is add-only and always writes; false here
+                // can only mean the id this form opened with is no longer in
+                // service.toml (deleted elsewhere while the form was open) —
+                // reported rather than silently treated as a successful save.
+                val saved = if (entryId == null) {
+                    viewModel.addServiceEntry { id -> entry.copy(id = id) } != null
                 } else {
                     viewModel.updateServiceEntry(entry)
                 }
-                onSaved()
+                if (saved) onSaved() else saveFailed = true
             },
         ) {
             Text(stringResource(R.string.service_save))

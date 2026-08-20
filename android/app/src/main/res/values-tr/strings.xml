@@ -38,6 +38,7 @@
     <string name="list_delete_confirm">Kalıcı olarak sil</string>
     <string name="list_delete_cancel">Vazgeç</string>
     <string name="list_delete_warning">Bu kayıt dosyadan çıkarılır. Dosyadaki başka hiçbir şey değişmez ve kimlik yeniden kullanılmaz.</string>
+    <string name="list_delete_failed">Silinmedi. Bu kayıt artık mevcut değil.</string>
 
     <string name="export_title">Dışa aktar</string>
     <string name="export_action">Araçlarınızı masaüstüne taşıyın…</string>
@@ -106,6 +107,7 @@
     <string name="fuel_add_title">Yeni yakıt kaydı</string>
     <string name="fuel_edit_title">Yakıt kaydını düzenle</string>
     <string name="fuel_save">Kaydet</string>
+    <string name="entry_save_failed">Kaydedilmedi. Bu kayıt artık mevcut değil.</string>
     <string name="fuel_edit">Düzenle</string>
     <string name="fuel_total">Tutar</string>
     <string name="fuel_full">Dolu</string>

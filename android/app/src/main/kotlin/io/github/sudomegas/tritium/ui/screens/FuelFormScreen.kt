@@ -64,6 +64,7 @@ fun FuelFormScreen(
     var fuelType by rememberSaveable {
         mutableStateOf(initial.fuelType.ifEmpty { if (entryId == null) viewModel.activeVehicleFuelSpec() else "" })
     }
+    var saveFailed by rememberSaveable { mutableStateOf(false) }
 
     val litres = unitFormat.parseVolume(litresText)
     val price = unitFormat.parsePricePerVolume(priceText)
@@ -127,6 +128,13 @@ fun FuelFormScreen(
             Text(stringResource(R.string.fuel_field_full_tank))
         }
 
+        if (saveFailed) {
+            Text(
+                text = stringResource(R.string.entry_save_failed),
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
         val odometer = unitFormat.parseDistance(odometerText)
         Button(
             enabled = odometer != null && odometer > 0 && litres != null && litres > 0 && price != null,
@@ -140,12 +148,16 @@ fun FuelFormScreen(
                     fullTank = fullTank,
                     fuelType = fuelType,
                 )
-                if (entryId == null) {
-                    viewModel.addFuelEntry { id -> entry.copy(id = id) }
+                // entryId == null is add-only and always writes; false here
+                // can only mean the id this form opened with is no longer in
+                // fuel.toml (deleted elsewhere while the form was open) —
+                // reported rather than silently treated as a successful save.
+                val saved = if (entryId == null) {
+                    viewModel.addFuelEntry { id -> entry.copy(id = id) } != null
                 } else {
                     viewModel.updateFuelEntry(entry)
                 }
-                onSaved()
+                if (saved) onSaved() else saveFailed = true
             },
         ) {
             Text(stringResource(R.string.fuel_save))

@@ -50,6 +50,10 @@
     <string name="list_delete_confirm">Delete for good</string>
     <string name="list_delete_cancel">Keep it</string>
     <string name="list_delete_warning">This removes the record from the file. Nothing else in it changes, and the id is not reused.</string>
+    <!-- Confirmed delete found nothing to remove — the entry was already
+         gone (deleted elsewhere, or a hand-edited file) by the time the tap
+         reached disk. -->
+    <string name="list_delete_failed">Not deleted. This entry no longer exists.</string>
 
     <!-- Export — AF8. The phone exports, the desktop imports; no wording ported
          from the desktop's own settings.import* keys since AF8 is the export
@@ -141,6 +145,10 @@
     <string name="fuel_add_title">New fill-up</string>
     <string name="fuel_edit_title">Edit fill-up</string>
     <string name="fuel_save">Save</string>
+    <!-- Shared by the fuel, cost and service edit forms: the entry being
+         edited is no longer on disk (deleted elsewhere while the form was
+         open), so nothing was written. -->
+    <string name="entry_save_failed">Not saved. This entry no longer exists.</string>
     <string name="fuel_edit">Edit</string>
     <string name="fuel_total">Total</string>
     <string name="fuel_full">Full</string>

@@ -69,6 +69,7 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
     var bank by rememberSaveable { mutableStateOf(initial.bank) }
     var instalment by rememberSaveable { mutableStateOf(initial.instalment) }
     var note by rememberSaveable { mutableStateOf(initial.note) }
+    var saveFailed by rememberSaveable { mutableStateOf(false) }
 
     val amount = Format.parseInput(amountText, Scaled.MONEY_DECIMALS)
     val resolvedCategory = if (takesTypedCategory(group)) slugify(typedCategory) else pickedCategory
@@ -185,6 +186,13 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
             modifier = Modifier.fillMaxWidth(),
         )
 
+        if (saveFailed) {
+            Text(
+                text = stringResource(R.string.entry_save_failed),
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
         Button(
             enabled = canSave,
             modifier = Modifier.testTag("costSave"),
@@ -202,12 +210,16 @@ fun CostFormScreen(viewModel: CostViewModel, entryId: String?, currency: String?
                     instalment = instalment,
                     note = note,
                 )
-                if (entryId == null) {
-                    viewModel.addCostEntry { id -> entry.copy(id = id) }
+                // entryId == null is add-only and always writes; false here
+                // can only mean the id this form opened with is no longer in
+                // costs.toml (deleted elsewhere while the form was open) —
+                // reported rather than silently treated as a successful save.
+                val saved = if (entryId == null) {
+                    viewModel.addCostEntry { id -> entry.copy(id = id) } != null
                 } else {
                     viewModel.updateCostEntry(entry)
                 }
-                onSaved()
+                if (saved) onSaved() else saveFailed = true
             },
         ) {
             Text(stringResource(R.string.costs_save))

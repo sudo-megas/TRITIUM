@@ -42,8 +42,18 @@ class ServiceViewModel(private val app: TritiumApplication) : ViewModel() {
         }
     }
 
-    /** Looked up from the last [refresh] — the form's edit-mode load, no second disk read. */
-    fun entry(id: String): ServiceEntry? = serviceEntries.value.firstOrNull { it.id == id }
+    /**
+     * The form's edit-mode load — a one-off read, not the [serviceEntries]
+     * snapshot: this ViewModel may be freshly recreated (process death)
+     * with nothing in it yet, and falling back to "not found" there would
+     * make a real edit save as a silent no-op. AF12 audit finding.
+     */
+    fun entry(id: String): ServiceEntry? {
+        val slug = activeVehicleSlug.value ?: return null
+        return runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }
+            .getOrDefault(emptyList())
+            .firstOrNull { it.id == id }
+    }
 
     /**
      * The highest odometer reading across both `fuel.toml` and

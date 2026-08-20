@@ -65,6 +65,7 @@ fun FuelScreen(
     var customTo by rememberSaveable { mutableStateOf("") }
     var sortState by rememberSaveable { mutableStateOf(SortState.DEFAULT) }
     var confirmingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var deleteFailed by rememberSaveable { mutableStateOf(false) }
 
     // Fed the whole, unfiltered entry list — the rule above, not the rows below.
     val consumption = remember(entries) { Consumption.consumptionById(entries) }
@@ -85,10 +86,10 @@ fun FuelScreen(
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { confirmingId = null; onQuickAdd() }, enabled = hasVehicle) {
+            Button(onClick = { confirmingId = null; deleteFailed = false; onQuickAdd() }, enabled = hasVehicle) {
                 Text(stringResource(R.string.fuel_quick_add))
             }
-            Button(onClick = { confirmingId = null; onFullAdd() }, enabled = hasVehicle) {
+            Button(onClick = { confirmingId = null; deleteFailed = false; onFullAdd() }, enabled = hasVehicle) {
                 Text(stringResource(R.string.fuel_full_add))
             }
         }
@@ -97,13 +98,24 @@ fun FuelScreen(
             selected = rangeKey,
             customFrom = customFrom,
             customTo = customTo,
-            onSelect = { confirmingId = null; rangeKey = it },
+            onSelect = { confirmingId = null; deleteFailed = false; rangeKey = it },
             onCustomFromChange = { customFrom = it },
             onCustomToChange = { customTo = it },
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-            SortToggleButton(state = sortState, onClick = { confirmingId = null; sortState = sortState.next() })
+            SortToggleButton(
+                state = sortState,
+                onClick = { confirmingId = null; deleteFailed = false; sortState = sortState.next() },
+            )
+        }
+
+        if (deleteFailed) {
+            Text(
+                text = stringResource(R.string.list_delete_failed),
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
 
         when {
@@ -125,11 +137,11 @@ fun FuelScreen(
                         currency = currency,
                         unitFormat = unitFormat,
                         confirming = confirmingId == entry.id,
-                        onClick = { confirmingId = null; onEditEntry(entry.id) },
-                        onDeleteTap = { confirmingId = entry.id },
+                        onClick = { confirmingId = null; deleteFailed = false; onEditEntry(entry.id) },
+                        onDeleteTap = { confirmingId = entry.id; deleteFailed = false },
                         onConfirmDelete = {
                             confirmingId = null
-                            viewModel.removeFuelEntry(entry.id)
+                            deleteFailed = !viewModel.removeFuelEntry(entry.id)
                         },
                         onCancelDelete = { confirmingId = null },
                     )
