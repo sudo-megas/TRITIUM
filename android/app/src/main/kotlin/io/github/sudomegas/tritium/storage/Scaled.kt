@@ -1,7 +1,7 @@
 package io.github.sudomegas.tritium.storage
 
 import kotlin.math.abs
-import kotlin.math.round
+import kotlin.math.roundToLong
 
 /**
  * XTRITIUM §4.3 — Money and measures. A direct port of the desktop's
@@ -38,11 +38,17 @@ object Scaled {
      * JS engine. Truncating any of those loses a cent or a millilitre, and a
      * cent an entry compounds. Applied to the magnitude so negatives behave
      * symmetrically.
+     *
+     * `roundToLong()`, not `kotlin.math.round().toLong()` — the latter
+     * compiles to `Math.rint` (ties to even), while the desktop's own
+     * `Math.round` in `shared/scaled.ts` rounds ties up. A figure that lands
+     * exactly on a tie (`0.125` at `PUMP_DECIMALS`) would otherwise scale to
+     * a different integer on each platform from the same TOML byte.
      */
     fun toScaled(value: Double, decimals: Int): Long {
         if (!value.isFinite()) return 0
         val sign = if (value < 0) -1 else 1
-        return sign * round(abs(value) * scaleOf(decimals)).toLong()
+        return sign * (abs(value) * scaleOf(decimals)).roundToLong()
     }
 
     /** Convert a scaled integer back to its human figure. Lossy by design — display only. */

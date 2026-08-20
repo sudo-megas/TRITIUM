@@ -13,6 +13,7 @@ import {
   KM_PER_MILE,
   LITRES_PER_US_GALLON,
   MPG_CONSTANT,
+  VOLUME_DECIMALS,
   readDistance,
   readPricePerVolume,
   readVolume,
@@ -79,17 +80,25 @@ describe('volume', () => {
     expect(showVolume(toPump(54), 'l')).toBe(toPump(54))
   })
 
-  it('converts litres to US gallons', () => {
-    // 54 l ÷ 3,785411784 = 14,265 gal
-    expect(showVolume(toPump(54), 'gal')).toBe(14_265)
+  it('converts litres to US gallons, at one extra decimal', () => {
+    // 54 l ÷ 3,785411784 = 14,2653 gal — held at PUMP_DECIMALS+1 (×10000),
+    // VOLUME_DECIMALS' own extra digit, the same move DISTANCE_DECIMALS
+    // makes for miles over kilometres.
+    expect(VOLUME_DECIMALS.gal).toBe(1)
+    expect(showVolume(toPump(54), 'gal')).toBe(142_653)
   })
 
-  it('round-trips a tank of fuel', () => {
+  it('round-trips a tank of fuel exactly, the extra decimal is what buys it', () => {
     for (const litres of [1, 10, 29.99, 40, 54, 100]) {
       const scaled = toPump(litres)
       const back = readVolume(showVolume(scaled, 'gal'), 'gal')
-      // Within a millilitre: the scale is ×1000 and the conversion is irrational.
-      expect(Math.abs(back - scaled)).toBeLessThanOrEqual(2)
+      expect(back).toBe(scaled)
+    }
+  })
+
+  it('round-trips EVERY tenth-of-a-litre of a realistic range', () => {
+    for (let scaled = 0; scaled <= 100_000; scaled += 7) {
+      expect(readVolume(showVolume(scaled, 'gal'), 'gal')).toBe(scaled)
     }
   })
 })
@@ -164,25 +173,27 @@ describe('the file does not move', () => {
     const imperial = { distance: 'mi' as const, volume: 'gal' as const }
     const draft = draftOf(ENTRY, imperial)
 
-    // What the maker sees: miles to one decimal, gallons to three.
+    // What the maker sees: miles to one decimal, gallons to FOUR — the
+    // VOLUME_DECIMALS extra digit that makes the round trip exact.
     expect(draft.odometer_km).toBe('12280,8')
-    expect(draft.litres).toBe('7,923')
+    expect(draft.litres).toBe('7,9225')
 
     // What the file gets back.
     const record = entryOf(draft, imperial)
     expect(record.odometer_km).toBe(19_764)
   })
 
-  it('round-trips a whole record through miles and gallons', () => {
+  it('round-trips a whole record through miles and gallons exactly', () => {
     const imperial = { distance: 'mi' as const, volume: 'gal' as const }
     const back = entryOf(draftOf(ENTRY, imperial), imperial)
 
     expect(back.odometer_km).toBe(ENTRY.odometer_km)
     expect(back.date).toBe(ENTRY.date)
     expect(back.full_tank).toBe(ENTRY.full_tank)
-    // Volume and price survive to within the last millilitre and kuruş the
-    // scale can express.
-    expect(Math.abs(back.litres - ENTRY.litres)).toBeLessThanOrEqual(2)
+    // Litres are exact now (VOLUME_DECIMALS's own extra digit). Price per
+    // litre carries no extra decimal — see units.ts's own comment on why it
+    // does not need one — so it stays within a kuruş the scale can express.
+    expect(back.litres).toBe(ENTRY.litres)
     expect(Math.abs(back.price_per_litre - ENTRY.price_per_litre)).toBeLessThanOrEqual(1)
   })
 
@@ -207,7 +218,9 @@ describe('the file does not move', () => {
     const perGallon = showPricePerVolume(toPump(73.38), 'gal')
 
     const metricTotal = (litres * perLitre) / 1_000_000
-    const imperialTotal = (gallons * perGallon) / 1_000_000
+    // gallons carries VOLUME_DECIMALS.gal's own extra decimal (×10000, not
+    // ×1000), so the product needs one more zero to land back on money.
+    const imperialTotal = (gallons * perGallon) / 10_000_000
 
     expect(Math.abs(metricTotal - imperialTotal)).toBeLessThan(0.5)
   })

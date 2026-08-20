@@ -12,6 +12,7 @@ import { PUMP_DECIMALS } from './scaled.js'
 import {
   DISTANCE_DECIMALS,
   METRIC,
+  VOLUME_DECIMALS,
   readDistance,
   readPricePerVolume,
   readVolume,
@@ -20,6 +21,11 @@ import {
   showVolume,
   type UnitPrefs
 } from './units.js'
+
+/** PUMP_DECIMALS plus VOLUME_DECIMALS — gal needs one more to round-trip (useUnits's own volumeDecimals). */
+function volumeDecimalsOf(units: UnitPrefs): number {
+  return PUMP_DECIMALS + VOLUME_DECIMALS[units.volume]
+}
 
 export interface FuelDraft {
   date: string
@@ -61,7 +67,7 @@ export function draftOf(entry: FuelEntry, units: UnitPrefs = METRIC): FuelDraft 
   return {
     date: formatDate(entry.date),
     odometer_km: entry.odometer_km > 0 ? toInput(odometer, DISTANCE_DECIMALS[units.distance]) : '',
-    litres: entry.litres > 0 ? toInput(litres, PUMP_DECIMALS) : '',
+    litres: entry.litres > 0 ? toInput(litres, volumeDecimalsOf(units)) : '',
     price_per_litre: entry.price_per_litre > 0 ? toInput(price, PUMP_DECIMALS) : '',
     full_tank: entry.full_tank,
     fuel_type: entry.fuel_type
@@ -76,7 +82,7 @@ export function draftOf(entry: FuelEntry, units: UnitPrefs = METRIC): FuelDraft 
  */
 export function entryOf(draft: FuelDraft, units: UnitPrefs = METRIC): Omit<FuelEntry, 'id'> {
   const odometer = parseInput(draft.odometer_km, DISTANCE_DECIMALS[units.distance]) ?? 0
-  const litres = parseInput(draft.litres, PUMP_DECIMALS) ?? 0
+  const litres = parseInput(draft.litres, volumeDecimalsOf(units)) ?? 0
   const price = parseInput(draft.price_per_litre, PUMP_DECIMALS) ?? 0
 
   return {
@@ -94,16 +100,22 @@ export function entryOf(draft: FuelDraft, units: UnitPrefs = METRIC): Omit<FuelE
 /**
  * The live total, money-scaled, or null while there is nothing to multiply.
  *
- * Needs no unit at all: gallons × price-per-gallon is the same money as litres
- * × price-per-litre. The two conversions cancel, which is why the field pair
- * must always move together (F11.md decision 5).
+ * Converts both fields back to the metric (litres, price-per-litre) scale
+ * `entryTotal` expects before multiplying — exactly `entryOf`'s own
+ * conversion. Litres and price no longer share a decimal count once
+ * `VOLUME_DECIMALS` gives a coarser unit its own extra digit (F11.md §2.5),
+ * so a "the conversions cancel" shortcut that skipped this step would
+ * silently misscale the total the moment the volume unit is gal.
  */
-export function draftTotal(draft: FuelDraft): number | null {
-  const litres = parseInput(draft.litres, PUMP_DECIMALS)
+export function draftTotal(draft: FuelDraft, units: UnitPrefs = METRIC): number | null {
+  const litres = parseInput(draft.litres, volumeDecimalsOf(units))
   const price = parseInput(draft.price_per_litre, PUMP_DECIMALS)
   if (litres === null || price === null) return null
 
-  return entryTotal({ litres, price_per_litre: price })
+  return entryTotal({
+    litres: readVolume(litres, units.volume),
+    price_per_litre: readPricePerVolume(price, units.volume)
+  })
 }
 
 /**

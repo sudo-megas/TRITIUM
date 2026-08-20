@@ -15,6 +15,7 @@ import {
   CONSUMPTION_SYMBOL,
   DISTANCE_DECIMALS,
   DISTANCE_SYMBOL,
+  VOLUME_DECIMALS,
   VOLUME_SYMBOL,
   readDistance,
   readPricePerVolume,
@@ -48,8 +49,12 @@ export interface Units {
   volume: (scaled: number) => string
   volumeWith: (scaled: number) => string
   volumeValue: (scaled: number) => number
+  /** PUMP_DECIMALS plus VOLUME_DECIMALS — gal needs one more to round-trip. */
+  volumeDecimals: number
 
   tank: (scaled: number) => string
+  /** TANK_DECIMALS plus VOLUME_DECIMALS, for a caller composing its own toInput/parseInput. */
+  tankDecimals: number
 
   pricePerVolume: (perLitre: number) => string
   pricePerVolumeValue: (perLitre: number) => number
@@ -93,9 +98,12 @@ export function useUnits(): Units {
   const costPerDistanceValue = (perKm: number): number =>
     shiftTo(showCostPerDistance(perKm, distanceUnit), costDecimals)
 
+  const volumeDecimals = PUMP_DECIMALS + VOLUME_DECIMALS[volumeUnit]
+  const tankDecimals = TANK_DECIMALS + VOLUME_DECIMALS[volumeUnit]
+
   const distance = (km: number): string =>
     formatFigure(distanceValue(km), DISTANCE_DECIMALS[distanceUnit])
-  const volume = (scaled: number): string => formatFigure(volumeValue(scaled), PUMP_DECIMALS)
+  const volume = (scaled: number): string => formatFigure(volumeValue(scaled), volumeDecimals)
 
   return {
     distanceSymbol: DISTANCE_SYMBOL[distanceUnit],
@@ -113,8 +121,10 @@ export function useUnits(): Units {
     volume,
     volumeWith: (scaled) => `${volume(scaled)} ${VOLUME_SYMBOL[volumeUnit]}`,
     volumeValue,
+    volumeDecimals,
 
-    tank: (scaled) => formatFigure(showVolume(scaled, volumeUnit), TANK_DECIMALS),
+    tank: (scaled) => formatFigure(showVolume(scaled, volumeUnit), tankDecimals),
+    tankDecimals,
 
     pricePerVolume: (perLitre) => formatFigure(pricePerVolumeValue(perLitre), PUMP_DECIMALS),
     pricePerVolumeValue,
@@ -133,11 +143,11 @@ export function useUnits(): Units {
       return typed === null ? null : readDistance(typed, distanceUnit)
     },
     parseVolume: (text) => {
-      const typed = parseInput(text, PUMP_DECIMALS)
+      const typed = parseInput(text, volumeDecimals)
       return typed === null ? null : readVolume(typed, volumeUnit)
     },
     parseTank: (text) => {
-      const typed = parseInput(text, TANK_DECIMALS)
+      const typed = parseInput(text, tankDecimals)
       return typed === null ? null : readVolume(typed, volumeUnit)
     },
     parsePricePerVolume: (text) => {

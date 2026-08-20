@@ -74,7 +74,7 @@ export function FuelForm({ slug, entry }: { slug: string; entry?: string }): JSX
     setDraft((current) => ({ ...current, [key]: value }))
   }
 
-  const total = draftTotal(draft)
+  const total = draftTotal(draft, prefs)
   const odometer = parseInput(draft.odometer_km, 0)
   const litres = parseInput(draft.litres, PUMP_DECIMALS)
   const ready =

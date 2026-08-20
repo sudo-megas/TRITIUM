@@ -48,21 +48,36 @@ class UnitsTest {
     }
 
     @Test
-    fun `volume converts to gallons — lossy, unlike distance, which the extra decimal keeps exact`() {
-        // 29990 (litres, PUMP_DECIMALS) -> US gallons, ×1000 still. Volume
-        // carries no extra decimal the way DISTANCE_DECIMALS gives miles
-        // one, so — unlike the kilometre round trip above — this is not
-        // claimed to be exact; round(round(29990 / k) × k) lands one
-        // thousandth of a litre off, which is the rounding a maker would
-        // see too if they read the converted figure back off the screen.
+    fun `volume converts to gallons at one extra decimal — exact, like distance`() {
+        // 29990 (litres, PUMP_DECIMALS=3, i.e. 29.990 l) -> US gallons at
+        // VOLUME_DECIMALS[GAL]=1 extra decimal, so ×10000: 29.990 / 3.785411784
+        // = 7.92251... gal -> 79225 at four decimals. The extra digit is
+        // exactly DISTANCE_DECIMALS's own move for miles over kilometres,
+        // and it buys the same thing: the round trip is exact.
         val gallons = Units.showVolume(29990L, VolumeUnit.GAL)
-        assertEquals(7923L, gallons) // round(29990 / 3.785411784)
-        assertEquals(29992L, Units.readVolume(gallons, VolumeUnit.GAL))
+        assertEquals(79225L, gallons) // round(29990 × 10 / 3.785411784)
+        assertEquals(29990L, Units.readVolume(gallons, VolumeUnit.GAL))
 
-        // The same ratio at TANK_DECIMALS (×10) — scale-agnostic, per
-        // state/units.ts's own tank()/parseTank() reuse of showVolume/readVolume.
-        val tankGallons = Units.showVolume(540L, VolumeUnit.GAL) // 54.0 l
-        assertEquals(143L, tankGallons) // round(540 / 3.785411784)
+        // The same ratio at TANK_DECIMALS (×10, i.e. 54.0 l) — scale-agnostic,
+        // per state/units.ts's own tank()/parseTank() reuse of showVolume/readVolume.
+        val tankGallons = Units.showVolume(540L, VolumeUnit.GAL)
+        assertEquals(1427L, tankGallons) // round(540 × 10 / 3.785411784)
+        assertEquals(540L, Units.readVolume(tankGallons, VolumeUnit.GAL))
+    }
+
+    @Test
+    fun `volume decimals are zero for litres and one extra for gallons`() {
+        assertEquals(0, Units.VOLUME_DECIMALS.getValue(VolumeUnit.L))
+        assertEquals(1, Units.VOLUME_DECIMALS.getValue(VolumeUnit.GAL))
+    }
+
+    @Test
+    fun `switching to gallons and back leaves the litre reading byte-identical`() {
+        for (litres in 0..100_000 step 7) {
+            val shown = Units.showVolume(litres.toLong(), VolumeUnit.GAL)
+            val roundTripped = Units.readVolume(shown, VolumeUnit.GAL)
+            assertEquals("litres=$litres round-tripped through gallons", litres.toLong(), roundTripped)
+        }
     }
 
     @Test

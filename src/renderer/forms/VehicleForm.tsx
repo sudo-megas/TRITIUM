@@ -21,7 +21,12 @@ import { MONEY_DECIMALS, TANK_DECIMALS } from '../../shared/scaled.js'
 import { formatDate, formatMoneyText, parseDate, parseInput, toInput } from '../../shared/format.js'
 import { useSettings } from '../state/settings.js'
 import { useUnits } from '../state/units.js'
-import { METRIC, readVolume, showVolume, type UnitPrefs } from '../../shared/units.js'
+import { METRIC, VOLUME_DECIMALS, readVolume, showVolume, type UnitPrefs } from '../../shared/units.js'
+
+/** TANK_DECIMALS plus VOLUME_DECIMALS — gal needs one more to round-trip (useUnits's own tankDecimals). */
+function tankDecimalsOf(units: UnitPrefs): number {
+  return TANK_DECIMALS + VOLUME_DECIMALS[units.volume]
+}
 
 /** The form's own state: every field as the text the maker sees. */
 interface Draft {
@@ -54,7 +59,7 @@ function draftOf(vehicle: Vehicle, units: UnitPrefs = METRIC): Draft {
     // the maker asked for (F11.md decision 1).
     tank_capacity_l:
       vehicle.tank_capacity_l > 0
-        ? toInput(showVolume(vehicle.tank_capacity_l, units.volume), TANK_DECIMALS)
+        ? toInput(showVolume(vehicle.tank_capacity_l, units.volume), tankDecimalsOf(units))
         : '',
     purchase_date: formatDate(vehicle.purchase_date),
     purchase_price:
@@ -80,7 +85,7 @@ function vehicleOf(draft: Draft, units: UnitPrefs = METRIC): Vehicle {
     plate: draft.plate.trim(),
     vin: draft.vin.trim(),
     tank_capacity_l: readVolume(
-      parseInput(draft.tank_capacity_l, TANK_DECIMALS) ?? 0,
+      parseInput(draft.tank_capacity_l, tankDecimalsOf(units)) ?? 0,
       units.volume
     ),
     purchase_date: parseDate(draft.purchase_date) ?? '',

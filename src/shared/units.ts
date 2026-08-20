@@ -92,12 +92,24 @@ export function readDistance(value: number, unit: DistanceUnit): number {
 // Volume — stored ×1000 (litres) or ×10 (tank capacity)
 // ---------------------------------------------------------------------------
 
+/**
+ * How many EXTRA decimals a volume figure carries beyond its field's own
+ * base scale (`PUMP_DECIMALS` or `TANK_DECIMALS`), when shown in a unit
+ * other than litres. Litres need none — it is the unit the file stores. A
+ * US gallon is ~3.785 litres, so a whole gallon-at-the-base-decimal-count is
+ * coarser than the litre figure underneath it — the same class of bug
+ * `DISTANCE_DECIMALS` already fixes for miles over kilometres.
+ */
+export const VOLUME_DECIMALS: Record<VolumeUnit, number> = { l: 0, gal: 1 }
+
+/** Litres into what the screen shows, at one extra decimal for a coarser unit. */
 export function showVolume(scaled: number, unit: VolumeUnit): number {
-  return unit === 'l' ? scaled : Math.round(scaled / LITRES_PER_US_GALLON)
+  return unit === 'l' ? scaled : Math.round((scaled * 10) / LITRES_PER_US_GALLON)
 }
 
+/** What the screen shows, back into litres at the field's own base scale. */
 export function readVolume(value: number, unit: VolumeUnit): number {
-  return unit === 'l' ? value : Math.round(value * LITRES_PER_US_GALLON)
+  return unit === 'l' ? value : Math.round((value * LITRES_PER_US_GALLON) / 10)
 }
 
 // ---------------------------------------------------------------------------

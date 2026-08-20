@@ -40,27 +40,34 @@ class UnitFormat(
     fun parseDistance(text: String): Int? =
         Format.parseInput(text, distanceDecimals)?.let { Units.readDistance(it, distanceUnit) }
 
-    fun volume(scaled: Long): String = Format.formatFigure(Units.showVolume(scaled, volumeUnit), Scaled.PUMP_DECIMALS)
+    /** [Scaled.PUMP_DECIMALS] plus [Units.VOLUME_DECIMALS] — gal needs one more to round-trip. */
+    private val volumeDecimals: Int = Scaled.PUMP_DECIMALS + Units.VOLUME_DECIMALS.getValue(volumeUnit)
+
+    /** [Scaled.TANK_DECIMALS] plus [Units.VOLUME_DECIMALS] — the same extra digit, tank's own base. */
+    private val tankDecimals: Int = Scaled.TANK_DECIMALS + Units.VOLUME_DECIMALS.getValue(volumeUnit)
+
+    fun volume(scaled: Long): String = Format.formatFigure(Units.showVolume(scaled, volumeUnit), volumeDecimals)
 
     fun volumeWith(scaled: Long): String = "${volume(scaled)} $volumeSymbol"
 
     fun volumeInput(scaled: Long): String =
-        Format.toInput(Units.showVolume(scaled, volumeUnit), Scaled.PUMP_DECIMALS)
+        Format.toInput(Units.showVolume(scaled, volumeUnit), volumeDecimals)
 
     fun parseVolume(text: String): Long? =
-        Format.parseInput(text, Scaled.PUMP_DECIMALS)?.let { Units.readVolume(it, volumeUnit) }
+        Format.parseInput(text, volumeDecimals)?.let { Units.readVolume(it, volumeUnit) }
 
     /**
-     * Tank capacity — always [Scaled.TANK_DECIMALS], whatever the volume
-     * unit is: the conversion ratio is scale-agnostic, only the decimal
-     * count differs by field (`state/units.ts`'s own `tank`/`parseTank`).
+     * Tank capacity — [Scaled.TANK_DECIMALS], plus [Units.VOLUME_DECIMALS]'s
+     * extra digit for a coarser unit: the conversion ratio is scale-agnostic,
+     * only the decimal count differs by field (`state/units.ts`'s own
+     * `tank`/`parseTank`).
      */
-    fun tank(scaled: Long): String = Format.formatFigure(Units.showVolume(scaled, volumeUnit), Scaled.TANK_DECIMALS)
+    fun tank(scaled: Long): String = Format.formatFigure(Units.showVolume(scaled, volumeUnit), tankDecimals)
 
-    fun tankInput(scaled: Long): String = Format.toInput(Units.showVolume(scaled, volumeUnit), Scaled.TANK_DECIMALS)
+    fun tankInput(scaled: Long): String = Format.toInput(Units.showVolume(scaled, volumeUnit), tankDecimals)
 
     fun parseTank(text: String): Long? =
-        Format.parseInput(text, Scaled.TANK_DECIMALS)?.let { Units.readVolume(it, volumeUnit) }
+        Format.parseInput(text, tankDecimals)?.let { Units.readVolume(it, volumeUnit) }
 
     /**
      * `45,000 ₺` — a price per volume unit, with its currency symbol.
