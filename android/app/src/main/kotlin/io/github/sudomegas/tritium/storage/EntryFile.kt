@@ -70,12 +70,20 @@ fun <T : HasId> parseEntryDocument(text: String, spec: EntrySpec<T>, file: File)
 
     val entries = mutableListOf<T>()
     val entryRest = mutableMapOf<String, Map<String, TomlElement>>()
+    val seen = mutableSetOf<String>()
 
     for (raw in rawEntries) {
         var id = readString(raw, "id")
-        if (id.isEmpty()) {
+        // Empty, OR already used by an earlier entry in this same file — a
+        // hand-edited duplicate (an [[entry]] block copy-pasted with the id
+        // left unchanged) is exactly as unsafe as no id at all: entryRest is
+        // keyed by id, so two entries sharing one would corrupt each other's
+        // carried keys on the next write, and every id-keyed lookup
+        // downstream (removeXEntry, updateXEntry) would touch both at once.
+        if (id.isEmpty() || !seen.add(id)) {
             highest += 1
             id = formatId(spec.kind, highest)
+            seen += id
         }
         entries += spec.readEntry(raw, id)
         val rest = unknownKeys(raw, spec.knownKeys)

@@ -225,6 +225,38 @@ describe('ids', () => {
 
     expect(entries[0]?.id).toBe('f-0001')
   })
+
+  it('re-allocates a duplicate id instead of keeping two entries under one', () => {
+    // A copy-pasted [[entry]] block with the id left unchanged — as unsafe
+    // as no id at all, since entryRest and every downstream id-keyed lookup
+    // assume ids are unique within the file.
+    const duplicated = `schema_version = 1
+
+[[entry]]
+id = "f-0001"
+date = 2026-08-16
+odometer_km = 19764
+litres = 29.990
+price_per_litre = 73.380
+full_tank = true
+fuel_type = "Kurşunsuz 95"
+
+[[entry]]
+id = "f-0001"
+date = 2026-08-30
+odometer_km = 20100
+litres = 31.500
+price_per_litre = 74.100
+full_tank = true
+fuel_type = "Kurşunsuz 95"
+`
+    const { entries } = parseEntryDocument(duplicated, FUEL_SPEC)
+
+    expect(entries).toHaveLength(2)
+    const ids = entries.map((e) => e.id)
+    expect(new Set(ids).size).toBe(2)
+    expect(ids).toContain('f-0001')
+  })
 })
 
 describe('a record file killed mid-write', () => {

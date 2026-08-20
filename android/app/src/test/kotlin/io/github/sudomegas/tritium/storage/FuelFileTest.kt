@@ -90,6 +90,27 @@ class FuelFileTest {
     }
 
     @Test
+    fun `a duplicate id is re-allocated instead of leaving two entries under one`() {
+        val text = """
+            schema_version = 1
+
+            [[entry]]
+            id = "f-0001"
+            odometer_km = 100
+
+            [[entry]]
+            id = "f-0001"
+            odometer_km = 200
+        """.trimIndent() + "\n"
+        val document = readFuel(writeSample(text))
+
+        assertEquals(2, document.entries.size)
+        val ids = document.entries.map { it.id }
+        assertEquals(2, ids.toSet().size)
+        assertTrue("f-0001" in ids)
+    }
+
+    @Test
     fun `a missing file reads as an empty document, not an error`() {
         val document = readFuel(File(tmp.root, "fuel.toml"))
         assertEquals(emptyList<FuelEntry>(), document.entries)

@@ -56,13 +56,21 @@ export function parseEntryDocument<T extends { id: string }>(
 
   const entries: T[] = []
   const entryRest: Record<string, TomlTable> = {}
+  const seen = new Set<string>()
 
   for (const raw of rawEntries) {
     let id = typeof raw['id'] === 'string' ? raw['id'] : ''
-    if (id.length === 0) {
+    // Empty, OR already used by an earlier entry in this same file — a
+    // hand-edited duplicate (an [[entry]] block copy-pasted with the id left
+    // unchanged) is exactly as unsafe as no id at all: entryRest is keyed by
+    // id, so two entries sharing one would corrupt each other's carried keys
+    // on the next write, and every id-keyed lookup downstream would touch
+    // both at once.
+    if (id.length === 0 || seen.has(id)) {
       highest += 1
       id = formatId(spec.kind, highest)
     }
+    seen.add(id)
     entries.push(spec.readEntry(raw, id))
     const rest = unknownKeys(raw, spec.knownKeys)
     if (Object.keys(rest).length > 0) entryRest[id] = rest

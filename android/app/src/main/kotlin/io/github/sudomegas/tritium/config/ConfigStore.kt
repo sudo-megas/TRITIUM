@@ -1,7 +1,11 @@
 package io.github.sudomegas.tritium.config
 
 import dev.eav.tomlkt.Toml
+import dev.eav.tomlkt.TomlElement
+import dev.eav.tomlkt.TomlTable
+import dev.eav.tomlkt.buildTomlTable
 import io.github.sudomegas.tritium.storage.Units
+import io.github.sudomegas.tritium.storage.unknownKeys
 import io.github.sudomegas.tritium.storage.writeAtomically
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -91,6 +95,32 @@ class ConfigStore(root: File) {
         val appearance: AppearanceSection? = null,
     )
 
+    /**
+     * Every key the last [load] read that this build does not model, so
+     * [save] can carry it forward — a settings.toml written by a different
+     * build (a newer Android release, or restored from one) must not lose
+     * `[format] decimals_cost_per_km` or a future `[appearance] palette`
+     * the moment the maker changes any other setting. `EntryFile.kt`/
+     * `VehicleFile.kt` already keep this promise for the record files; this
+     * mirrors it for the one file that did not, and mirrors the desktop's
+     * own `settings-file.ts` (`restOf`/`unknown`) doing the same.
+     *
+     * Refreshed on every [decode] — including the one [setAsideIfUnreadable]
+     * runs internally before every [save] — so this stays correct even for
+     * a caller that only ever calls [save] (there is exactly one in this
+     * app, `ConfigState.update`): the file is re-read immediately before it
+     * is rewritten, not assumed from whatever an earlier [load] once saw.
+     */
+    private data class CarriedUnknown(
+        val top: Map<String, TomlElement> = emptyMap(),
+        val general: Map<String, TomlElement> = emptyMap(),
+        val units: Map<String, TomlElement> = emptyMap(),
+        val format: Map<String, TomlElement> = emptyMap(),
+        val appearance: Map<String, TomlElement> = emptyMap(),
+    )
+
+    private var carried = CarriedUnknown()
+
     fun load(): ConfigLoad {
         if (!file.exists()) return ConfigLoad(AppConfig())
 
@@ -124,15 +154,62 @@ class ConfigStore(root: File) {
                 dynamic_color = config.dynamicColor,
             ),
         )
-        writeAtomically(file, toml.encodeToString(dto))
+
+        // Through the document model, not straight to text: the typed
+        // encode alone has no room for a key this build does not declare,
+        // so the carried-forward ones are merged into the table it would
+        // have produced, section by section, before that table is rendered.
+        val base = toml.encodeToTomlElement(SettingsDto.serializer(), dto) as TomlTable
+        val merged = buildTomlTable {
+            for ((key, value) in base) {
+                val withCarried = when (key) {
+                    "general" -> mergeSection(value, carried.general)
+                    "units" -> mergeSection(value, carried.units)
+                    "format" -> mergeSection(value, carried.format)
+                    "appearance" -> mergeSection(value, carried.appearance)
+                    else -> value
+                }
+                element(key, withCarried)
+            }
+            for ((key, value) in carried.top) element(key, value)
+        }
+        writeAtomically(file, toml.encodeToString(TomlTable.serializer(), merged))
     }
+
+    /** [section]'s own entries, plus whatever [extra] carries — [extra] never overrides a known key. */
+    private fun mergeSection(section: TomlElement, extra: Map<String, TomlElement>): TomlTable {
+        val known = (section as? TomlTable)?.entries?.associate { it.key to it.value } ?: emptyMap()
+        return buildTomlTable {
+            for ((key, value) in known) element(key, value)
+            for ((key, value) in extra) if (key !in known) element(key, value)
+        }
+    }
+
+    /** A sub-table's unrecognised keys, or empty when the table is absent entirely. */
+    private fun sectionRest(document: TomlTable, name: String, known: Set<String>): Map<String, TomlElement> =
+        (document[name] as? TomlTable)?.let { unknownKeys(it, known) } ?: emptyMap()
 
     private fun decode(text: String): AppConfig {
         // The BOM is stripped rather than tolerated: this parser rejects a
         // leading U+FEFF outright, and a settings.toml that gains one from an
         // editor is otherwise valid and would be set aside as broken when it
         // is not.
-        val dto = toml.decodeFromString<SettingsDto>(text.removePrefix(BOM))
+        val cleaned = text.removePrefix(BOM)
+        val dto = toml.decodeFromString<SettingsDto>(cleaned)
+
+        // A second, independent parse purely to see what the typed decode
+        // above discarded — parseToTomlTable never throws on a key
+        // decodeFromString already accepted, so this cannot turn a
+        // previously-successful load into a failure.
+        val document = toml.parseToTomlTable(cleaned)
+        carried = CarriedUnknown(
+            top = unknownKeys(document, TOP_KNOWN),
+            general = sectionRest(document, "general", GENERAL_KNOWN),
+            units = sectionRest(document, "units", UNITS_KNOWN),
+            format = sectionRest(document, "format", FORMAT_KNOWN),
+            appearance = sectionRest(document, "appearance", APPEARANCE_KNOWN),
+        )
+
         return AppConfig(
             language = dto.general?.language ?: AppConfig.DEFAULT_LANGUAGE,
             // No fallback for either — an absent currency is the signal
@@ -205,5 +282,12 @@ class ConfigStore(root: File) {
 
         /** Escaped rather than typed: a literal BOM in this file would be invisible. */
         private const val BOM = "\uFEFF"
+
+        /** Every key each section's own `@Serializable` DTO declares \u2014 [SettingsDto]'s field names, by hand, since annotation reflection is not worth pulling in for four small sets. */
+        private val TOP_KNOWN = setOf("schema_version", "general", "units", "format", "appearance")
+        private val GENERAL_KNOWN = setOf("language", "currency", "active_vehicle")
+        private val UNITS_KNOWN = setOf("distance", "volume", "consumption")
+        private val FORMAT_KNOWN = setOf("decimals_consumption")
+        private val APPEARANCE_KNOWN = setOf("theme_mode", "dynamic_color")
     }
 }

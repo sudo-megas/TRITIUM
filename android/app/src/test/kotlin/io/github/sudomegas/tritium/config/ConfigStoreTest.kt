@@ -195,6 +195,73 @@ class ConfigStoreTest {
         assertEquals(AppConfig().dynamicColor, load.config.dynamicColor)
     }
 
+    // -- AF12: keys this build does not model survive a save -----------------
+
+    @Test
+    fun `a top-level key this build does not model survives a save`() {
+        val file = java.io.File(tmp.root, "settings.toml")
+        file.writeText("schema_version = 1\nfuture_toplevel = \"kept\"\n[general]\nlanguage = \"en\"\n")
+
+        val store = ConfigStore(tmp.root)
+        store.load()
+        store.save(AppConfig(language = "tr"))
+
+        val text = file.readText()
+        assertTrue("future_toplevel" in text)
+        assertEquals("tr", store.load().config.language)
+    }
+
+    @Test
+    fun `a sibling key inside a table this build does touch survives a save`() {
+        // A newer Android build's [format] key, or the desktop's own
+        // decimals_cost_per_km (AF9.md §1 — no feature here reads it, but a
+        // shared file could still carry it from the desktop side one day).
+        val file = java.io.File(tmp.root, "settings.toml")
+        file.writeText(
+            "schema_version = 1\n" +
+                "[general]\n" +
+                "language = \"en\"\n" +
+                "[format]\n" +
+                "decimals_consumption = 2\n" +
+                "decimals_cost_per_km = 3\n",
+        )
+
+        val store = ConfigStore(tmp.root)
+        store.load()
+        store.save(AppConfig(language = "en", decimalsConsumption = 4))
+
+        val text = file.readText()
+        assertTrue("decimals_cost_per_km = 3" in text)
+        assertTrue("decimals_consumption = 4" in text)
+    }
+
+    @Test
+    fun `a carried key never overrides a value this save actually sets`() {
+        val file = java.io.File(tmp.root, "settings.toml")
+        file.writeText("schema_version = 1\n[general]\nlanguage = \"en\"\ncurrency = \"OLD\"\n")
+
+        val store = ConfigStore(tmp.root)
+        store.load()
+        // currency is a known key, not a carried one — this save's own value wins.
+        store.save(AppConfig(language = "en", currency = "TRY"))
+
+        assertEquals("TRY", store.load().config.currency)
+    }
+
+    @Test
+    fun `a save carries the file's own unknown keys even without an explicit load first`() {
+        // setAsideIfUnreadable reads the file to check it parses before every
+        // save, and that read populates the same carry-forward state load
+        // does — so a caller that only ever calls save (there is exactly one
+        // in this app, ConfigState.update) still keeps what the file held.
+        val file = java.io.File(tmp.root, "settings.toml")
+        file.writeText("schema_version = 1\nfuture_toplevel = \"kept\"\n[general]\nlanguage = \"en\"\n")
+
+        ConfigStore(tmp.root).save(AppConfig(language = "tr"))
+
+        assertTrue("future_toplevel" in file.readText())
+    }
+
     @Test
     fun `a second broken file never overwrites the first rescue`() {
         val store = ConfigStore(tmp.root)
