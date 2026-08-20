@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- PLACEHOLDER, see ic_launcher_background.xml. A plain circle in the safe
-     zone — nothing that could be read as intended artwork. -->
+<!-- Empty on purpose — the maker's own artwork (build/icons/) is the
+     background layer in full; there is no separate foreground graphic to
+     draw over it, the same one-image treatment F13.md gives the desktop
+     icon. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#FF66FF00"
-        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
-</vector>
+    android:viewportHeight="108" />
