@@ -6,12 +6,14 @@ import androidx.lifecycle.viewModelScope
 import io.github.sudomegas.tritium.TritiumApplication
 import io.github.sudomegas.tritium.storage.FuelDraft
 import io.github.sudomegas.tritium.storage.FuelEntry
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 
 /**
  * Owns the active vehicle's fuel entries for the Fuel tab (AF4.md §1.1 —
@@ -34,24 +36,30 @@ class FuelViewModel(private val app: TritiumApplication) : ViewModel() {
     private val _fuelEntries = MutableStateFlow<List<FuelEntry>>(emptyList())
     val fuelEntries: StateFlow<List<FuelEntry>> = _fuelEntries.asStateFlow()
 
-    /** Re-read the active vehicle's fuel entries from disk, highest odometer first. */
-    fun refresh() {
+    /**
+     * Re-read the active vehicle's fuel entries from disk, highest odometer
+     * first. `suspend`, dispatched to [Dispatchers.IO] — the repository does
+     * synchronous file I/O and this is called from [FuelScreen]'s own
+     * composition (`LaunchedEffect(Unit)`), which runs on the main thread
+     * otherwise. AF12 audit finding.
+     */
+    suspend fun refresh() {
         val slug = activeVehicleSlug.value
         _fuelEntries.value = if (slug == null) {
             emptyList()
         } else {
-            runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }
-                .getOrDefault(emptyList())
-                .sortedWith(compareByDescending<FuelEntry> { it.odometerKm }.thenByDescending { it.id })
+            withContext(Dispatchers.IO) {
+                runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }.getOrDefault(emptyList())
+            }.sortedWith(compareByDescending<FuelEntry> { it.odometerKm }.thenByDescending { it.id })
         }
     }
 
     /** The vehicle's own `fuel_spec` — quick-add's silent fuel-type default. */
-    fun activeVehicleFuelSpec(): String {
+    suspend fun activeVehicleFuelSpec(): String {
         val slug = activeVehicleSlug.value ?: return ""
-        return runCatching { app.vehicleRepository.loadVehicle(slug).vehicle?.vehicle?.fuelSpec }
-            .getOrNull()
-            ?: ""
+        return withContext(Dispatchers.IO) {
+            runCatching { app.vehicleRepository.loadVehicle(slug).vehicle?.vehicle?.fuelSpec }.getOrNull()
+        } ?: ""
     }
 
     /**
@@ -63,11 +71,11 @@ class FuelViewModel(private val app: TritiumApplication) : ViewModel() {
      * real edit while [FuelFormScreen] still reported success. AF12 audit
      * finding — CRITICAL.
      */
-    fun entry(id: String): FuelEntry? {
+    suspend fun entry(id: String): FuelEntry? {
         val slug = activeVehicleSlug.value ?: return null
-        return runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }
-            .getOrDefault(emptyList())
-            .firstOrNull { it.id == id }
+        return withContext(Dispatchers.IO) {
+            runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }.getOrDefault(emptyList())
+        }.firstOrNull { it.id == id }
     }
 
     /**
@@ -76,33 +84,34 @@ class FuelViewModel(private val app: TritiumApplication) : ViewModel() {
      * form-open time, the same shape [activeVehicleFuelSpec] already uses
      * for a single derived field.
      */
-    fun previousOdometer(): Int? {
+    suspend fun previousOdometer(): Int? {
         val slug = activeVehicleSlug.value ?: return null
-        val serviceEntries = runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }
-            .getOrDefault(emptyList())
+        val serviceEntries = withContext(Dispatchers.IO) {
+            runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }.getOrDefault(emptyList())
+        }
         return FuelDraft.highestOdometer(fuelEntries.value, serviceEntries)
     }
 
     /** Add-only — quick-add's path. Allocates the id in the repository, as F4's own `fuel:add` does. */
-    fun addFuelEntry(entry: (id: String) -> FuelEntry): FuelEntry? {
+    suspend fun addFuelEntry(entry: (id: String) -> FuelEntry): FuelEntry? {
         val slug = activeVehicleSlug.value ?: return null
-        val added = app.vehicleRepository.addFuelEntry(slug, entry)
+        val added = withContext(Dispatchers.IO) { app.vehicleRepository.addFuelEntry(slug, entry) }
         refresh()
         return added
     }
 
     /** The full form's edit path — replaces one entry in place, by id. */
-    fun updateFuelEntry(entry: FuelEntry): Boolean {
+    suspend fun updateFuelEntry(entry: FuelEntry): Boolean {
         val slug = activeVehicleSlug.value ?: return false
-        val updated = app.vehicleRepository.updateFuelEntry(slug, entry)
+        val updated = withContext(Dispatchers.IO) { app.vehicleRepository.updateFuelEntry(slug, entry) }
         refresh()
         return updated
     }
 
     /** One record at a time (AF7.md §3) — the list's own delete-with-confirm. */
-    fun removeFuelEntry(id: String): Boolean {
+    suspend fun removeFuelEntry(id: String): Boolean {
         val slug = activeVehicleSlug.value ?: return false
-        val removed = app.vehicleRepository.removeFuelEntry(slug, id)
+        val removed = withContext(Dispatchers.IO) { app.vehicleRepository.removeFuelEntry(slug, id) }
         refresh()
         return removed
     }

@@ -1,22 +1,28 @@
 package io.github.sudomegas.tritium.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -29,6 +35,7 @@ import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.ServiceEntry
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.ServiceViewModel
+import kotlinx.coroutines.launch
 
 /**
  * The form (AF6.md §2.1 decision 5): `service.toml`'s entire shape — date,
@@ -39,6 +46,13 @@ import io.github.sudomegas.tritium.ui.ServiceViewModel
  *
  * `vendor` is plain text, never a URL field (XTRITIUM §3.5) — the hint
  * below says so, ported verbatim from the desktop's own `service.vendorHint`.
+ *
+ * Split into this loading gate and [ServiceFormBody]: [ServiceViewModel.entry]
+ * is a repository read, now `suspend` so it never blocks the main thread
+ * (AF12 audit finding) — and a `rememberSaveable` field seeded from a value
+ * that later arrives asynchronously would seed from the placeholder and
+ * never update. The body composes only once the entry it pre-fills from is
+ * actually in hand — mirrors [FuelFormScreen]/[CostFormScreen]'s own split.
  */
 @Composable
 fun ServiceFormScreen(
@@ -48,8 +62,56 @@ fun ServiceFormScreen(
     unitFormat: UnitFormat,
     onSaved: () -> Unit,
 ) {
-    val initial = remember(entryId) { entryId?.let { viewModel.entry(it) } ?: ServiceEntry(id = "") }
-    val previousOdometer = remember { viewModel.previousOdometer() }
+    var initial by remember(entryId) { mutableStateOf<ServiceEntry?>(null) }
+    var notFound by remember(entryId) { mutableStateOf(false) }
+
+    LaunchedEffect(entryId) {
+        if (entryId == null) {
+            initial = ServiceEntry(id = "")
+        } else {
+            val loaded = viewModel.entry(entryId)
+            if (loaded == null) notFound = true else initial = loaded
+        }
+    }
+
+    val loaded = initial
+    when {
+        notFound -> Text(
+            text = stringResource(R.string.entry_save_failed),
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(24.dp),
+        )
+
+        loaded == null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+
+        else -> ServiceFormBody(
+            viewModel = viewModel,
+            entryId = entryId,
+            initial = loaded,
+            currency = currency,
+            unitFormat = unitFormat,
+            onSaved = onSaved,
+        )
+    }
+}
+
+@Composable
+private fun ServiceFormBody(
+    viewModel: ServiceViewModel,
+    entryId: String?,
+    initial: ServiceEntry,
+    currency: String?,
+    unitFormat: UnitFormat,
+    onSaved: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var previousOdometer by remember { mutableStateOf<Int?>(null) }
+    // A display hint only — never seeds a rememberSaveable field — so it
+    // loads independently of the gate above, same reasoning as
+    // FuelQuickAddScreen's own previousOdometer/defaults.
+    LaunchedEffect(Unit) { previousOdometer = viewModel.previousOdometer() }
 
     var date by rememberSaveable {
         mutableStateOf(if (entryId == null) Format.formatDate(Format.todayIso()) else Format.formatDate(initial.date))
@@ -92,11 +154,11 @@ fun ServiceFormScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        if (previousOdometer != null) {
+        previousOdometer?.let { po ->
             Text(
                 stringResource(
                     R.string.fuel_previous_odometer,
-                    unitFormat.distance(previousOdometer),
+                    unitFormat.distance(po),
                     unitFormat.distanceSymbol,
                 ),
             )
@@ -108,11 +170,12 @@ fun ServiceFormScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth().testTag("serviceOdometer"),
         )
-        if (backwards && previousOdometer != null) {
+        val backwardsOdometer = previousOdometer
+        if (backwards && backwardsOdometer != null) {
             Text(
                 stringResource(
                     R.string.fuel_backwards,
-                    unitFormat.distance(previousOdometer),
+                    unitFormat.distance(backwardsOdometer),
                     unitFormat.distanceSymbol,
                 ),
             )
@@ -160,12 +223,14 @@ fun ServiceFormScreen(
                 // can only mean the id this form opened with is no longer in
                 // service.toml (deleted elsewhere while the form was open) —
                 // reported rather than silently treated as a successful save.
-                val saved = if (entryId == null) {
-                    viewModel.addServiceEntry { id -> entry.copy(id = id) } != null
-                } else {
-                    viewModel.updateServiceEntry(entry)
+                scope.launch {
+                    val saved = if (entryId == null) {
+                        viewModel.addServiceEntry { id -> entry.copy(id = id) } != null
+                    } else {
+                        viewModel.updateServiceEntry(entry)
+                    }
+                    if (saved) onSaved() else saveFailed = true
                 }
-                if (saved) onSaved() else saveFailed = true
             },
         ) {
             Text(stringResource(R.string.service_save))

@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -32,6 +33,7 @@ import io.github.sudomegas.tritium.storage.RangeKey
 import io.github.sudomegas.tritium.storage.boundsFor
 import io.github.sudomegas.tritium.storage.filterByBounds
 import io.github.sudomegas.tritium.ui.CostViewModel
+import kotlinx.coroutines.launch
 
 /**
  * The Costs tab (AF5.md §1.1 — "not a fresh decision," AF4's own precedent).
@@ -46,6 +48,7 @@ fun CostScreen(
     onEditEntry: (String) -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.refresh() }
+    val scope = rememberCoroutineScope()
 
     val activeSlug by viewModel.activeVehicleSlug.collectAsStateWithLifecycle()
     val entries by viewModel.costEntries.collectAsStateWithLifecycle()
@@ -122,7 +125,7 @@ fun CostScreen(
                         onDeleteTap = { confirmingId = entry.id; deleteFailed = false },
                         onConfirmDelete = {
                             confirmingId = null
-                            deleteFailed = !viewModel.removeCostEntry(entry.id)
+                            scope.launch { deleteFailed = !viewModel.removeCostEntry(entry.id) }
                         },
                         onCancelDelete = { confirmingId = null },
                     )

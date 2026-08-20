@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +44,9 @@ import io.github.sudomegas.tritium.storage.Units.DistanceUnit
 import io.github.sudomegas.tritium.storage.Units.VOLUME_SYMBOL
 import io.github.sudomegas.tritium.storage.Units.VolumeUnit
 import io.github.sudomegas.tritium.ui.SettingsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * AF1's language switch, AF8's Export, and About beneath both — the mark,
@@ -106,18 +110,27 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 @Composable
 private fun ExportSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var status by remember { mutableStateOf<String?>(null) }
     val successText = stringResource(id = R.string.export_success)
     val failureText = stringResource(id = R.string.export_failure)
 
+    // The ContentResolver stream and viewModel.exportBundle() (parses every
+    // vehicle's files) both do real I/O; ActivityResultCallback fires on the
+    // main thread, so both are pushed to Dispatchers.IO rather than run
+    // there directly. AF12 audit finding.
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        status = runCatching {
-            context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.exportBundle().toByteArray()) }
-        }.fold(
-            onSuccess = { successText },
-            onFailure = { failureText },
-        )
+        scope.launch {
+            status = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.exportBundle().toByteArray()) }
+                }.fold(
+                    onSuccess = { successText },
+                    onFailure = { failureText },
+                )
+            }
+        }
     }
 
     Text(
@@ -152,29 +165,41 @@ private fun ExportSection(viewModel: SettingsViewModel) {
 private fun ImportSection(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
     var status by remember { mutableStateOf<String?>(null) }
     val failureText = stringResource(id = R.string.import_failure)
 
+    // The ContentResolver stream and viewModel.importBundle() (merges
+    // against every vehicle on disk) both do real I/O; ActivityResultCallback
+    // fires on the main thread, so both are pushed to Dispatchers.IO rather
+    // than run there directly. AF12 audit finding.
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        status = runCatching {
-            val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-                ?: error("unreadable")
-            viewModel.importBundle(text)
-        }.fold(
-            onSuccess = { result ->
-                val added = result.vehicles.sumOf { it.added.fuel + it.added.costs + it.added.service }
-                val skipped = result.vehicles.sumOf { it.skipped.fuel + it.skipped.costs + it.skipped.service }
-                // LocalResources, not context.getString — a Compose lint
-                // rule (LocalContextGetResourceValueCall) flags the latter
-                // as stale-on-Configuration-change; this is its own
-                // suggested fix, needed here because the args (added,
-                // skipped) are only known once the callback fires, too
-                // late for stringResource's own composable call.
-                resources.getString(R.string.import_success, added, skipped)
-            },
-            onFailure = { failureText },
-        )
+        scope.launch {
+            status = withContext(Dispatchers.IO) {
+                runCatching {
+                    val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                        ?: error("unreadable")
+                    viewModel.importBundle(text)
+                }.fold(
+                    onSuccess = { result ->
+                        val added = result.vehicles.sumOf { it.added.fuel + it.added.costs + it.added.service }
+                        val skipped = result.vehicles.sumOf { it.skipped.fuel + it.skipped.costs + it.skipped.service }
+                        // LocalResources, not context.getString — a Compose
+                        // lint rule (LocalContextGetResourceValueCall) flags
+                        // the latter as stale-on-Configuration-change; this
+                        // is its own suggested fix, needed here because the
+                        // args (added, skipped) are only known once the
+                        // callback fires, too late for stringResource's own
+                        // composable call. Reading it here, off the main
+                        // thread, is still safe — Resources lookups do not
+                        // touch storage.
+                        resources.getString(R.string.import_success, added, skipped)
+                    },
+                    onFailure = { failureText },
+                )
+            }
+        }
     }
 
     Text(
@@ -385,7 +410,11 @@ private fun AboutSection() {
     val context = LocalContext.current
     var licenceText by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        licenceText = context.assets.open("LICENSE").bufferedReader().use { it.readText() }
+        // Off the main thread — `LaunchedEffect` runs on Main by default, and
+        // an asset open/decode/read is I/O however small. AF12 audit finding.
+        licenceText = withContext(Dispatchers.IO) {
+            context.assets.open("LICENSE").bufferedReader().use { it.readText() }
+        }
     }
     SelectionContainer {
         Text(

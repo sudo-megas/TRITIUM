@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import io.github.sudomegas.tritium.R
 import io.github.sudomegas.tritium.storage.Consumption
 import io.github.sudomegas.tritium.storage.CustomRange
 import io.github.sudomegas.tritium.storage.Format
+import kotlinx.coroutines.launch
 import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.RangeKey
 import io.github.sudomegas.tritium.storage.Scaled
@@ -55,6 +57,7 @@ fun FuelScreen(
     onEditEntry: (String) -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.refresh() }
+    val scope = rememberCoroutineScope()
 
     val activeSlug by viewModel.activeVehicleSlug.collectAsStateWithLifecycle()
     val entries by viewModel.fuelEntries.collectAsStateWithLifecycle()
@@ -141,7 +144,7 @@ fun FuelScreen(
                         onDeleteTap = { confirmingId = entry.id; deleteFailed = false },
                         onConfirmDelete = {
                             confirmingId = null
-                            deleteFailed = !viewModel.removeFuelEntry(entry.id)
+                            scope.launch { deleteFailed = !viewModel.removeFuelEntry(entry.id) }
                         },
                         onCancelDelete = { confirmingId = null },
                     )

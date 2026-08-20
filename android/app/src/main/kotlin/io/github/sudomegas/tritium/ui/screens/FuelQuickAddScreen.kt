@@ -10,9 +10,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -27,6 +29,7 @@ import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.FuelViewModel
+import kotlinx.coroutines.launch
 
 /**
  * XTRITIUM §5.1: "odometer, litres, price/litre — done. Everything else
@@ -37,8 +40,18 @@ import io.github.sudomegas.tritium.ui.FuelViewModel
  */
 @Composable
 fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, unitFormat: UnitFormat, onSaved: () -> Unit) {
-    val previousOdometer = remember { viewModel.previousOdometer() }
-    val defaults = remember { FuelDraft.quickAddDefaults(viewModel.activeVehicleFuelSpec()) }
+    val scope = rememberCoroutineScope()
+    var previousOdometer by remember { mutableStateOf<Int?>(null) }
+    var defaults by remember { mutableStateOf(FuelDraft.quickAddDefaults("")) }
+
+    // Both repository reads — suspend, off the main thread (AF12 audit
+    // finding). Neither seeds a rememberSaveable field, only a hint shown
+    // once it arrives, so no loading gate is needed the way the full form's
+    // pre-fill values require.
+    LaunchedEffect(Unit) {
+        previousOdometer = viewModel.previousOdometer()
+        defaults = FuelDraft.quickAddDefaults(viewModel.activeVehicleFuelSpec())
+    }
 
     var odometerText by rememberSaveable { mutableStateOf("") }
     var litresText by rememberSaveable { mutableStateOf("") }
@@ -58,11 +71,11 @@ fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, unitFormat: 
     ) {
         Text(stringResource(R.string.fuel_quick_title), style = MaterialTheme.typography.headlineSmall)
 
-        if (previousOdometer != null) {
+        previousOdometer?.let { po ->
             Text(
                 stringResource(
                     R.string.fuel_previous_odometer,
-                    unitFormat.distance(previousOdometer),
+                    unitFormat.distance(po),
                     unitFormat.distanceSymbol,
                 ),
             )
@@ -75,11 +88,12 @@ fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, unitFormat: 
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth().testTag("fuelQuickOdometer"),
         )
-        if (backwards && previousOdometer != null) {
+        val backwardsOdometer = previousOdometer
+        if (backwards && backwardsOdometer != null) {
             Text(
                 stringResource(
                     R.string.fuel_backwards,
-                    unitFormat.distance(previousOdometer),
+                    unitFormat.distance(backwardsOdometer),
                     unitFormat.distanceSymbol,
                 ),
             )
@@ -112,18 +126,20 @@ fun FuelQuickAddScreen(viewModel: FuelViewModel, currency: String?, unitFormat: 
         Button(
             enabled = odometer != null && odometer > 0 && litres != null && litres > 0 && price != null,
             onClick = {
-                viewModel.addFuelEntry { id ->
-                    FuelEntry(
-                        id = id,
-                        date = defaults.date,
-                        odometerKm = odometer ?: 0,
-                        litres = litres ?: 0L,
-                        pricePerLitre = price ?: 0L,
-                        fullTank = defaults.fullTank,
-                        fuelType = defaults.fuelType,
-                    )
+                scope.launch {
+                    viewModel.addFuelEntry { id ->
+                        FuelEntry(
+                            id = id,
+                            date = defaults.date,
+                            odometerKm = odometer ?: 0,
+                            litres = litres ?: 0L,
+                            pricePerLitre = price ?: 0L,
+                            fullTank = defaults.fullTank,
+                            fuelType = defaults.fuelType,
+                        )
+                    }
+                    onSaved()
                 }
-                onSaved()
             },
         ) {
             Text(stringResource(R.string.fuel_save))

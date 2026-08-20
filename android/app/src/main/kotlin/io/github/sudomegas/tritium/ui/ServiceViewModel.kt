@@ -6,12 +6,14 @@ import androidx.lifecycle.viewModelScope
 import io.github.sudomegas.tritium.TritiumApplication
 import io.github.sudomegas.tritium.storage.FuelDraft
 import io.github.sudomegas.tritium.storage.ServiceEntry
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 
 /**
  * Owns the active vehicle's service entries for the Service tab (AF6.md
@@ -30,15 +32,21 @@ class ServiceViewModel(private val app: TritiumApplication) : ViewModel() {
     private val _serviceEntries = MutableStateFlow<List<ServiceEntry>>(emptyList())
     val serviceEntries: StateFlow<List<ServiceEntry>> = _serviceEntries.asStateFlow()
 
-    /** Re-read the active vehicle's service entries from disk, newest date first. */
-    fun refresh() {
+    /**
+     * Re-read the active vehicle's service entries from disk, newest date
+     * first. `suspend`, dispatched to [Dispatchers.IO] — the repository
+     * does synchronous file I/O and this is called from [ServiceScreen]'s
+     * own composition (`LaunchedEffect(Unit)`), which runs on the main
+     * thread otherwise. AF12 audit finding.
+     */
+    suspend fun refresh() {
         val slug = activeVehicleSlug.value
         _serviceEntries.value = if (slug == null) {
             emptyList()
         } else {
-            runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }
-                .getOrDefault(emptyList())
-                .sortedWith(compareByDescending<ServiceEntry> { it.date }.thenByDescending { it.id })
+            withContext(Dispatchers.IO) {
+                runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }.getOrDefault(emptyList())
+            }.sortedWith(compareByDescending<ServiceEntry> { it.date }.thenByDescending { it.id })
         }
     }
 
@@ -48,11 +56,11 @@ class ServiceViewModel(private val app: TritiumApplication) : ViewModel() {
      * with nothing in it yet, and falling back to "not found" there would
      * make a real edit save as a silent no-op. AF12 audit finding.
      */
-    fun entry(id: String): ServiceEntry? {
+    suspend fun entry(id: String): ServiceEntry? {
         val slug = activeVehicleSlug.value ?: return null
-        return runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }
-            .getOrDefault(emptyList())
-            .firstOrNull { it.id == id }
+        return withContext(Dispatchers.IO) {
+            runCatching { app.vehicleRepository.loadVehicle(slug).service.entries }.getOrDefault(emptyList())
+        }.firstOrNull { it.id == id }
     }
 
     /**
@@ -60,33 +68,34 @@ class ServiceViewModel(private val app: TritiumApplication) : ViewModel() {
      * `service.toml` (AF6.md §1.2) — a one-off repository read at
      * form-open time, the same shape [FuelViewModel.previousOdometer] uses.
      */
-    fun previousOdometer(): Int? {
+    suspend fun previousOdometer(): Int? {
         val slug = activeVehicleSlug.value ?: return null
-        val fuelEntries = runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }
-            .getOrDefault(emptyList())
+        val fuelEntries = withContext(Dispatchers.IO) {
+            runCatching { app.vehicleRepository.loadVehicle(slug).fuel.entries }.getOrDefault(emptyList())
+        }
         return FuelDraft.highestOdometer(fuelEntries, serviceEntries.value)
     }
 
     /** Add-only path. Allocates the id in the repository, as F6's own `service:add` does. */
-    fun addServiceEntry(entry: (id: String) -> ServiceEntry): ServiceEntry? {
+    suspend fun addServiceEntry(entry: (id: String) -> ServiceEntry): ServiceEntry? {
         val slug = activeVehicleSlug.value ?: return null
-        val added = app.vehicleRepository.addServiceEntry(slug, entry)
+        val added = withContext(Dispatchers.IO) { app.vehicleRepository.addServiceEntry(slug, entry) }
         refresh()
         return added
     }
 
     /** The form's edit path — replaces one entry in place, by id. */
-    fun updateServiceEntry(entry: ServiceEntry): Boolean {
+    suspend fun updateServiceEntry(entry: ServiceEntry): Boolean {
         val slug = activeVehicleSlug.value ?: return false
-        val updated = app.vehicleRepository.updateServiceEntry(slug, entry)
+        val updated = withContext(Dispatchers.IO) { app.vehicleRepository.updateServiceEntry(slug, entry) }
         refresh()
         return updated
     }
 
     /** One record at a time (AF7.md §3) — the list's own delete-with-confirm. */
-    fun removeServiceEntry(id: String): Boolean {
+    suspend fun removeServiceEntry(id: String): Boolean {
         val slug = activeVehicleSlug.value ?: return false
-        val removed = app.vehicleRepository.removeServiceEntry(slug, id)
+        val removed = withContext(Dispatchers.IO) { app.vehicleRepository.removeServiceEntry(slug, id) }
         refresh()
         return removed
     }

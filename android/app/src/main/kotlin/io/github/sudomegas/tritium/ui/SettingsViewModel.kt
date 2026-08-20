@@ -12,8 +12,10 @@ import io.github.sudomegas.tritium.storage.ImportResult
 import io.github.sudomegas.tritium.storage.Units.ConsumptionUnit
 import io.github.sudomegas.tritium.storage.Units.DistanceUnit
 import io.github.sudomegas.tritium.storage.Units.VolumeUnit
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SettingsViewModel(private val app: TritiumApplication) : ViewModel() {
 
@@ -89,13 +91,17 @@ class SettingsViewModel(private val app: TritiumApplication) : ViewModel() {
      * finding — [io.github.sudomegas.tritium.storage.Bundle]'s own "a
      * vehicle this build cannot parse is skipped" guard could never fire
      * before this, since [loadVehicle] never returned to let it.
+     *
+     * `suspend`, dispatched to [Dispatchers.IO] — parses every vehicle's
+     * files and was called directly from an `ActivityResultCallback`
+     * (main thread) by [ExportSection]. AF12 audit finding.
      */
-    fun exportBundle(): String {
+    suspend fun exportBundle(): String = withContext(Dispatchers.IO) {
         val slugs = app.vehicleRepository.listVehicleSlugs()
         val vehicles = slugs.mapNotNull { slug ->
             runCatching { app.vehicleRepository.loadVehicle(slug) }.getOrNull()
         }
-        return Bundle.build(vehicles, Format.todayIso())
+        Bundle.build(vehicles, Format.todayIso())
     }
 
     /**
@@ -107,8 +113,8 @@ class SettingsViewModel(private val app: TritiumApplication) : ViewModel() {
      * own precedent, "the obvious thing to switch to" when nothing else is
      * active — never overriding a vehicle already in use.
      */
-    fun importBundle(text: String): ImportResult {
-        val result = app.vehicleRepository.importBundle(text)
+    suspend fun importBundle(text: String): ImportResult {
+        val result = withContext(Dispatchers.IO) { app.vehicleRepository.importBundle(text) }
         if (app.configState.config.value.activeVehicleSlug == null) {
             result.vehicles.firstOrNull()?.let { first ->
                 viewModelScope.launch { app.configState.update { it.copy(activeVehicleSlug = first.slug) } }

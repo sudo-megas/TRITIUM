@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -33,6 +34,7 @@ import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.storage.boundsFor
 import io.github.sudomegas.tritium.storage.filterByBounds
 import io.github.sudomegas.tritium.ui.ServiceViewModel
+import kotlinx.coroutines.launch
 
 /**
  * The Service tab (AF6.md §1.1 — Periyodik Bakım's entry path, "not a
@@ -55,6 +57,7 @@ fun ServiceScreen(
     onEditEntry: (String) -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.refresh() }
+    val scope = rememberCoroutineScope()
 
     val activeSlug by viewModel.activeVehicleSlug.collectAsStateWithLifecycle()
     val entries by viewModel.serviceEntries.collectAsStateWithLifecycle()
@@ -132,7 +135,7 @@ fun ServiceScreen(
                         onDeleteTap = { confirmingId = entry.id; deleteFailed = false },
                         onConfirmDelete = {
                             confirmingId = null
-                            deleteFailed = !viewModel.removeServiceEntry(entry.id)
+                            scope.launch { deleteFailed = !viewModel.removeServiceEntry(entry.id) }
                         },
                         onCancelDelete = { confirmingId = null },
                     )

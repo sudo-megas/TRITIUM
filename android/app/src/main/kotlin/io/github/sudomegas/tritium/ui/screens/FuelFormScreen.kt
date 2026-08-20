@@ -1,8 +1,10 @@
 package io.github.sudomegas.tritium.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -10,13 +12,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,6 +37,7 @@ import io.github.sudomegas.tritium.storage.FuelEntry
 import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.ui.FuelViewModel
+import kotlinx.coroutines.launch
 
 /**
  * The full form (AF4.md §1.2 decision "Full form"): every `fuel.toml`
@@ -39,6 +45,13 @@ import io.github.sudomegas.tritium.ui.FuelViewModel
  * silent `true` — and the same screen serves the edit path, branching on
  * whether an `entryId` was passed in, mirroring [VehicleFormScreen]'s own
  * add/edit shape (AF3.md decision 2).
+ *
+ * Split into this loading gate and [FuelFormBody]: [FuelViewModel.entry]/
+ * [FuelViewModel.activeVehicleFuelSpec] are repository reads, now `suspend`
+ * so they never block the main thread (AF12 audit finding) — and a
+ * `rememberSaveable` field seeded from a value that later arrives
+ * asynchronously would seed from the placeholder and never update. The body
+ * composes only once what it needs to pre-fill from is actually in hand.
  */
 @Composable
 fun FuelFormScreen(
@@ -48,7 +61,55 @@ fun FuelFormScreen(
     unitFormat: UnitFormat,
     onSaved: () -> Unit,
 ) {
-    val initial = remember(entryId) { entryId?.let { viewModel.entry(it) } ?: FuelEntry(id = "") }
+    var initial by remember(entryId) { mutableStateOf<FuelEntry?>(null) }
+    var defaultFuelType by remember(entryId) { mutableStateOf("") }
+    var notFound by remember(entryId) { mutableStateOf(false) }
+
+    LaunchedEffect(entryId) {
+        if (entryId == null) {
+            defaultFuelType = viewModel.activeVehicleFuelSpec()
+            initial = FuelEntry(id = "")
+        } else {
+            val loaded = viewModel.entry(entryId)
+            if (loaded == null) notFound = true else initial = loaded
+        }
+    }
+
+    val loaded = initial
+    when {
+        notFound -> Text(
+            text = stringResource(R.string.entry_save_failed),
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(24.dp),
+        )
+
+        loaded == null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+
+        else -> FuelFormBody(
+            viewModel = viewModel,
+            entryId = entryId,
+            initial = loaded,
+            defaultFuelType = defaultFuelType,
+            currency = currency,
+            unitFormat = unitFormat,
+            onSaved = onSaved,
+        )
+    }
+}
+
+@Composable
+private fun FuelFormBody(
+    viewModel: FuelViewModel,
+    entryId: String?,
+    initial: FuelEntry,
+    defaultFuelType: String,
+    currency: String?,
+    unitFormat: UnitFormat,
+    onSaved: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
 
     var date by rememberSaveable {
         mutableStateOf(if (entryId == null) Format.formatDate(Format.todayIso()) else Format.formatDate(initial.date))
@@ -62,7 +123,7 @@ fun FuelFormScreen(
         mutableStateOf(if (entryId == null) true else initial.fullTank)
     }
     var fuelType by rememberSaveable {
-        mutableStateOf(initial.fuelType.ifEmpty { if (entryId == null) viewModel.activeVehicleFuelSpec() else "" })
+        mutableStateOf(initial.fuelType.ifEmpty { if (entryId == null) defaultFuelType else "" })
     }
     var saveFailed by rememberSaveable { mutableStateOf(false) }
 
@@ -152,12 +213,14 @@ fun FuelFormScreen(
                 // can only mean the id this form opened with is no longer in
                 // fuel.toml (deleted elsewhere while the form was open) —
                 // reported rather than silently treated as a successful save.
-                val saved = if (entryId == null) {
-                    viewModel.addFuelEntry { id -> entry.copy(id = id) } != null
-                } else {
-                    viewModel.updateFuelEntry(entry)
+                scope.launch {
+                    val saved = if (entryId == null) {
+                        viewModel.addFuelEntry { id -> entry.copy(id = id) } != null
+                    } else {
+                        viewModel.updateFuelEntry(entry)
+                    }
+                    if (saved) onSaved() else saveFailed = true
                 }
-                if (saved) onSaved() else saveFailed = true
             },
         ) {
             Text(stringResource(R.string.fuel_save))

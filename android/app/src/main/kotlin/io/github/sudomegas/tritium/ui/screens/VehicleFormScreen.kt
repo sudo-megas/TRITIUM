@@ -1,22 +1,28 @@
 package io.github.sudomegas.tritium.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -28,6 +34,7 @@ import io.github.sudomegas.tritium.storage.Scaled
 import io.github.sudomegas.tritium.storage.UnitFormat
 import io.github.sudomegas.tritium.storage.Vehicle
 import io.github.sudomegas.tritium.ui.HomeViewModel
+import kotlinx.coroutines.launch
 
 /**
  * One screen serving both add and edit — `slug == null` is add, mirroring
@@ -42,6 +49,13 @@ import io.github.sudomegas.tritium.ui.HomeViewModel
  * types back), parsed on save via `Format.parseInput`/`Format.parseDate` —
  * unparseable input is simply not written, matching XTRITIUM §3 principle 8:
  * the app warns nothing here yet and accepts what it can read.
+ *
+ * Split into this loading gate and [VehicleFormBody]: [HomeViewModel.loadVehicle]
+ * is a repository read, now `suspend` so it never blocks the main thread
+ * (AF12 audit finding) — and a `rememberSaveable` field seeded from a value
+ * that later arrives asynchronously would seed from the placeholder and
+ * never update. The body composes only once the record it pre-fills from
+ * is actually in hand, the same split [FuelFormScreen] established.
  */
 @Composable
 fun VehicleFormScreen(
@@ -50,7 +64,33 @@ fun VehicleFormScreen(
     unitFormat: UnitFormat,
     onSaved: (String) -> Unit,
 ) {
-    val initial = remember(slug) { slug?.let { viewModel.loadVehicle(it) }?.vehicle ?: Vehicle() }
+    var initial by remember(slug) { mutableStateOf<Vehicle?>(if (slug == null) Vehicle() else null) }
+
+    LaunchedEffect(slug) {
+        if (slug != null) {
+            initial = viewModel.loadVehicle(slug)?.vehicle ?: Vehicle()
+        }
+    }
+
+    val loaded = initial
+    if (loaded == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        VehicleFormBody(viewModel = viewModel, slug = slug, initial = loaded, unitFormat = unitFormat, onSaved = onSaved)
+    }
+}
+
+@Composable
+private fun VehicleFormBody(
+    viewModel: HomeViewModel,
+    slug: String?,
+    initial: Vehicle,
+    unitFormat: UnitFormat,
+    onSaved: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
 
     var name by rememberSaveable { mutableStateOf(initial.name) }
     var make by rememberSaveable { mutableStateOf(initial.make) }
@@ -124,13 +164,15 @@ fun VehicleFormScreen(
                     registrationDate = Format.parseDate(registrationDate) ?: "",
                     inspectionDue = Format.parseDate(inspectionDue) ?: "",
                 )
-                val savedSlug = if (slug == null) {
-                    viewModel.createVehicle(vehicle)
-                } else {
-                    viewModel.saveVehicle(slug, vehicle)
-                    slug
+                scope.launch {
+                    val savedSlug = if (slug == null) {
+                        viewModel.createVehicle(vehicle)
+                    } else {
+                        viewModel.saveVehicle(slug, vehicle)
+                        slug
+                    }
+                    onSaved(savedSlug)
                 }
-                onSaved(savedSlug)
             },
         ) {
             Text(stringResource(R.string.vehicle_form_save))

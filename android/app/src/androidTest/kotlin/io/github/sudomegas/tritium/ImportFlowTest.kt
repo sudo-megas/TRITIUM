@@ -72,25 +72,29 @@ class ImportFlowTest {
 
         // 1 — a fresh phone's first import: nothing is active yet, so the
         // vehicle the bundle creates becomes active on its own.
-        val first = viewModel.importBundle(
-            """
-            format = "tritium-export"
-            format_version = 1
-            exported = 2026-08-19
-            source = "android"
+        // importBundle is suspend (AF12 audit finding — off the main
+        // thread); runBlocking here since a @Test method is not itself one.
+        val first = runBlocking {
+            viewModel.importBundle(
+                """
+                format = "tritium-export"
+                format_version = 1
+                exported = 2026-08-19
+                source = "android"
 
-            [[vehicle]]
-            slug = "kia"
-            name = "Kia Sportage"
+                [[vehicle]]
+                slug = "kia"
+                name = "Kia Sportage"
 
-            [[vehicle.fuel]]
-            date = 2026-08-01
-            odometer_km = 10000
-            litres = 40.000
-            price_per_litre = 45.000
-            full_tank = true
-            """.trimIndent(),
-        )
+                [[vehicle.fuel]]
+                date = 2026-08-01
+                odometer_km = 10000
+                litres = 40.000
+                price_per_litre = 45.000
+                full_tank = true
+                """.trimIndent(),
+            )
+        }
         assertEquals(1, first.vehicles.size)
         assertTrue(first.vehicles.single().vehicleCreated)
         // The auto-activate write is dispatched via viewModelScope.launch
@@ -116,29 +120,31 @@ class ImportFlowTest {
         // 2 — a later import: "kia" is already active, and the bundle both
         // adds a fill-up to it and creates a whole new second vehicle.
         // Neither may switch the maker away from "kia".
-        val second = viewModel.importBundle(
-            """
-            format = "tritium-export"
-            format_version = 1
-            exported = 2026-08-20
-            source = "android"
+        val second = runBlocking {
+            viewModel.importBundle(
+                """
+                format = "tritium-export"
+                format_version = 1
+                exported = 2026-08-20
+                source = "android"
 
-            [[vehicle]]
-            slug = "kia"
-            name = "Kia Sportage"
+                [[vehicle]]
+                slug = "kia"
+                name = "Kia Sportage"
 
-            [[vehicle.fuel]]
-            date = 2026-08-15
-            odometer_km = 10500
-            litres = 35.000
-            price_per_litre = 45.000
-            full_tank = true
+                [[vehicle.fuel]]
+                date = 2026-08-15
+                odometer_km = 10500
+                litres = 35.000
+                price_per_litre = 45.000
+                full_tank = true
 
-            [[vehicle]]
-            slug = "spare"
-            name = "Spare"
-            """.trimIndent(),
-        )
+                [[vehicle]]
+                slug = "spare"
+                name = "Spare"
+                """.trimIndent(),
+            )
+        }
         val kiaTally = second.vehicles.single { it.slug == "kia" }
         assertEquals(1, kiaTally.added.fuel)
         assertTrue(second.vehicles.single { it.slug == "spare" }.vehicleCreated)

@@ -7,6 +7,7 @@ import io.github.sudomegas.tritium.TritiumApplication
 import io.github.sudomegas.tritium.storage.Summary
 import io.github.sudomegas.tritium.storage.Vehicle
 import io.github.sudomegas.tritium.storage.VehicleDocument
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The active vehicle's whole summary block (AF7.md §2.1 decision 5-6) — one
@@ -60,13 +62,28 @@ class HomeViewModel(private val app: TritiumApplication) : ViewModel() {
     private val _summary = MutableStateFlow<HomeSummary?>(null)
     val summary: StateFlow<HomeSummary?> = _summary.asStateFlow()
 
-    /** Re-read the vehicle listing, the active vehicle's own record, and its summary from disk. */
-    fun refresh() {
-        _vehicleNames.value = app.vehicleRepository.vehicleNames()
-        _activeVehicle.value = activeVehicleSlug.value?.let { loadVehicle(it)?.vehicle }
-        _summary.value = activeVehicleSlug.value?.let(::loadSummary)
+    /**
+     * Re-read the vehicle listing, the active vehicle's own record, and its
+     * summary from disk. `suspend`, dispatched to [Dispatchers.IO] — every
+     * repository call here is synchronous file I/O and this is called from
+     * [HomeScreen]'s own composition (`LaunchedEffect(Unit)`), which runs
+     * on the main thread otherwise. AF12 audit finding.
+     */
+    suspend fun refresh() {
+        val slug = activeVehicleSlug.value
+        withContext(Dispatchers.IO) {
+            val names = app.vehicleRepository.vehicleNames()
+            val vehicle = slug?.let { runCatching { app.vehicleRepository.loadVehicle(it).vehicle?.vehicle }.getOrNull() }
+            val summary = slug?.let(::loadSummary)
+            Triple(names, vehicle, summary)
+        }.let { (names, vehicle, summary) ->
+            _vehicleNames.value = names
+            _activeVehicle.value = vehicle
+            _summary.value = summary
+        }
     }
 
+    /** Runs on [Dispatchers.IO] already, via [refresh]'s own `withContext` block. */
     private fun loadSummary(slug: String): HomeSummary? = runCatching {
         val bundle = app.vehicleRepository.loadVehicle(slug)
         val fuel = bundle.fuel.entries
@@ -92,20 +109,28 @@ class HomeViewModel(private val app: TritiumApplication) : ViewModel() {
         }
     }
 
-    /** A vehicle's record by slug, or null when it has none / will not parse — the form's edit-mode load. */
-    fun loadVehicle(slug: String): VehicleDocument? =
-        runCatching { app.vehicleRepository.loadVehicle(slug).vehicle }.getOrNull()
+    /**
+     * A vehicle's record by slug, or null when it has none / will not
+     * parse — the form's edit-mode load. `suspend`, off the main thread
+     * (AF12 audit finding).
+     */
+    suspend fun loadVehicle(slug: String): VehicleDocument? =
+        withContext(Dispatchers.IO) { runCatching { app.vehicleRepository.loadVehicle(slug).vehicle }.getOrNull() }
 
     /**
      * Allocates a slug and writes `vehicle.toml` — AF3.md decision 7,
      * already true of [io.github.sudomegas.tritium.storage.VehicleRepository.saveVehicleRecord],
      * which never touches the other three files. Makes the new vehicle
      * active, since creating one with nothing else on the phone is the
-     * obvious thing to switch to.
+     * obvious thing to switch to. `suspend`, off the main thread (AF12
+     * audit finding).
      */
-    fun createVehicle(vehicle: Vehicle): String {
-        val slug = app.vehicleRepository.uniqueSlugForNewVehicle(vehicle.name)
-        app.vehicleRepository.saveVehicleRecord(slug, VehicleDocument(1, vehicle, emptyMap()))
+    suspend fun createVehicle(vehicle: Vehicle): String {
+        val slug = withContext(Dispatchers.IO) {
+            val allocated = app.vehicleRepository.uniqueSlugForNewVehicle(vehicle.name)
+            app.vehicleRepository.saveVehicleRecord(allocated, VehicleDocument(1, vehicle, emptyMap()))
+            allocated
+        }
         switchVehicle(slug)
         return slug
     }
@@ -115,14 +140,17 @@ class HomeViewModel(private val app: TritiumApplication) : ViewModel() {
      * 5). Reads only `vehicle.toml` to recover what it is not replacing
      * ([VehicleDocument.rest]'s carried unknown keys) — an unrelated corrupt
      * fuel/costs/service file must not stop the maker from fixing a
-     * vehicle's own name (AF12 audit finding).
+     * vehicle's own name (AF12 audit finding). `suspend`, off the main
+     * thread — the same finding.
      */
-    fun saveVehicle(slug: String, vehicle: Vehicle) {
-        val existing = app.vehicleRepository.loadVehicleRecord(slug)
-        app.vehicleRepository.saveVehicleRecord(
-            slug,
-            (existing ?: VehicleDocument(1, vehicle, emptyMap())).copy(vehicle = vehicle),
-        )
+    suspend fun saveVehicle(slug: String, vehicle: Vehicle) {
+        withContext(Dispatchers.IO) {
+            val existing = app.vehicleRepository.loadVehicleRecord(slug)
+            app.vehicleRepository.saveVehicleRecord(
+                slug,
+                (existing ?: VehicleDocument(1, vehicle, emptyMap())).copy(vehicle = vehicle),
+            )
+        }
         refresh()
     }
 
