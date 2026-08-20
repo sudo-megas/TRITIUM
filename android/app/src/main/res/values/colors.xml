@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-  PLACEHOLDER, matching ui/theme/TritiumTheme.kt exactly — deliberately wrong
-  so the pre-Compose window frame cannot be mistaken for finished design any
-  more than the Compose content can (AF1.md §2.1 decision 7).
--->
-<resources>
-    <color name="placeholder_window_background">#FFFF00FF</color>
-</resources>

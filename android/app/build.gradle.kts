@@ -27,11 +27,14 @@ android {
         // held at 1 through all of them — the same shape SAAT's own versionCode
         // held at 1 through AM1..AM10. AF11 was the first tagged release
         // ("1.0", AF1.md's own decision table). AF12's audit found real
-        // findings and fixed all of them (build/docs/AF12.md) — every fix is
-        // a real behavioural change reaching the shipped APK, so this moves
-        // again rather than staying at AF11's own tag.
-        versionCode = 3
-        versionName = "1.1"
+        // findings and fixed all of them (build/docs/AF12.md), moving this to
+        // "1.1". This move to "1.2" carries two maker-requested fixes with no
+        // AF doc of their own — the real launcher icon (build/icons/ finally
+        // reaching Android) and AF1.md §2.1 decision 7's placeholder window
+        // background — both real behavioural changes reaching the shipped
+        // APK, same reasoning as AF12's own bump.
+        versionCode = 4
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
