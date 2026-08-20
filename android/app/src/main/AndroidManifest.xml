@@ -103,6 +103,32 @@
                 android:name="autoStoreLocales"
                 android:value="false" />
         </service>
+
+        <!--
+          androidx.emoji2 (pulled in transitively via appcompat/Compose)
+          registers EmojiCompatInitializer under androidx.startup's own
+          InitializationProvider. Left in place, it asks a downloadable-font
+          ContentProvider (on a GMS device, com.google.android.gms.fonts) for
+          the emoji font on first cold start — an IPC that fetches the font
+          over the network, on this app's behalf, if it is not already cached
+          on the device. `aapt dump permissions` stays empty either way (this
+          process performs no network I/O and declares no permission for it),
+          but it is exactly the latent network capability XTRITIUM §3
+          principle 1 forbids, arriving from a dependency rather than from
+          any code in this repo. verifyManifestPolicy cannot catch this
+          class of leak — it scans only for permission elements — so it is
+          removed here instead, before it ever runs. AF12 audit finding.
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge"
+            tools:ignore="MissingClass">
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

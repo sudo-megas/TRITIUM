@@ -100,11 +100,11 @@ automated suite cannot fully stand in for.
    pattern AF6/AF7 already used for `highestOdometer`/`signedAmount`.
 2. **`VehicleFile.kt` gains `emitVehicleFields`**, the same split, for the
    same reason.
-3. **`storage/Bundle.kt`** — `buildBundle(vehicles: List<VehicleBundle>,
+3. **`storage/Bundle.kt`** — `Bundle.build(vehicles: List<VehicleBundle>,
    exportedDate: String): String`, the envelope plus one `[[vehicle]]`
    block (and its three entry arrays) per vehicle, via the fields above.
 4. **`ui/SettingsViewModel.kt`** grows `exportBundle(): String`, assembling
-   every vehicle from `VehicleRepository` and calling `buildBundle`.
+   every vehicle from `VehicleRepository` and calling `Bundle.build`.
 5. **`ui/screens/SettingsScreen.kt`** grows an Export section: a button,
    `rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(...))`,
    writing the bundle text to the chosen `Uri` via `ContentResolver`, and a

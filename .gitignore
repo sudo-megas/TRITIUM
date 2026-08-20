@@ -11,6 +11,14 @@ dist/
 release/
 *.pkg.tar.zst
 
+# Signing material. Never committed, under any circumstances. android/.gitignore
+# has carried these since AF1, but only covers paths below android/ — a
+# keystore generated at the repo root (a natural cwd, since that is where the
+# shell already is for git) would not be caught there. AF12 audit finding.
+*.jks
+*.keystore
+keystore.properties
+
 # makepkg's leavings, which land in packaging/ beside the PKGBUILD.
 #
 # The finished .pkg.tar.zst was already ignored above; everything else it drops
