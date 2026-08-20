@@ -25,11 +25,13 @@ android {
         // number as a decimal, versionCode is a monotonic integer bumped only
         // when a version is actually TAGGED. AF1..AF9b were untagged, so this
         // held at 1 through all of them — the same shape SAAT's own versionCode
-        // held at 1 through AM1..AM10. AF11 is the first tagged release, landing
-        // on "1.0" because AF1.md's own decision table already reserved that
-        // exact version for "the public release" under its old name, AF10.
-        versionCode = 2
-        versionName = "1.0"
+        // held at 1 through AM1..AM10. AF11 was the first tagged release
+        // ("1.0", AF1.md's own decision table). AF12's audit found real
+        // findings and fixed all of them (build/docs/AF12.md) — every fix is
+        // a real behavioural change reaching the shipped APK, so this moves
+        // again rather than staying at AF11's own tag.
+        versionCode = 3
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
