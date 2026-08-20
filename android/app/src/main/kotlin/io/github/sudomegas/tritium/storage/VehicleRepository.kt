@@ -92,6 +92,17 @@ class VehicleRepository(private val paths: TritiumPaths) {
     fun emptyBundle(slug: String): VehicleBundle =
         VehicleBundle(slug = slug, vehicle = null, fuel = emptyFuel(), costs = emptyCosts(), service = emptyService())
 
+    /**
+     * Just `vehicle.toml` — null when it is absent OR will not parse, never
+     * throwing. For a caller that needs the existing record (its own
+     * unrecognised keys, kept in `rest`) without paying for fuel/costs/
+     * service it will never touch: [loadVehicle] reads all four eagerly, so
+     * an unrelated corrupt fuel.toml would otherwise stop the maker from
+     * fixing a vehicle's own name. AF12 audit finding.
+     */
+    fun loadVehicleRecord(slug: String): VehicleDocument? =
+        runCatching { readVehicle(paths.vehicleToml(slug)) }.getOrNull()
+
     /** `slugFor`, with a numeric suffix when the name is already taken among the vehicles on disk. */
     fun uniqueSlugForNewVehicle(name: String): String = uniqueSlug(name, listVehicleSlugs().toSet())
 

@@ -57,6 +57,25 @@ class VehicleRepositoryTest {
     }
 
     @Test
+    fun `loadVehicleRecord reads only vehicle_toml, untroubled by a corrupt sibling`() {
+        val repository = repository()
+        repository.saveVehicleRecord("kia", VehicleDocument(1, EMPTY_VEHICLE.copy(name = "Kia"), emptyMap()))
+        java.io.File(tmp.root, "vehicles/kia/fuel.toml").writeText("not valid [[[")
+
+        assertEquals("Kia", repository.loadVehicleRecord("kia")?.vehicle?.name)
+    }
+
+    @Test
+    fun `loadVehicleRecord is null, not thrown, for an absent or corrupt vehicle_toml`() {
+        val repository = repository()
+        assertNull(repository.loadVehicleRecord("absent"))
+
+        java.io.File(tmp.root, "vehicles/broken").mkdirs()
+        java.io.File(tmp.root, "vehicles/broken/vehicle.toml").writeText("not valid [[[")
+        assertNull(repository.loadVehicleRecord("broken"))
+    }
+
+    @Test
     fun `addFuelEntry allocates the id and appends, without touching backups`() {
         val repository = repository()
 

@@ -110,9 +110,15 @@ class HomeViewModel(private val app: TritiumApplication) : ViewModel() {
         return slug
     }
 
-    /** Renaming edits `name` only — the slug never changes (AF3.md decision 5). */
+    /**
+     * Renaming edits `name` only — the slug never changes (AF3.md decision
+     * 5). Reads only `vehicle.toml` to recover what it is not replacing
+     * ([VehicleDocument.rest]'s carried unknown keys) — an unrelated corrupt
+     * fuel/costs/service file must not stop the maker from fixing a
+     * vehicle's own name (AF12 audit finding).
+     */
     fun saveVehicle(slug: String, vehicle: Vehicle) {
-        val existing = app.vehicleRepository.loadVehicle(slug).vehicle
+        val existing = app.vehicleRepository.loadVehicleRecord(slug)
         app.vehicleRepository.saveVehicleRecord(
             slug,
             (existing ?: VehicleDocument(1, vehicle, emptyMap())).copy(vehicle = vehicle),
