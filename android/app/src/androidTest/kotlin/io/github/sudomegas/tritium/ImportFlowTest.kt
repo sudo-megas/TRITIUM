@@ -93,14 +93,24 @@ class ImportFlowTest {
         )
         assertEquals(1, first.vehicles.size)
         assertTrue(first.vehicles.single().vehicleCreated)
-        assertEquals("kia", app.configState.config.value.activeVehicleSlug)
+        // The auto-activate write is dispatched via viewModelScope.launch
+        // (SettingsViewModel.importBundle) — called directly here rather
+        // than through a Compose click, so nothing paces this test to wait
+        // for it the way a real onClick would; wait for it explicitly.
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            app.configState.config.value.activeVehicleSlug == "kia"
+        }
 
         // Away and back to Home to force its per-visit refresh (AF3–AF9's
         // own established pattern) — its vehicle-name map was last read
         // before this import happened.
         composeRule.onNodeWithTag("nav_settings").performClick()
         composeRule.onNodeWithTag("nav_home").performClick()
-        composeRule.onAllNodesWithText("Kia Sportage").assertCountEquals(1)
+        // Not an exact count: the name legitimately appears twice on a
+        // real Home — the top bar title and the vehicle summary card —
+        // the point here is only that it appears at all, and the empty
+        // state does not.
+        assertTrue(composeRule.onAllNodesWithText("Kia Sportage").fetchSemanticsNodes().isNotEmpty())
         composeRule.onAllNodesWithText(context.getString(R.string.home_no_vehicle)).assertCountEquals(0)
 
         // 2 — a later import: "kia" is already active, and the bundle both
