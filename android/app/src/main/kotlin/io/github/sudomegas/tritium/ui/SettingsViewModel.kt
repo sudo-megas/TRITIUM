@@ -8,6 +8,7 @@ import io.github.sudomegas.tritium.config.AppConfig
 import io.github.sudomegas.tritium.config.ThemeMode
 import io.github.sudomegas.tritium.storage.Bundle
 import io.github.sudomegas.tritium.storage.Format
+import io.github.sudomegas.tritium.storage.ImportResult
 import io.github.sudomegas.tritium.storage.Units.ConsumptionUnit
 import io.github.sudomegas.tritium.storage.Units.DistanceUnit
 import io.github.sudomegas.tritium.storage.Units.VolumeUnit
@@ -82,6 +83,25 @@ class SettingsViewModel(private val app: TritiumApplication) : ViewModel() {
         val slugs = app.vehicleRepository.listVehicleSlugs()
         val vehicles = slugs.map { app.vehicleRepository.loadVehicle(it) }
         return Bundle.build(vehicles, Format.todayIso())
+    }
+
+    /**
+     * AF9b — the other direction. Throws [io.github.sudomegas.tritium.storage.BundleError]
+     * for a refused bundle; the caller reports it, nothing here catches it.
+     *
+     * A fresh phone (no vehicle active yet) is left on the first vehicle
+     * the bundle touches — [io.github.sudomegas.tritium.ui.HomeViewModel.createVehicle]'s
+     * own precedent, "the obvious thing to switch to" when nothing else is
+     * active — never overriding a vehicle already in use.
+     */
+    fun importBundle(text: String): ImportResult {
+        val result = app.vehicleRepository.importBundle(text)
+        if (app.configState.config.value.activeVehicleSlug == null) {
+            result.vehicles.firstOrNull()?.let { first ->
+                viewModelScope.launch { app.configState.update { it.copy(activeVehicleSlug = first.slug) } }
+            }
+        }
+        return result
     }
 
     companion object {

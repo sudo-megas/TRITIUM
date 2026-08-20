@@ -44,6 +44,12 @@
     <string name="export_success">Dışa aktarıldı. Dosyayı masaüstüne getirip orada içe aktarın.</string>
     <string name="export_failure">Dışa aktarılamadı. Hiçbir şey yazılmadı.</string>
 
+    <string name="import_title">İçe aktar</string>
+    <string name="import_hint">Başka bir telefonun dışa aktarımını buraya getirin. Zaten var olan kayıtlar atlanır, aynı dosyayı iki kez içe aktarmak hiçbir şey değiştirmez — üzerine yazılacak dosyalar önce backups/ içine kopyalanır. Yeni bir telefon mu kuruyorsunuz? İçe aktarmadan önce aynı para birimini seçin; sonradan değiştirilemez.</string>
+    <string name="import_action">Dosya seç…</string>
+    <string name="import_success">İçe aktarıldı. %1$d eklendi, %2$d zaten vardı.</string>
+    <string name="import_failure">İçe aktarılmadı. Dosya bir TRITIUM dışa aktarımı değil ya da daha yeni bir sürüm tarafından yazılmış. Hiçbir şey değiştirilmedi.</string>
+
     <string name="settings_title">Ayarlar</string>
     <string name="settings_language">Dil</string>
     <string name="settings_language_en">English</string>

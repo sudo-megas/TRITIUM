@@ -3,6 +3,7 @@ package io.github.sudomegas.tritium.storage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 
 class BundleTest {
@@ -150,5 +151,70 @@ class BundleTest {
         val text = Bundle.build(listOf(unreadable, emptyVehicle), "2026-08-19")
         assertEquals(1, Regex("\\[\\[vehicle\\]\\]").findAll(text).count())
         assertTrue(text.contains("slug = \"spare\""))
+    }
+
+    // -- AF9b: identity keys and Bundle.read's refusals -----------------
+
+    @Test
+    fun `fuelKey is date plus odometer only`() {
+        val entry = fullVehicle.fuel.entries.first()
+        assertEquals("2026-08-16|19764", fuelKey(entry))
+    }
+
+    @Test
+    fun `serviceKey needs part too — tyres and an oil change, same day and reading, are two records`() {
+        val entry = fullVehicle.service.entries.first()
+        assertEquals("2025-05-14|370|Michelin Primacy 4 S1 235/50R19 103V XL", serviceKey(entry))
+    }
+
+    @Test
+    fun `costKey carries no odometer — a bill is a sum, in a category, on a day`() {
+        val entry = fullVehicle.costs.entries.first()
+        assertEquals("2026-04-11|trafik-sigortasi|1174600", costKey(entry))
+    }
+
+    @Test
+    fun `read accepts a well-formed envelope and returns the vehicle table`() {
+        val text = Bundle.build(listOf(fullVehicle), "2026-08-19")
+        val document = Bundle.read(text)
+        assertEquals(1, asTableArray(document["vehicle"]).size)
+    }
+
+    @Test
+    fun `read refuses a file with no tritium-export format key`() {
+        val refusal = readRefusal("format = \"something-else\"\nformat_version = 1\n")
+        assertTrue(refusal is BundleRefusal.NotABundle)
+    }
+
+    @Test
+    fun `read refuses a format_version higher than this build understands`() {
+        val refusal = readRefusal("format = \"tritium-export\"\nformat_version = 99\n")
+        assertTrue(refusal is BundleRefusal.TooNew)
+        val tooNew = refusal as BundleRefusal.TooNew
+        assertEquals(99, tooNew.found)
+        assertEquals(Bundle.FORMAT_VERSION, tooNew.understood)
+    }
+
+    @Test
+    fun `read refuses text that is not valid TOML at all`() {
+        val refusal = readRefusal("this is not = = toml [[[")
+        assertTrue(refusal is BundleRefusal.Unreadable)
+    }
+
+    @Test
+    fun `a missing format_version reads as 0 — never too-new`() {
+        // A bundle from before this key existed is not from the future.
+        val document = Bundle.read("format = \"tritium-export\"\n")
+        assertEquals(0, asTableArray(document["vehicle"]).size)
+    }
+
+    private fun readRefusal(text: String): BundleRefusal {
+        try {
+            Bundle.read(text)
+            fail("expected BundleError")
+        } catch (e: BundleError) {
+            return e.refusal
+        }
+        error("unreachable")
     }
 }

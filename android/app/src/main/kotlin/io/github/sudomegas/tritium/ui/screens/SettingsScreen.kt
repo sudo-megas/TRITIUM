@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -86,6 +87,10 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
 
+        ImportSection(viewModel)
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
+
         AboutSection()
     }
 }
@@ -130,6 +135,72 @@ private fun ExportSection(viewModel: SettingsViewModel) {
     }
     status?.let {
         Text(text = it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+/**
+ * The other direction (AF9b.md §1) — `ACTION_OPEN_DOCUMENT`, the read-side
+ * sibling of [ExportSection]'s own `ACTION_CREATE_DOCUMENT`. The MIME
+ * filter is left wide open to every type: F16 §3 registers no MIME type
+ * for this format, so filtering by one risks a picker hiding a legitimate
+ * file however another app happened to tag it. The report is two numbers
+ * on success — added, skipped, summed across every vehicle and kind — or
+ * one generic failure text, matching the desktop's own `runImport`, which
+ * does not surface *why* a refusal happened either.
+ */
+@Composable
+private fun ImportSection(viewModel: SettingsViewModel) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    var status by remember { mutableStateOf<String?>(null) }
+    val failureText = stringResource(id = R.string.import_failure)
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        status = runCatching {
+            val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                ?: error("unreadable")
+            viewModel.importBundle(text)
+        }.fold(
+            onSuccess = { result ->
+                val added = result.vehicles.sumOf { it.added.fuel + it.added.costs + it.added.service }
+                val skipped = result.vehicles.sumOf { it.skipped.fuel + it.skipped.costs + it.skipped.service }
+                // LocalResources, not context.getString — a Compose lint
+                // rule (LocalContextGetResourceValueCall) flags the latter
+                // as stale-on-Configuration-change; this is its own
+                // suggested fix, needed here because the args (added,
+                // skipped) are only known once the callback fires, too
+                // late for stringResource's own composable call.
+                resources.getString(R.string.import_success, added, skipped)
+            },
+            onFailure = { failureText },
+        )
+    }
+
+    Text(
+        text = stringResource(id = R.string.import_title),
+        style = MaterialTheme.typography.titleMedium,
+    )
+    Text(
+        text = stringResource(id = R.string.import_hint),
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+    Button(
+        modifier = Modifier.padding(top = 8.dp).testTag("importButton"),
+        onClick = {
+            status = null
+            launcher.launch(arrayOf("*/*"))
+        },
+    ) {
+        Text(stringResource(id = R.string.import_action))
+    }
+    status?.let {
+        Text(
+            text = it,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 8.dp).testTag("importReport"),
+        )
     }
 }
 

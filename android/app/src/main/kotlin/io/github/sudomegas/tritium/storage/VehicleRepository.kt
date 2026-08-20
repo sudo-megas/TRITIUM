@@ -1,5 +1,8 @@
 package io.github.sudomegas.tritium.storage
 
+import dev.eav.tomlkt.TomlTable
+import java.time.LocalDateTime
+
 /** Everything one vehicle directory holds, read whole at once (XTRITIUM §4.1). */
 data class VehicleBundle(
     val slug: String,
@@ -217,5 +220,91 @@ class VehicleRepository(private val paths: TritiumPaths) {
         Backup.backupFiles(paths, vehicleFiles(slug))
         writeService(file, document.copy(entries = document.entries.filterNot { it.id == id }))
         return true
+    }
+
+    // -- Import (AF9b) -------------------------------------------------------
+
+    /**
+     * Import a bundle another phone (or the desktop) wrote (F16, AF9b.md
+     * §1) — ported from the desktop's own `importBundle` (`import.ts`).
+     * Everything is planned against what is on disk right now before a
+     * byte is written: a refused bundle ([Bundle.read] throws
+     * [BundleError]) or an existing file this build cannot parse
+     * ([loadVehicle] throws [CorruptRecordException]) leaves every file
+     * exactly as it was. One backup round covers every file about to
+     * change; then one write per file, never a loop of `addFuelEntry`.
+     *
+     * Deliberately ignorant of `ConfigState`/`activeVehicleSlug` — matching
+     * this class's own stateless boundary (AF1.md §1.2). Deciding whether
+     * to activate an imported vehicle is
+     * [io.github.sudomegas.tritium.ui.SettingsViewModel.importBundle]'s job.
+     */
+    fun importBundle(text: String, now: LocalDateTime = LocalDateTime.now()): ImportResult {
+        val document = Bundle.read(text)
+        val known = listVehicleSlugs().toSet()
+
+        data class Planned(
+            val slug: String,
+            val create: Boolean,
+            val vehicleTable: TomlTable,
+            val fuel: FuelDocument,
+            val costs: CostDocument,
+            val service: ServiceDocument,
+            val tally: ImportTally,
+        )
+
+        val planned = mutableListOf<Planned>()
+
+        for (raw in asTableArray(document["vehicle"])) {
+            val slug = readString(raw, "slug")
+            if (slug.isEmpty()) continue
+
+            val create = slug !in known
+            // A file this build cannot parse throws CorruptRecordException
+            // here, before anything is written — the "nothing
+            // half-applied" property the desktop's own importBundle keeps.
+            val bundle = if (create) emptyBundle(slug) else loadVehicle(slug)
+
+            val (fuelDoc, fuelCounts) =
+                mergeEntries(bundle.fuel, asTableArray(raw["fuel"]), FuelSpec, ::fuelKey, RecordKind.FUEL)
+            val (costsDoc, costsCounts) =
+                mergeEntries(bundle.costs, asTableArray(raw["costs"]), CostSpec, ::costKey, RecordKind.COST)
+            val (serviceDoc, serviceCounts) =
+                mergeEntries(bundle.service, asTableArray(raw["service"]), ServiceSpec, ::serviceKey, RecordKind.SERVICE)
+
+            planned += Planned(
+                slug = slug,
+                create = create,
+                vehicleTable = raw,
+                fuel = fuelDoc,
+                costs = costsDoc,
+                service = serviceDoc,
+                tally = ImportTally(
+                    slug = slug,
+                    vehicleCreated = create,
+                    added = Counts(fuelCounts.added, costsCounts.added, serviceCounts.added),
+                    skipped = Counts(fuelCounts.skipped, costsCounts.skipped, serviceCounts.skipped),
+                ),
+            )
+        }
+
+        // Every file about to change, in ONE round, before a byte of it
+        // does — a vehicle being created or entirely skip-wins-deduped has
+        // nothing to preserve and gets no round (backupFiles already skips
+        // a file that does not exist).
+        val touching = planned.filter { it.tally.totalAdded() > 0 }.flatMap { vehicleFiles(it.slug) }
+        Backup.backupFiles(paths, touching, now)
+
+        // One write per file. A vehicle already here keeps its own
+        // vehicle.toml — a bundle adds entries to a vehicle, it never
+        // rewrites the vehicle (F16 §2.2).
+        for (plan in planned) {
+            if (plan.create) saveVehicleRecord(plan.slug, readVehicleTable(vehicleTableOf(plan.vehicleTable)))
+            if (plan.tally.added.fuel > 0) saveFuel(plan.slug, plan.fuel)
+            if (plan.tally.added.costs > 0) saveCosts(plan.slug, plan.costs)
+            if (plan.tally.added.service > 0) saveService(plan.slug, plan.service)
+        }
+
+        return ImportResult(planned.map { it.tally })
     }
 }

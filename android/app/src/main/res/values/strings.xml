@@ -59,6 +59,16 @@
     <string name="export_success">Exported. Bring the file to the desktop and import it there.</string>
     <string name="export_failure">Not exported. Nothing was written.</string>
 
+    <!-- Import — AF9b. The other direction: another phone's export, coming in.
+         Wording adapted from the desktop's own settings.import* keys
+         (src/renderer/i18n/en.json), since the format and the skip-wins/
+         backups guarantee are the same on both platforms. -->
+    <string name="import_title">Import</string>
+    <string name="import_hint">Bring another phone\'s export across. Records you already have are skipped, so importing the same file twice changes nothing — what it overwrites is copied into backups/ first. Setting up a new phone? Pick the same currency before you import; it can\'t be changed afterwards.</string>
+    <string name="import_action">Choose a file…</string>
+    <string name="import_success">Imported. %1$d added, %2$d already here.</string>
+    <string name="import_failure">Not imported. The file is not a TRITIUM export, or it was written by a newer version. Nothing was changed.</string>
+
     <!-- Settings — AF1 ships the language switch, AF9 the rest. -->
     <string name="settings_title">Settings</string>
     <string name="settings_language">Language</string>
