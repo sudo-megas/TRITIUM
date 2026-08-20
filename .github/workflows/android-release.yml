@@ -1,0 +1,100 @@
+# Build + verify TRITIUM for Android on a tagged release. No signing here —
+# AF11.md §1, XTRITIUM §9.3: no signing key is ever stored on any server. The
+# desktop's own package.yml states the identical rule for its own release
+# ("The package is NOT signed here... the signature is made on his machine").
+# This workflow proves the tagged commit builds clean and ships zero
+# permissions, and hands off an unsigned APK as a workflow artifact for
+# provenance only — it is never attached to the public GitHub Release. Signing,
+# the real install check, and publishing the release itself all happen once,
+# locally, on the maker's own machine (docs in AF11.md §1), reading
+# `~/.gradle/gradle.properties` — which this workflow never has.
+#
+# android-ci.yml is path-filtered to android/** so it never fires for the
+# desktop; this fires on an explicit tag only, already a decision made on
+# purpose, so no path filter here.
+
+name: Android Release
+
+on:
+  push:
+    tags: ['android-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # Only a real tag has a tag to disagree with — workflow_dispatch is the
+      # dry run and has none.
+      - name: Check the tag agrees with versionName
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          TAG_VERSION="${GITHUB_REF_NAME#android-v}"
+          if [ "${TAG_VERSION}" != "${VERSION}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match versionName ${VERSION}"
+            exit 1
+          fi
+          echo "tag and versionName agree: ${VERSION}"
+
+      # The full suite, not the subset android-ci.yml runs on every push — a
+      # release is the one build where running everything is obviously worth
+      # the minutes.
+      - name: Check
+        run: ./gradlew --no-daemon check
+
+      # No TRITIUM_KEYSTORE_FILE here — this runner has never seen the
+      # keystore, so build.gradle.kts's own releaseKeystore(project) returns
+      # null and this is, correctly, unsigned.
+      - name: Assemble the release APK (unsigned)
+        run: ./gradlew --no-daemon assembleRelease
+
+      # One layer further out than verifyReleaseManifestPolicy: that task reads
+      # the MERGED manifest before packaging; this reads the actual artifact
+      # that would ship, the same belt-and-braces check the sibling Android
+      # port runs on its own release build.
+      - name: Sanity-check the built APK
+        run: |
+          set -euo pipefail
+          APK=$(ls app/build/outputs/apk/release/*.apk)
+          ANALYZER=$(ls "${ANDROID_HOME}"/cmdline-tools/*/bin/apkanalyzer | sort -V | tail -1)
+
+          echo "--- the zero-permission claim, on the built artefact"
+          PERMISSIONS="$("${ANALYZER}" manifest permissions "${APK}")"
+          if [ -n "${PERMISSIONS}" ]; then
+            echo "::error::the release APK declares a permission — XTRITIUM §3 principle 1"
+            echo "${PERMISSIONS}"
+            exit 1
+          fi
+          echo "no permissions declared"
+
+          echo "--- size"
+          "${ANALYZER}" apk summary "${APK}"
+
+      - name: Upload the unsigned APK as a workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: tritium-android-unsigned-${{ github.sha }}
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error

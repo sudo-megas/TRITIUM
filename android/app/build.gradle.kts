@@ -23,18 +23,51 @@ android {
 
         // XTRITIUM §9.1's resolved scheme: versionName tracks the AF-milestone
         // number as a decimal, versionCode is a monotonic integer bumped only
-        // when a version is actually TAGGED. AF1 is untagged (AF1.md §5), so
-        // this stays 1 through every untagged milestone that follows it — the
-        // same shape SAAT's own versionCode held at 1 through AM1..AM10, only
-        // moving once AM11 became a real release.
-        versionCode = 1
-        versionName = "0.9"
+        // when a version is actually TAGGED. AF1..AF9b were untagged, so this
+        // held at 1 through all of them — the same shape SAAT's own versionCode
+        // held at 1 through AM1..AM10. AF11 is the first tagged release, landing
+        // on "1.0" because AF1.md's own decision table already reserved that
+        // exact version for "the public release" under its old name, AF10.
+        versionCode = 2
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // No signingConfigs block. AF1.md §3 (SCOPE OUT): signing is AF10's, gated
-    // on AF8's export path existing first. Every build here is unsigned.
+    /**
+     * Release signing — AF11.md §1.
+     *
+     * NOTHING SECRET IS IN THIS REPOSITORY, and nothing ever may be. The
+     * keystore reaches a build through Gradle properties in
+     * `~/.gradle/gradle.properties`, outside the tree — mirrors the sibling
+     * Android port's own established convention (sudo-megas/SAAT,
+     * `releaseKeystore(project)`), renamed for this app. `android/.gitignore`
+     * has carried `*.keystore`, `*.jks` and `keystore.properties` since AF1,
+     * before any keystore existed to be careless with.
+     *
+     * CI never holds this key at all (XTRITIUM §9.3 — no signing key is ever
+     * stored on a server): `android-release.yml` builds an UNSIGNED release
+     * APK and stops there. Signing happens once, locally, on the maker's own
+     * machine, exactly as the desktop's own `package.yml` leaves its own
+     * signature step to the maker.
+     *
+     * CONFIGURED ONLY WHEN THE MATERIAL IS ACTUALLY THERE, so `assembleDebug`,
+     * the unit tests and `check` all keep working on a machine — including
+     * every CI run — that has never seen the keystore. An always-present
+     * signing config would fail configuration for all of them.
+     */
+    val keystore = releaseKeystore(project)
+    if (keystore != null) {
+        signingConfigs {
+            create("release") {
+                storeFile = keystore.file
+                storePassword = keystore.storePassword
+                keyAlias = keystore.keyAlias
+                keyPassword = keystore.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,6 +75,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Null when no keystore was supplied, which AGP reads as "do not
+            // sign" rather than as an error — see above.
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
@@ -148,4 +184,60 @@ dependencies {
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
+}
+
+/**
+ * Where the release signing material comes from — AF11.md §1.
+ *
+ * Gradle properties only, and never the repository: `~/.gradle/gradle.properties`
+ * is outside the tree and is not backed up into it. That is how the maker signs
+ * a build by hand, on the machine that holds `tritium-release.jks`.
+ *
+ * Returns null when the material is absent or the file it names does not exist,
+ * so an ordinary build — including every CI run, which never has this file —
+ * simply produces an unsigned release APK. A missing keystore is not an error
+ * here; shipping one that is not signed is, and that is the maker's own local
+ * verification step to catch before a signed APK ever reaches a release page.
+ */
+data class ReleaseKeystore(
+    val file: File,
+    val storePassword: String,
+    val keyAlias: String,
+    val keyPassword: String,
+)
+
+fun releaseKeystore(project: Project): ReleaseKeystore? {
+    fun value(name: String): String? =
+        (System.getenv(name) ?: project.findProperty(name)?.toString())
+            ?.takeIf { it.isNotBlank() }
+
+    val path = value("TRITIUM_KEYSTORE_FILE") ?: return null
+    val file = File(path)
+    if (!file.isFile) {
+        project.logger.lifecycle(
+            "TRITIUM_KEYSTORE_FILE is set to $path but no file is there — " +
+                "building the release variant UNSIGNED."
+        )
+        return null
+    }
+
+    val missing = listOf(
+        "TRITIUM_KEYSTORE_PASSWORD", "TRITIUM_KEY_ALIAS", "TRITIUM_KEY_PASSWORD",
+    ).filter { value(it) == null }
+
+    if (missing.isNotEmpty()) {
+        project.logger.lifecycle(
+            "TRITIUM_KEYSTORE_FILE is set but $missing " +
+                "${if (missing.size == 1) "is" else "are"} not — " +
+                "building the release variant UNSIGNED."
+        )
+        return null
+    }
+
+    return ReleaseKeystore(
+        file = file,
+        storePassword = value("TRITIUM_KEYSTORE_PASSWORD")!!,
+        keyAlias = value("TRITIUM_KEY_ALIAS")!!,
+        keyPassword = value("TRITIUM_KEY_PASSWORD")!!,
+    )
 }
