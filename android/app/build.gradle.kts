@@ -31,17 +31,26 @@ android {
         // "1.1". "1.2" carried two maker-requested fixes with no AF doc of
         // their own — the real launcher icon (build/icons/ finally reaching
         // Android) and AF1.md §2.1 decision 7's placeholder window background.
-        // This move to "1.3" is 1.2's own launcher icon fix corrected: the
-        // adaptive icon (mipmap-anydpi-v26) was the only launcher icon
-        // resource, and some OEM launchers (reported: Honor/MagicOS) render
-        // apps with no legacy mipmap-<density>/ic_launcher(_round).png
-        // fallback with a blank icon and blank label in the app drawer,
-        // even on API 26+. Added the flat PNG fallback at all five densities,
-        // generated from the same build/icons/1024.png source and the same
-        // one-image treatment (no separate foreground) 1.2's adaptive icon
-        // already used.
-        versionCode = 5
-        versionName = "1.3"
+        // "1.3" tried the wrong fix for 1.2's own launcher icon regression:
+        // it added legacy mipmap-<density>/ic_launcher(_round).png fallbacks,
+        // reasoning some OEM launchers (reported: Honor/MagicOS) don't render
+        // adaptive-icon-only apps. Confirmed on the reporting device
+        // (Honor 200 Ultra, MagicOS 10 / Android 16) that this did not fix
+        // it — expected in hindsight, since mipmap-anydpi-v26 always outranks
+        // density-only buckets on API 26+, so a broken adaptive icon never
+        // even reaches the fallback. This move to "1.4" is the real fix:
+        // ic_launcher_background.png had a rounded-square mask baked into
+        // its own alpha channel (fully transparent corners), which violates
+        // the adaptive-icon spec's requirement that the background layer be
+        // fully opaque — the system, not the app, is supposed to apply the
+        // mask shape. That is the one documented spec violation in these
+        // assets, and the one whose failure mode (PackageManager silently
+        // substituting the default icon, in both Settings and the launcher)
+        // matches what was reported. The corners are now filled with the
+        // artwork's own border colour instead of left transparent — visually
+        // identical, but opaque, letting the OS apply its own mask again.
+        versionCode = 6
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
