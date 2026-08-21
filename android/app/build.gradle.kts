@@ -31,42 +31,38 @@ android {
         // "1.1". "1.2" carried two maker-requested fixes with no AF doc of
         // their own — the real launcher icon (build/icons/ finally reaching
         // Android) and AF1.md §2.1 decision 7's placeholder window background.
-        // "1.3" tried the wrong fix for 1.2's own launcher icon regression:
-        // it added legacy mipmap-<density>/ic_launcher(_round).png fallbacks,
-        // reasoning some OEM launchers (reported: Honor/MagicOS) don't render
-        // adaptive-icon-only apps. Confirmed on the reporting device
-        // (Honor 200 Ultra, MagicOS 10 / Android 16) that this did not fix
-        // it — expected in hindsight, since mipmap-anydpi-v26 always outranks
-        // density-only buckets on API 26+, so a broken adaptive icon never
-        // even reaches the fallback. This move to "1.4" is the real fix:
-        // ic_launcher_background.png had a rounded-square mask baked into
-        // its own alpha channel (fully transparent corners), which violates
-        // the adaptive-icon spec's requirement that the background layer be
-        // fully opaque — the system, not the app, is supposed to apply the
-        // mask shape. That is the one documented spec violation in these
-        // assets, and the one whose failure mode (PackageManager silently
-        // substituting the default icon, in both Settings and the launcher)
-        // matches what was reported. The corners are now filled with the
-        // artwork's own border colour instead of left transparent — visually
-        // identical, but opaque, letting the OS apply its own mask again.
-        // Confirmed on the same device: fixed the launcher's blank LABEL
-        // (TRITIUM now sorts and shows correctly), but the icon itself was
-        // still Android's system default, so 1.4 was a real fix for a real
-        // spec violation and NOT the cause of the reported bug. This move to
-        // "1.5" is the remaining source-level hypothesis, not a confirmed
-        // fix: ic_launcher_foreground.xml has been a content-less <vector>
-        // (zero <path> elements) since 1.2, unchanged across every attempt
-        // so far. AOSP's own AdaptiveIconDrawable.inflate() has no path-count
-        // check and renders it fine — but that only speaks to stock Android,
-        // not to whatever MagicOS's own icon compositor does with the
-        // foreground layer (shadow/effect generation, bounds analysis, etc.
-        // are plausibly OEM additions, not AOSP). Replaced the path-less
-        // vector with one real, fully transparent (alpha 0) path covering
-        // the full canvas — same net visual result, nothing drawn — so a
-        // renderer that mishandles literally zero drawing commands now gets
-        // real (if invisible) content instead.
-        versionCode = 7
-        versionName = "1.5"
+        //
+        // "1.2"'s own launcher icon shipped broken: blank icon, blank label,
+        // in the drawer on Honor/MagicOS (reported: Honor 200 Ultra, MagicOS
+        // 10 / Android 16). Three untagged, never-released debug builds
+        // chased it before landing the real fix — kept here since each ruled
+        // something concrete out, on the actual reporting device, not just in
+        // theory:
+        //   - legacy mipmap-<density>/ic_launcher(_round).png fallbacks
+        //     alongside the adaptive icon: no effect, and expected in
+        //     hindsight — mipmap-anydpi-v26 always outranks density-only
+        //     buckets on API 26+, so a broken adaptive icon never even
+        //     reaches that fallback.
+        //   - ic_launcher_background.png's corners were fully transparent
+        //     (a rounded-square mask baked into its own alpha channel),
+        //     violating the adaptive-icon spec's requirement that the
+        //     background layer be fully opaque — the system, not the app,
+        //     applies the mask shape. Flattening the corners to the
+        //     artwork's own border colour fixed the drawer's blank LABEL,
+        //     but not the icon itself, so this was a real fix for a real
+        //     spec violation and NOT the reported bug's cause.
+        //   - ic_launcher_foreground.xml had been a content-less <vector>
+        //     (zero <path> elements) since the regression. AOSP's own
+        //     AdaptiveIconDrawable.inflate() has no path-count check and
+        //     renders that fine, but MagicOS's own icon compositor does not
+        //     tolerate it. Replacing it with one real, fully transparent
+        //     (alpha 0) path covering the full canvas — same net visual
+        //     result, nothing drawn — fixed the icon. Confirmed on the same
+        //     device: the launcher now shows TRITIUM's actual artwork.
+        // This move to "1.3" is that fix, released under 1.2's own next
+        // number since none of the three debug builds were ever tagged.
+        versionCode = 5
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
