@@ -1,13 +1,19 @@
-# Build + verify TRITIUM for Android on a tagged release. No signing here —
-# AF11.md §1, XTRITIUM §9.3: no signing key is ever stored on any server. The
-# desktop's own package.yml states the identical rule for its own release
-# ("The package is NOT signed here... the signature is made on his machine").
-# This workflow proves the tagged commit builds clean and ships zero
-# permissions, and hands off an unsigned APK as a workflow artifact for
-# provenance only — it is never attached to the public GitHub Release. Signing,
-# the real install check, and publishing the release itself all happen once,
-# locally, on the maker's own machine (docs in AF11.md §1), reading
-# `~/.gradle/gradle.properties` — which this workflow never has.
+# Build + verify TRITIUM for Android on a tagged release.
+#
+# AF11.md §1 / XTRITIUM §9.3 originally required that no signing key ever be
+# stored on any server, mirroring the desktop's own package.yml. That was the
+# default until the maker explicitly asked otherwise (the alternative — a
+# local build on his own machine — needed tooling he wasn't willing to
+# install), so this workflow now signs the release APK from a repository
+# secret instead. This is a deliberate, named exception to that principle,
+# not a quiet reversal of it: TRITIUM_KEYSTORE_BASE64 (the keystore, base64'd)
+# and TRITIUM_KEYSTORE_PASSWORD/TRITIUM_KEY_ALIAS/TRITIUM_KEY_PASSWORD live in
+# this repo's Actions secrets, decoded to a runner-local temp file that never
+# leaves the job and is never written to the workflow's own logs or the
+# repository. If those secrets are absent (a fork, a dry-run
+# workflow_dispatch without them configured), build.gradle.kts's own
+# releaseKeystore(project) returns null exactly as before and the build is,
+# correctly, unsigned — this workflow does not require them to succeed.
 #
 # android-ci.yml is path-filtered to android/** so it never fires for the
 # desktop; this fires on an explicit tag only, already a decision made on
@@ -64,10 +70,28 @@ jobs:
       - name: Check
         run: ./gradlew --no-daemon check
 
-      # No TRITIUM_KEYSTORE_FILE here — this runner has never seen the
-      # keystore, so build.gradle.kts's own releaseKeystore(project) returns
-      # null and this is, correctly, unsigned.
-      - name: Assemble the release APK (unsigned)
+      # Decodes straight to $RUNNER_TEMP, outside the working directory and
+      # never committed or logged. Conditioned on the secret existing at all
+      # so a fork or a secrets-less workflow_dispatch skips this cleanly
+      # rather than failing on an empty `base64 -d`.
+      - name: Decode the release keystore
+        if: ${{ secrets.TRITIUM_KEYSTORE_BASE64 != '' }}
+        env:
+          TRITIUM_KEYSTORE_BASE64: ${{ secrets.TRITIUM_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          echo "${TRITIUM_KEYSTORE_BASE64}" | base64 -d > "${RUNNER_TEMP}/tritium-release.jks"
+
+      # TRITIUM_KEYSTORE_FILE only set when the decode step above actually
+      # ran — build.gradle.kts's own releaseKeystore(project) reads these
+      # four and returns null (an unsigned build, same as before) whenever
+      # any is unset, so a secrets-less run is still correctly unsigned.
+      - name: Assemble the release APK
+        env:
+          TRITIUM_KEYSTORE_FILE: ${{ secrets.TRITIUM_KEYSTORE_BASE64 != '' && format('{0}/tritium-release.jks', runner.temp) || '' }}
+          TRITIUM_KEYSTORE_PASSWORD: ${{ secrets.TRITIUM_KEYSTORE_PASSWORD }}
+          TRITIUM_KEY_ALIAS: ${{ secrets.TRITIUM_KEY_ALIAS }}
+          TRITIUM_KEY_PASSWORD: ${{ secrets.TRITIUM_KEY_PASSWORD }}
         run: ./gradlew --no-daemon assembleRelease
 
       # One layer further out than verifyReleaseManifestPolicy: that task reads
@@ -79,6 +103,7 @@ jobs:
           set -euo pipefail
           APK=$(ls app/build/outputs/apk/release/*.apk)
           ANALYZER=$(ls "${ANDROID_HOME}"/cmdline-tools/*/bin/apkanalyzer | sort -V | tail -1)
+          BUILD_TOOLS=$(ls -d "${ANDROID_HOME}"/build-tools/*/ | sort -V | tail -1)
 
           echo "--- the zero-permission claim, on the built artefact"
           PERMISSIONS="$("${ANALYZER}" manifest permissions "${APK}")"
@@ -89,12 +114,15 @@ jobs:
           fi
           echo "no permissions declared"
 
+          echo "--- signature"
+          "${BUILD_TOOLS}apksigner" verify --print-certs "${APK}" || echo "not signed (no keystore secret configured for this run)"
+
           echo "--- size"
           "${ANALYZER}" apk summary "${APK}"
 
-      - name: Upload the unsigned APK as a workflow artifact
+      - name: Upload the release APK as a workflow artifact
         uses: actions/upload-artifact@v7
         with:
-          name: tritium-android-unsigned-${{ github.sha }}
+          name: tritium-android-${{ github.sha }}
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
