@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Empty on purpose — the maker's own artwork (build/icons/) is the
-     background layer in full; there is no separate foreground graphic to
-     draw over it, the same one-image treatment F13.md gives the desktop
-     icon. -->
+<!-- No separate foreground graphic on purpose — the maker's own artwork
+     (build/icons/) is the background layer in full, the same one-image
+     treatment F13.md gives the desktop icon. A fully transparent full-canvas
+     path rather than a path-less <vector>: a content-less vector inflates
+     fine on stock AOSP (AdaptiveIconDrawable.inflate() has no path-count
+     check), but v1.2/1.4 both shipped an empty one and the icon still fell
+     back to Android's default on the reporting device (Honor 200 Ultra,
+     MagicOS 10) even after 1.4 fixed the background's own separate opacity
+     violation — so a MagicOS-side icon compositor choking on a drawable
+     with literally zero drawing commands is the remaining candidate this
+     rules in/out. Same net visual result either way: nothing drawn. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
-    android:viewportHeight="108" />
+    android:viewportHeight="108">
+    <path
+        android:pathData="M0,0h108v108h-108z"
+        android:fillColor="#00FFFFFF" />
+</vector>

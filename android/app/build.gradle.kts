@@ -49,8 +49,24 @@ android {
         // matches what was reported. The corners are now filled with the
         // artwork's own border colour instead of left transparent — visually
         // identical, but opaque, letting the OS apply its own mask again.
-        versionCode = 6
-        versionName = "1.4"
+        // Confirmed on the same device: fixed the launcher's blank LABEL
+        // (TRITIUM now sorts and shows correctly), but the icon itself was
+        // still Android's system default, so 1.4 was a real fix for a real
+        // spec violation and NOT the cause of the reported bug. This move to
+        // "1.5" is the remaining source-level hypothesis, not a confirmed
+        // fix: ic_launcher_foreground.xml has been a content-less <vector>
+        // (zero <path> elements) since 1.2, unchanged across every attempt
+        // so far. AOSP's own AdaptiveIconDrawable.inflate() has no path-count
+        // check and renders it fine — but that only speaks to stock Android,
+        // not to whatever MagicOS's own icon compositor does with the
+        // foreground layer (shadow/effect generation, bounds analysis, etc.
+        // are plausibly OEM additions, not AOSP). Replaced the path-less
+        // vector with one real, fully transparent (alpha 0) path covering
+        // the full canvas — same net visual result, nothing drawn — so a
+        // renderer that mishandles literally zero drawing commands now gets
+        // real (if invisible) content instead.
+        versionCode = 7
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
