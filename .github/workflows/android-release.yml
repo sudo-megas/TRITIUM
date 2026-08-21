@@ -71,24 +71,30 @@ jobs:
         run: ./gradlew --no-daemon check
 
       # Decodes straight to $RUNNER_TEMP, outside the working directory and
-      # never committed or logged. Conditioned on the secret existing at all
-      # so a fork or a secrets-less workflow_dispatch skips this cleanly
-      # rather than failing on an empty `base64 -d`.
+      # never committed or logged. The branch lives in the shell, not a step
+      # `if:` — the secrets context isn't readable there at all (confirmed by
+      # a real "Unrecognized named-value: 'secrets'" run failure, not just
+      # docs), only in `env:`/`run:`.
       - name: Decode the release keystore
-        if: ${{ secrets.TRITIUM_KEYSTORE_BASE64 != '' }}
         env:
           TRITIUM_KEYSTORE_BASE64: ${{ secrets.TRITIUM_KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
-          echo "${TRITIUM_KEYSTORE_BASE64}" | base64 -d > "${RUNNER_TEMP}/tritium-release.jks"
+          if [ -n "${TRITIUM_KEYSTORE_BASE64:-}" ]; then
+            echo "${TRITIUM_KEYSTORE_BASE64}" | base64 -d > "${RUNNER_TEMP}/tritium-release.jks"
+            echo "keystore decoded"
+          else
+            echo "no keystore secret configured -- building unsigned"
+          fi
 
-      # TRITIUM_KEYSTORE_FILE only set when the decode step above actually
-      # ran — build.gradle.kts's own releaseKeystore(project) reads these
-      # four and returns null (an unsigned build, same as before) whenever
-      # any is unset, so a secrets-less run is still correctly unsigned.
+      # TRITIUM_KEYSTORE_FILE always points here, but the file only exists
+      # when the decode step above actually wrote it — build.gradle.kts's own
+      # releaseKeystore(project) checks file.isFile and returns null (an
+      # unsigned build, same as before) when it's missing, so a secrets-less
+      # run is still correctly unsigned.
       - name: Assemble the release APK
         env:
-          TRITIUM_KEYSTORE_FILE: ${{ secrets.TRITIUM_KEYSTORE_BASE64 != '' && format('{0}/tritium-release.jks', runner.temp) || '' }}
+          TRITIUM_KEYSTORE_FILE: ${{ runner.temp }}/tritium-release.jks
           TRITIUM_KEYSTORE_PASSWORD: ${{ secrets.TRITIUM_KEYSTORE_PASSWORD }}
           TRITIUM_KEY_ALIAS: ${{ secrets.TRITIUM_KEY_ALIAS }}
           TRITIUM_KEY_PASSWORD: ${{ secrets.TRITIUM_KEY_PASSWORD }}
