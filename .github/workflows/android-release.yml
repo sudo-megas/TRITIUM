@@ -27,7 +27,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-release-${{ github.ref }}
@@ -132,3 +132,22 @@ jobs:
           name: tritium-android-${{ github.sha }}
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      # Now that the release build is genuinely signed (see this file's own
+      # header), "provenance only, never attached to the public Release" no
+      # longer holds -- a signed APK is exactly what belongs on the Release
+      # page, not buried in a workflow run only a maintainer would think to
+      # check. Derives the release tag from versionName rather than trusting
+      # github.ref_name, so a workflow_dispatch run (no tag of its own) still
+      # attaches to the matching already-published release. Non-fatal: a dry
+      # run with no matching release yet is not a build failure.
+      - name: Attach the release APK to the matching GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          TAG="android-v${VERSION}"
+          APK=$(ls app/build/outputs/apk/release/*.apk)
+          gh release upload "${TAG}" "${APK}" --clobber --repo "${GITHUB_REPOSITORY}" \
+            || echo "no published release ${TAG} to attach to (fine for a dry run)"
